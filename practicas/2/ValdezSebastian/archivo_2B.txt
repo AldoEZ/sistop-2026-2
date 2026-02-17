@@ -1,0 +1,1 @@
+Este archivo contiene este texto porque no estoy en Linux y no puedo obtener CPU info 
