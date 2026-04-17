@@ -21,6 +21,7 @@
   | 20-abr-2026 | Karina Lizeth Rosete Manzano y Sara Espinosa González   | Defensas preventivas de los sistemas operativos ante ataques informáticos |         |                               |                                                 |
   | 20-abr-2026 | Isaac  Campos y Alejandro Martínez                      | El ataque a la cadena de suministro de xz                                 |         |                               |                                                 |
   | 27-abr-2026 | Derek André López y Fernando Ortega                     | El problema del año 2038 (Y2K38)                                          |         |                               |                                                 |
+  | 27-abr-2026 | José Manuel Ferrer y Hugo Emmanuel Chacón               | ¿Cómo funciona FUSE por dentro?                                           |         |                               |                                                 |
   |-------------+---------------------------------------------------------+---------------------------------------------------------------------------+---------+-------------------------------+-------------------------------------------------|
   #+TBLFM: 
 
