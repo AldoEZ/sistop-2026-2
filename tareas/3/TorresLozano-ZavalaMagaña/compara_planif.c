@@ -1,12 +1,12 @@
 /*
-Tarea 3 - Comparación de planificadores de procesos
+Tarea 3 - ComparaciÃ³n de planificadores de procesos
 Sistemas Operativos
 Integrantes:
  	- Torres Lozano Luis
- 	- Zavala Magaña Luis
+ 	- Zavala MagaÃ±a Luis
 Lo que hace el programa:
-Genera 5 rondas con procesos aleatorios y les aplica cuatro algoritmos de planificacin: FCFS, RR (quantum 1 y 4), SPN y FB (retroalimentación multinivel).
-Para cada uno imprime las métricas T, E, P y el diagrama de Gantt.
+Genera 5 rondas con procesos aleatorios y les aplica cuatro algoritmos de planificacin: FCFS, RR (quantum 1 y 4), SPN y FB (retroalimentaciÃ³n multinivel).
+Para cada uno imprime las mÃ©tricas T, E, P y el diagrama de Gantt.
 Compilar: gcc -o compara_planif compara_planif.c
 */
 #include <stdio.h>
@@ -14,13 +14,13 @@ Compilar: gcc -o compara_planif compara_planif.c
 #include <string.h>
 #include <time.h>
 
-#define MAXP 5    /*para número de procesos por ronda*/
-#define MAXT 200  /*long máx del diagrama de Gantt*/
+#define MAXP 5    /*para nÃºmero de procesos por ronda*/
+#define MAXT 200  /*long mÃ¡x del diagrama de Gantt*/
 
 typedef struct {
-	char name;      /*letra identificadora: A, B, C y así*/
+	char name;      /*letra identificadora: A, B, C y asÃ­*/
 	int  llegada;   /*tiempo de llegada*/
-	int  duracion;  /*duración total (burst)*/
+	int  duracion;  /*duraciÃ³n total (burst)*/
 	int  restante;  /*tiempo que le queda por ejecutar*/
 	int  fin;       /*tiempo en que termina*/
 } Proceso;
@@ -32,7 +32,7 @@ void copiar(Proceso src[], Proceso dest[]) {
         dest[i] = src[i];
 }
 
-/*muestra los procesos de la ronda con su llegada y duración, mas la suma total */
+/*muestra los procesos de la ronda con su llegada y duraciÃ³n, mas la suma total */
 void imprimir_procesos(Proceso p[]) {
 	int i, tot = 0;
 	for (i = 0; i < MAXP; i++) {
@@ -42,7 +42,7 @@ void imprimir_procesos(Proceso p[]) {
 	printf("(tot:%d)\n", tot);
 }
 
-/*calcula e imprime T (retorno), E (espera) y P (penalizaciónn) promedio*/
+/*calcula e imprime T (retorno), E (espera) y P (penalizaciÃ³nn) promedio*/
 void metricas(Proceso p[]) {
     float T = 0, E = 0, P = 0;
     int i;
@@ -63,7 +63,7 @@ void fcfs(Proceso p[]) {
 	int  i, j;
 
 	for (i = 0; i < MAXP; i++) {
-		/*si CPU está libre antes de que llegue el proceso, avanza*/
+		/*si CPU estÃ¡ libre antes de que llegue el proceso, avanza*/
 		if (tiempo < p[i].llegada)
 			tiempo = p[i].llegada;
 
@@ -158,10 +158,10 @@ void spn(Proceso p[]) {
 }
 
 
-/* Feedback (retroalimentación multinivel):
-Hay varias colas con prioridad decreciente (cola 0 = más alta). El quantum de la cola k es 2^k (1, 2, 4, 8...).
+/* Feedback (retroalimentaciÃ³n multinivel):
+Hay varias colas con prioridad decreciente (cola 0 = mÃ¡s alta). El quantum de la cola k es 2^k (1, 2, 4, 8...).
 Si un proceso no termina en su quantum, baja a la siguiente cola. Siempre se atiende primero la cola de mayor prioridad con procesos listos.
-Es parecido a RR pero penaliza a los procesos largos automáticamente. */
+Es parecido a RR pero penaliza a los procesos largos automÃ¡ticamente. */
 void fb(Proceso p[]) {
 	char gantt[MAXT] = "";
 	int  tiempo = 0, completados = 0;
@@ -172,7 +172,7 @@ void fb(Proceso p[]) {
 	for (i = 0; i < MAXP; i++) cola[i] = 0;
 
 	while (completados < MAXP) {
-	/*elige el proceso listo de mayor prioridad (menor número de cola) */
+	/*elige el proceso listo de mayor prioridad (menor nÃºmero de cola) */
 		int idx = -1, mejor = 9999;
 
 		for (i = 0; i < MAXP; i++) {
@@ -225,7 +225,7 @@ int main() {
 
 		Proceso base[MAXP];
 
-		/*genera procesos con llegada y duración aleatorias*/
+		/*genera procesos con llegada y duraciÃ³n aleatorias*/
 		for (i = 0; i < MAXP; i++) {
 			base[i].name     = 'A' + i;
 			base[i].llegada  = rand() % 10;
