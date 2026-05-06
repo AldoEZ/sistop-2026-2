@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Proyecto 1 — FiUnamFS.
-Etapa 2: leer el directorio plano y descartar entradas libres.
+Etapa 3: comando «listar» con salida tabular.
 """
 
 import os
@@ -143,16 +143,33 @@ def leer_directorio(ruta):
     return entradas
 
 
+def listar(ruta):
+    entradas = leer_directorio(ruta)
+    if not entradas:
+        print('(El directorio está vacío.)')
+        return
+
+    print(f'{"Nombre":<16} {"Tamaño":>10} {"Clúster":>8}  '
+          f'{"Creación":<19}  {"Modificación":<19}')
+    print('-' * 80)
+    for e in entradas:
+        crea = (e.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S')
+                if e.fecha_creacion else '—')
+        modif = (e.fecha_modificacion.strftime('%Y-%m-%d %H:%M:%S')
+                 if e.fecha_modificacion else '—')
+        print(f'{e.nombre:<16} {e.tamanio:>10,} {e.cluster_inicial:>8}  '
+              f'{crea:<19}  {modif:<19}')
+    print('-' * 80)
+    print(f'Total: {len(entradas)} archivo(s)')
+
+
 def main():
     if len(sys.argv) != 2:
         print('Uso: python3 proyecto.py <ruta_imagen>')
         return 1
     try:
         validar_imagen(sys.argv[1])
-        entradas = leer_directorio(sys.argv[1])
-        print(f'Encontradas {len(entradas)} entradas activas:')
-        for e in entradas:
-            print(f'  {e.nombre!r}  {e.tamanio} bytes  cluster={e.cluster_inicial}')
+        listar(sys.argv[1])
     except (FileNotFoundError, ValueError) as err:
         print(f'Error: {err}', file=sys.stderr)
         return 1
