@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Proyecto 1 — FiUnamFS.
-Etapa 3: comando «listar» con salida tabular.
+Etapa 4: extraer archivos de la imagen al sistema local.
 """
 
 import os
@@ -143,6 +143,24 @@ def leer_directorio(ruta):
     return entradas
 
 
+def _buscar_entrada(entradas, nombre):
+    for e in entradas:
+        if e.nombre == nombre:
+            return e
+    raise ValueError(f'No existe «{nombre}» en FiUnamFS.')
+
+
+def extraer(ruta, nombre, destino):
+    entradas = leer_directorio(ruta)
+    entrada = _buscar_entrada(entradas, nombre)
+    with open(ruta, 'rb') as imagen:
+        imagen.seek(entrada.cluster_inicial * TAMANIO_CLUSTER)
+        contenido = imagen.read(entrada.tamanio)
+    with open(destino, 'wb') as salida:
+        salida.write(contenido)
+    print(f'Extraído «{nombre}» → «{destino}» ({entrada.tamanio:,} bytes).')
+
+
 def listar(ruta):
     entradas = leer_directorio(ruta)
     if not entradas:
@@ -164,12 +182,27 @@ def listar(ruta):
 
 
 def main():
-    if len(sys.argv) != 2:
-        print('Uso: python3 proyecto.py <ruta_imagen>')
+    if len(sys.argv) < 3:
+        print('Uso:')
+        print('  python3 proyecto.py <imagen> listar')
+        print('  python3 proyecto.py <imagen> extraer <nombre> <destino>')
         return 1
+
+    ruta = sys.argv[1]
+    comando = sys.argv[2]
+
     try:
-        validar_imagen(sys.argv[1])
-        listar(sys.argv[1])
+        validar_imagen(ruta)
+        if comando == 'listar':
+            listar(ruta)
+        elif comando == 'extraer':
+            if len(sys.argv) != 5:
+                print('Uso: extraer <nombre> <destino>')
+                return 1
+            extraer(ruta, sys.argv[3], sys.argv[4])
+        else:
+            print(f'Comando desconocido: {comando}')
+            return 1
     except (FileNotFoundError, ValueError) as err:
         print(f'Error: {err}', file=sys.stderr)
         return 1
