@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 Proyecto 1 — FiUnamFS.
-Etapa 4: extraer archivos de la imagen al sistema local.
+Etapa 5: insertar archivos locales con asignacion contigua (first-fit).
 """
 
+import math
 import os
 import struct
 import sys
@@ -51,6 +52,8 @@ LONGITUD_FECHA = 14
 TIPO_ARCHIVO = b'-'
 TIPO_ENTRADA_LIBRE = b'/'
 RELLENO_NOMBRE_LIBRE = 0x23  # '#'
+
+CLUSTER_INICIO_DATOS = CLUSTER_INICIO_DIRECTORIO + NUM_CLUSTERS_DIRECTORIO
 
 
 @dataclass
@@ -143,6 +146,103 @@ def leer_directorio(ruta):
     return entradas
 
 
+def _clusters_necesarios(tamanio):
+    return math.ceil(tamanio / TAMANIO_CLUSTER)
+
+
+def _clusters_ocupados(entradas):
+    ocup = set()
+    for e in entradas:
+        for c in range(e.cluster_inicial,
+                       e.cluster_inicial + _clusters_necesarios(e.tamanio)):
+            ocup.add(c)
+    return ocup
+
+
+def _primer_hueco_contiguo(entradas, clusters):
+    """First-fit sobre el área de datos."""
+    ocup = _clusters_ocupados(entradas)
+    inicio = CLUSTER_INICIO_DATOS
+    libres = 0
+    for c in range(CLUSTER_INICIO_DATOS, TOTAL_CLUSTERS):
+        if c in ocup:
+            inicio = c + 1
+            libres = 0
+        else:
+            libres += 1
+            if libres >= clusters:
+                return inicio
+    raise ValueError(
+        f'No hay {clusters} clúster(es) contiguos libres en el área de datos.'
+    )
+
+
+def _offset_primera_entrada_libre(ruta):
+    base = CLUSTER_INICIO_DIRECTORIO * TAMANIO_CLUSTER
+    with open(ruta, 'rb') as f:
+        f.seek(base)
+        crudo = f.read(NUM_CLUSTERS_DIRECTORIO * TAMANIO_CLUSTER)
+    for i in range(len(crudo) // TAMANIO_ENTRADA):
+        bloque = crudo[i * TAMANIO_ENTRADA:(i + 1) * TAMANIO_ENTRADA]
+        if _es_entrada_libre(bloque):
+            return base + i * TAMANIO_ENTRADA
+    raise ValueError('El directorio está lleno; no hay entradas libres.')
+
+
+def insertar(ruta, ruta_local):
+    if not os.path.isfile(ruta_local):
+        raise FileNotFoundError(f'No existe el archivo local «{ruta_local}».')
+
+    nombre = os.path.basename(ruta_local)
+    if len(nombre) > LONGITUD_NOMBRE:
+        raise ValueError(
+            f'El nombre «{nombre}» excede {LONGITUD_NOMBRE} caracteres.'
+        )
+    if not all(ord(c) < 128 for c in nombre):
+        raise ValueError('El nombre contiene caracteres fuera de ASCII de 7 bits.')
+
+    with open(ruta_local, 'rb') as f:
+        contenido = f.read()
+    tamanio = len(contenido)
+    if tamanio == 0:
+        raise ValueError('No se admite insertar un archivo vacío.')
+
+    entradas = leer_directorio(ruta)
+    if any(e.nombre == nombre for e in entradas):
+        raise ValueError(f'Ya existe «{nombre}» dentro de FiUnamFS.')
+
+    n_clusters = _clusters_necesarios(tamanio)
+    cluster_inicial = _primer_hueco_contiguo(entradas, n_clusters)
+    offset_entrada = _offset_primera_entrada_libre(ruta)
+
+    sello = datetime.now().strftime('%Y%m%d%H%M%S').encode('ascii')
+
+    with open(ruta, 'r+b') as imagen:
+        imagen.seek(cluster_inicial * TAMANIO_CLUSTER)
+        imagen.write(contenido)
+
+        # Rellenar el último clúster con ceros: evita exponer residuos
+        # de un archivo previo si el espacio se reutilizó tras un borrado.
+        residuo = tamanio % TAMANIO_CLUSTER
+        if residuo:
+            imagen.write(b'\x00' * (TAMANIO_CLUSTER - residuo))
+
+        registro = bytearray(TAMANIO_ENTRADA)
+        registro[OFFSET_TIPO:OFFSET_TIPO + 1] = TIPO_ARCHIVO
+        nombre_bytes = nombre.encode('ascii').ljust(LONGITUD_NOMBRE, b' ')
+        registro[OFFSET_NOMBRE:OFFSET_NOMBRE + LONGITUD_NOMBRE] = nombre_bytes
+        struct.pack_into('<I', registro, OFFSET_TAMANIO, tamanio)
+        struct.pack_into('<I', registro, OFFSET_CLUSTER_INICIAL, cluster_inicial)
+        registro[OFFSET_FECHA_CREACION:OFFSET_FECHA_CREACION + LONGITUD_FECHA] = sello
+        registro[OFFSET_FECHA_MODIFICACION:OFFSET_FECHA_MODIFICACION + LONGITUD_FECHA] = sello
+
+        imagen.seek(offset_entrada)
+        imagen.write(registro)
+
+    print(f'Insertado «{nombre}» en clúster {cluster_inicial} '
+          f'({tamanio:,} bytes, {n_clusters} clúster(es)).')
+
+
 def _buscar_entrada(entradas, nombre):
     for e in entradas:
         if e.nombre == nombre:
@@ -200,6 +300,11 @@ def main():
                 print('Uso: extraer <nombre> <destino>')
                 return 1
             extraer(ruta, sys.argv[3], sys.argv[4])
+        elif comando == 'insertar':
+            if len(sys.argv) != 4:
+                print('Uso: insertar <ruta_local>')
+                return 1
+            insertar(ruta, sys.argv[3])
         else:
             print(f'Comando desconocido: {comando}')
             return 1
