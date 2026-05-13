@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Proyecto 1 — FiUnamFS.
-Etapa 5: insertar archivos locales con asignacion contigua (first-fit).
+Etapa 6: borrado logico de archivos.
 """
 
 import math
@@ -267,6 +267,19 @@ def extraer(ruta, nombre, destino):
     print(f'Extraído «{nombre}» → «{destino}» ({entrada.tamanio:,} bytes).')
 
 
+def eliminar(ruta, nombre):
+    """Borrado lógico: invalida la entrada sin tocar el área de datos."""
+    entradas = leer_directorio(ruta)
+    entrada = _buscar_entrada(entradas, nombre)
+    nombre_invalido = bytes([RELLENO_NOMBRE_LIBRE] * LONGITUD_NOMBRE)
+    with open(ruta, 'r+b') as imagen:
+        imagen.seek(entrada.offset_en_disco + OFFSET_TIPO)
+        imagen.write(TIPO_ENTRADA_LIBRE)
+        imagen.seek(entrada.offset_en_disco + OFFSET_NOMBRE)
+        imagen.write(nombre_invalido)
+    print(f'Eliminado «{nombre}».')
+
+
 def listar(ruta):
     entradas = leer_directorio(ruta)
     if not entradas:
@@ -311,6 +324,11 @@ def main():
                 print('Uso: insertar <ruta_local>')
                 return 1
             insertar(ruta, sys.argv[3])
+        elif comando == 'eliminar':
+            if len(sys.argv) != 4:
+                print('Uso: eliminar <nombre>')
+                return 1
+            eliminar(ruta, sys.argv[3])
         else:
             print(f'Comando desconocido: {comando}')
             return 1
