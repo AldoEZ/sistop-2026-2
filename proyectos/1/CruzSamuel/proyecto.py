@@ -63,6 +63,10 @@ class EntradaDirectorio:
     cluster_inicial: int
     fecha_creacion: datetime
     fecha_modificacion: datetime
+    # Offset absoluto (en bytes) del inicio de la entrada de 64 bytes
+    # dentro de la imagen. Lo necesito para modificar la entrada en el
+    # borrado lógico sin volver a buscarla.
+    offset_en_disco: int
 
 
 def validar_imagen(ruta):
@@ -110,7 +114,7 @@ def _es_entrada_libre(bloque):
     return all(b == RELLENO_NOMBRE_LIBRE for b in nombre)
 
 
-def _parsear_entrada(bloque):
+def _parsear_entrada(bloque, offset_en_disco):
     nombre = (bloque[OFFSET_NOMBRE:OFFSET_NOMBRE + LONGITUD_NOMBRE]
               .decode('ascii', errors='replace')
               .rstrip(' \x00'))
@@ -128,13 +132,15 @@ def _parsear_entrada(bloque):
         cluster_inicial=cluster,
         fecha_creacion=creacion,
         fecha_modificacion=modificacion,
+        offset_en_disco=offset_en_disco,
     )
 
 
 def leer_directorio(ruta):
     """Devuelve las entradas activas (no libres) del directorio."""
+    base = CLUSTER_INICIO_DIRECTORIO * TAMANIO_CLUSTER
     with open(ruta, 'rb') as f:
-        f.seek(CLUSTER_INICIO_DIRECTORIO * TAMANIO_CLUSTER)
+        f.seek(base)
         crudo = f.read(NUM_CLUSTERS_DIRECTORIO * TAMANIO_CLUSTER)
 
     entradas = []
@@ -142,7 +148,7 @@ def leer_directorio(ruta):
         bloque = crudo[i * TAMANIO_ENTRADA:(i + 1) * TAMANIO_ENTRADA]
         if _es_entrada_libre(bloque):
             continue
-        entradas.append(_parsear_entrada(bloque))
+        entradas.append(_parsear_entrada(bloque, base + i * TAMANIO_ENTRADA))
     return entradas
 
 
