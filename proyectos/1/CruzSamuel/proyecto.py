@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
 Proyecto 1 — FiUnamFS.
-Etapa 6: borrado logico de archivos.
+Etapa 7: exclusion mutua sobre la imagen con threading.Lock.
 """
 
 import math
 import os
 import struct
 import sys
+import threading
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -54,6 +55,13 @@ TIPO_ENTRADA_LIBRE = b'/'
 RELLENO_NOMBRE_LIBRE = 0x23  # '#'
 
 CLUSTER_INICIO_DATOS = CLUSTER_INICIO_DIRECTORIO + NUM_CLUSTERS_DIRECTORIO
+
+
+# Un único Lock global serializa todo acceso a la imagen. Cada operación
+# que toca el directorio o el área de datos lo hace dentro de un bloque
+# `with cerrojo:`, garantizando que la decisión de dónde escribir y la
+# escritura misma sean atómicas frente a otros hilos.
+cerrojo = threading.Lock()
 
 
 @dataclass
@@ -213,37 +221,38 @@ def insertar(ruta, ruta_local):
     if tamanio == 0:
         raise ValueError('No se admite insertar un archivo vacío.')
 
-    entradas = leer_directorio(ruta)
-    if any(e.nombre == nombre for e in entradas):
-        raise ValueError(f'Ya existe «{nombre}» dentro de FiUnamFS.')
+    with cerrojo:
+        entradas = leer_directorio(ruta)
+        if any(e.nombre == nombre for e in entradas):
+            raise ValueError(f'Ya existe «{nombre}» dentro de FiUnamFS.')
 
-    n_clusters = _clusters_necesarios(tamanio)
-    cluster_inicial = _primer_hueco_contiguo(entradas, n_clusters)
-    offset_entrada = _offset_primera_entrada_libre(ruta)
+        n_clusters = _clusters_necesarios(tamanio)
+        cluster_inicial = _primer_hueco_contiguo(entradas, n_clusters)
+        offset_entrada = _offset_primera_entrada_libre(ruta)
 
-    sello = datetime.now().strftime('%Y%m%d%H%M%S').encode('ascii')
+        sello = datetime.now().strftime('%Y%m%d%H%M%S').encode('ascii')
 
-    with open(ruta, 'r+b') as imagen:
-        imagen.seek(cluster_inicial * TAMANIO_CLUSTER)
-        imagen.write(contenido)
+        with open(ruta, 'r+b') as imagen:
+            imagen.seek(cluster_inicial * TAMANIO_CLUSTER)
+            imagen.write(contenido)
 
-        # Rellenar el último clúster con ceros: evita exponer residuos
-        # de un archivo previo si el espacio se reutilizó tras un borrado.
-        residuo = tamanio % TAMANIO_CLUSTER
-        if residuo:
-            imagen.write(b'\x00' * (TAMANIO_CLUSTER - residuo))
+            # Rellenar el último clúster con ceros: evita exponer residuos
+            # de un archivo previo si el espacio se reutilizó tras un borrado.
+            residuo = tamanio % TAMANIO_CLUSTER
+            if residuo:
+                imagen.write(b'\x00' * (TAMANIO_CLUSTER - residuo))
 
-        registro = bytearray(TAMANIO_ENTRADA)
-        registro[OFFSET_TIPO:OFFSET_TIPO + 1] = TIPO_ARCHIVO
-        nombre_bytes = nombre.encode('ascii').ljust(LONGITUD_NOMBRE, b' ')
-        registro[OFFSET_NOMBRE:OFFSET_NOMBRE + LONGITUD_NOMBRE] = nombre_bytes
-        struct.pack_into('<I', registro, OFFSET_TAMANIO, tamanio)
-        struct.pack_into('<I', registro, OFFSET_CLUSTER_INICIAL, cluster_inicial)
-        registro[OFFSET_FECHA_CREACION:OFFSET_FECHA_CREACION + LONGITUD_FECHA] = sello
-        registro[OFFSET_FECHA_MODIFICACION:OFFSET_FECHA_MODIFICACION + LONGITUD_FECHA] = sello
+            registro = bytearray(TAMANIO_ENTRADA)
+            registro[OFFSET_TIPO:OFFSET_TIPO + 1] = TIPO_ARCHIVO
+            nombre_bytes = nombre.encode('ascii').ljust(LONGITUD_NOMBRE, b' ')
+            registro[OFFSET_NOMBRE:OFFSET_NOMBRE + LONGITUD_NOMBRE] = nombre_bytes
+            struct.pack_into('<I', registro, OFFSET_TAMANIO, tamanio)
+            struct.pack_into('<I', registro, OFFSET_CLUSTER_INICIAL, cluster_inicial)
+            registro[OFFSET_FECHA_CREACION:OFFSET_FECHA_CREACION + LONGITUD_FECHA] = sello
+            registro[OFFSET_FECHA_MODIFICACION:OFFSET_FECHA_MODIFICACION + LONGITUD_FECHA] = sello
 
-        imagen.seek(offset_entrada)
-        imagen.write(registro)
+            imagen.seek(offset_entrada)
+            imagen.write(registro)
 
     print(f'Insertado «{nombre}» en clúster {cluster_inicial} '
           f'({tamanio:,} bytes, {n_clusters} clúster(es)).')
@@ -257,11 +266,12 @@ def _buscar_entrada(entradas, nombre):
 
 
 def extraer(ruta, nombre, destino):
-    entradas = leer_directorio(ruta)
-    entrada = _buscar_entrada(entradas, nombre)
-    with open(ruta, 'rb') as imagen:
-        imagen.seek(entrada.cluster_inicial * TAMANIO_CLUSTER)
-        contenido = imagen.read(entrada.tamanio)
+    with cerrojo:
+        entradas = leer_directorio(ruta)
+        entrada = _buscar_entrada(entradas, nombre)
+        with open(ruta, 'rb') as imagen:
+            imagen.seek(entrada.cluster_inicial * TAMANIO_CLUSTER)
+            contenido = imagen.read(entrada.tamanio)
     with open(destino, 'wb') as salida:
         salida.write(contenido)
     print(f'Extraído «{nombre}» → «{destino}» ({entrada.tamanio:,} bytes).')
@@ -269,19 +279,21 @@ def extraer(ruta, nombre, destino):
 
 def eliminar(ruta, nombre):
     """Borrado lógico: invalida la entrada sin tocar el área de datos."""
-    entradas = leer_directorio(ruta)
-    entrada = _buscar_entrada(entradas, nombre)
-    nombre_invalido = bytes([RELLENO_NOMBRE_LIBRE] * LONGITUD_NOMBRE)
-    with open(ruta, 'r+b') as imagen:
-        imagen.seek(entrada.offset_en_disco + OFFSET_TIPO)
-        imagen.write(TIPO_ENTRADA_LIBRE)
-        imagen.seek(entrada.offset_en_disco + OFFSET_NOMBRE)
-        imagen.write(nombre_invalido)
+    with cerrojo:
+        entradas = leer_directorio(ruta)
+        entrada = _buscar_entrada(entradas, nombre)
+        nombre_invalido = bytes([RELLENO_NOMBRE_LIBRE] * LONGITUD_NOMBRE)
+        with open(ruta, 'r+b') as imagen:
+            imagen.seek(entrada.offset_en_disco + OFFSET_TIPO)
+            imagen.write(TIPO_ENTRADA_LIBRE)
+            imagen.seek(entrada.offset_en_disco + OFFSET_NOMBRE)
+            imagen.write(nombre_invalido)
     print(f'Eliminado «{nombre}».')
 
 
 def listar(ruta):
-    entradas = leer_directorio(ruta)
+    with cerrojo:
+        entradas = leer_directorio(ruta)
     if not entradas:
         print('(El directorio está vacío.)')
         return
