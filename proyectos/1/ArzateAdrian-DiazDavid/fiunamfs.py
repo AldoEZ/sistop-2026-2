@@ -20,6 +20,9 @@ class FiUnamFS(LoggingMixIn, Operations):
                 'st_mode': (stat.S_IFDIR | 0o755),
                 'st_nlink': 2
             }
+        
+        # Todo lo que no sea el directorio raíz fingimos que no existe 
+        raise OSError(errno.ENOENT, os.strerror(errno.ENOENT))
 
 
     def readdir(self, path, fh):
