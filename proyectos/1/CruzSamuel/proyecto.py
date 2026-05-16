@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Proyecto 1 — FiUnamFS.
-Etapa 7: exclusion mutua sobre la imagen con threading.Lock.
+Etapa 8: cada operacion corre en su propio hilo.
 """
 
 import math
@@ -312,6 +312,23 @@ def listar(ruta):
     print(f'Total: {len(entradas)} archivo(s)')
 
 
+def _ejecutar_en_hilo(funcion, *args):
+    """Lanza la operación en un hilo y propaga cualquier excepción al main."""
+    contenedor = {}
+
+    def envoltura():
+        try:
+            funcion(*args)
+        except Exception as err:
+            contenedor['error'] = err
+
+    hilo = threading.Thread(target=envoltura)
+    hilo.start()
+    hilo.join()
+    if 'error' in contenedor:
+        raise contenedor['error']
+
+
 def main():
     if len(sys.argv) < 3:
         print('Uso:')
@@ -325,22 +342,22 @@ def main():
     try:
         validar_imagen(ruta)
         if comando == 'listar':
-            listar(ruta)
+            _ejecutar_en_hilo(listar, ruta)
         elif comando == 'extraer':
             if len(sys.argv) != 5:
                 print('Uso: extraer <nombre> <destino>')
                 return 1
-            extraer(ruta, sys.argv[3], sys.argv[4])
+            _ejecutar_en_hilo(extraer, ruta, sys.argv[3], sys.argv[4])
         elif comando == 'insertar':
             if len(sys.argv) != 4:
                 print('Uso: insertar <ruta_local>')
                 return 1
-            insertar(ruta, sys.argv[3])
+            _ejecutar_en_hilo(insertar, ruta, sys.argv[3])
         elif comando == 'eliminar':
             if len(sys.argv) != 4:
                 print('Uso: eliminar <nombre>')
                 return 1
-            eliminar(ruta, sys.argv[3])
+            _ejecutar_en_hilo(eliminar, ruta, sys.argv[3])
         else:
             print(f'Comando desconocido: {comando}')
             return 1
