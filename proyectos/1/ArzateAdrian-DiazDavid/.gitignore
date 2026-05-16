@@ -1,0 +1,11 @@
+# Entornos virtuales
+.venv/
+venv/
+ENV/
+
+# Archivos de caché de Python
+__pycache__/
+*.pyc
+
+# Carpeta de montaje
+mnt/
