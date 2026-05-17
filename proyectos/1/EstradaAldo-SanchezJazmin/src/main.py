@@ -10,6 +10,7 @@ import sys
 
 from constantes import NOMBRE_SISTEMA, VERSION
 from argumentos import crear_parser, validar_rutas
+from fiunamfs import FiUnamFS
 
 """
 Funcion auxiliar para mostrar la configuracion inicial
@@ -35,6 +36,11 @@ def main():
         ruta_montaje
     )
     
+    sistema = FiUnamFS(ruta_imagen)
+    if not sistema.validar_superbloque():
+        return 1
+    
+    print("Superbloque validado de forma correcta.")
     print("Configuracion inicial correcta.")
     
     return 0
