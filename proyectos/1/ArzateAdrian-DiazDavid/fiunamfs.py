@@ -35,7 +35,7 @@ class FiUnamFS(LoggingMixIn, Operations):
             raise ValueError(f"Firma del sistema de archivos inválida: '{firma}'")
             
         version = sb_data[14:19].decode('ascii').strip('\x00')
-        if version != '24-2': # Cambio provisional para debuggear 
+        if version != '24-2': # Cambio provisional para debuggear - Deberia de ser 26-2
             raise ValueError(f"Versión de FiUnamFS no soportada: '{version}'")
             
         label = sb_data[20:36].decode('ascii').strip('\x00')
@@ -206,3 +206,208 @@ class FiUnamFS(LoggingMixIn, Operations):
 
         for r in dirents:
             yield r
+    
+    # capa FUSE
+
+    def read(self, path, size, offset, fh):
+        """
+        El SO pide 'size' bytes del archivo, comenzando en 'offset'.
+        Calculamos en qué clústeres caen esos bytes y los extraemos.
+        """
+        filename = path.lstrip('/')
+        if filename not in self.directory:
+            raise OSError(errno.ENOENT, os.strerror(errno.ENOENT)) # si el archivo no existe, lanzamos error
+
+        f_info = self.directory[filename]
+        start_cluster = f_info['start_cluster']
+        cluster_size = self.metadata['cluster_size']
+
+        # Calcular la posición absoluta en bytes dentro del disco
+        byte_offset = (start_cluster * cluster_size) + offset
+
+        # Pedir al Worker que lea exactamente los bytes requeridos
+        data = self.worker.read_bytes(byte_offset, size)
+
+        return data
+    
+    def create(self, path, mode):
+        """
+        El SO quiere crear un archivo nuevo. Buscamos una ranura libre
+        en el directorio y la inicializamos con tamaño 0.
+        """
+        filename = path.lstrip('/')
+
+        # Los nombres en FiUnamFS tienen máximo 15 caracteres
+        if len(filename) > 15:
+            raise OSError(errno.ENAMETOOLONG, os.strerror(errno.ENAMETOOLONG))
+
+        if filename in self.directory:
+            raise OSError(errno.EEXIST, os.strerror(errno.EEXIST)) # Si el archivo ya existe, lanzamos error
+
+        # Buscar una ranura libre en el directorio (tipo '/' o nombre '###############')
+        slot_cluster, slot_offset = self._find_free_dir_slot()
+
+        now = time.strftime('%Y%m%d%H%M%S')
+
+        # Empaquetar la nueva entrada de 64 bytes
+        entry = (
+            b'-'                                          # [0]     Tipo: archivo regular
+            + filename.encode('ascii').ljust(15, b'\x00') # [1:16]  Nombre (relleno de nulos)
+            + struct.pack('<I', 0)                        # [16:20] Tamaño inicial = 0
+            + struct.pack('<I', 0)                        # [20:24] Clúster inicial = 0 (aún sin datos)
+            + b'\x00' * 6                                 # [24:30] Relleno
+            + now.encode('ascii')                         # [30:44] Fecha creación
+            + b'\x00' * 6                                 # [44:50] Relleno
+            + now.encode('ascii')                         # [50:64] Fecha modificación
+        )
+
+        # Escribir la entrada en el clúster correcto del directorio
+        cluster_data = bytearray(self.worker.read_cluster(slot_cluster))
+        cluster_data[slot_offset:slot_offset + 64] = entry
+        self.worker.write_cluster(slot_cluster, bytes(cluster_data))
+
+        # Registrar en la caché en memoria
+        self.directory[filename] = {
+            'size': 0,
+            'start_cluster': 0,
+            'ctime': time.time(),
+            'mtime': time.time(),
+            'meta_cluster_id': slot_cluster,
+            'meta_offset': slot_offset
+        }
+
+        return 0  # FUSE requiere retornar 0 como file handle en create
+    
+    def write(self, path, data, offset, fh):
+        """
+        El SO envía fragmentos del archivo en 'data'. Escribimos los datos
+        en clústeres contiguos y actualizamos el directorio.
+        """
+        filename = path.lstrip('/')
+        if filename not in self.directory:
+            raise OSError(errno.ENOENT, os.strerror(errno.ENOENT)) 
+
+        f_info = self.directory[filename]
+        cluster_size = self.metadata['cluster_size']
+
+        new_size = offset + len(data)
+
+        # Calcular cuántos clústeres necesita el archivo tras este write
+        required_clusters = math.ceil(new_size / cluster_size)
+
+        # Si el archivo no tiene clústeres asignados, uscamos espacio libre
+        if f_info['start_cluster'] == 0:
+            start_cluster = self.find_free_clusters(required_clusters)
+            f_info['start_cluster'] = start_cluster
+            # Marcar los nuevos clústeres como ocupados en el mapa
+            for i in range(start_cluster, start_cluster + required_clusters):
+                self.cluster_map[i] = True
+        else:
+            start_cluster = f_info['start_cluster']
+
+        # Calcular la posición absoluta en bytes y escribir
+        byte_offset = (start_cluster * cluster_size) + offset
+        
+        # Escribir los datos bloque a bloque para no desbordar clústeres
+        written = 0
+        while written < len(data):
+            # Determinar en qué clúster caemos
+            current_abs_offset = byte_offset + written
+            cluster_id = current_abs_offset // cluster_size
+            offset_in_cluster = current_abs_offset % cluster_size
+
+            # Cuántos bytes podemos escribir en este clúster sin pasar al siguiente
+            space_in_cluster = cluster_size - offset_in_cluster
+            chunk = data[written:written + space_in_cluster]
+
+            # Leer el clúster, modificar el fragmento y reescribirlo completo
+            cluster_bytes = bytearray(self.worker.read_cluster(cluster_id))
+            cluster_bytes[offset_in_cluster:offset_in_cluster + len(chunk)] = chunk
+            self.worker.write_cluster(cluster_id, bytes(cluster_bytes))
+
+            written += len(chunk)
+
+        # Actualizar tamaño y metadatos en la caché
+        f_info['size'] = new_size
+        f_info['mtime'] = time.time()
+        self.directory[filename] = f_info
+
+        # Persistir la entrada del directorio en disco
+        self._update_dir_entry(filename)
+
+        return len(data)
+    
+    def unlink(self, path):
+        """
+        Marca la entrada del directorio como libre (nombre '###############').
+        Los clústeres de datos quedan automáticamente disponibles.
+        """
+        filename = path.lstrip('/')
+        if filename not in self.directory:
+            raise OSError(errno.ENOENT, os.strerror(errno.ENOENT))
+
+        f_info = self.directory[filename]
+        slot_cluster = f_info['meta_cluster_id']
+        slot_offset = f_info['meta_offset']
+
+        # Leer el clúster, sobreescribir la ranura con el marcador de libre
+        cluster_bytes = bytearray(self.worker.read_cluster(slot_cluster))
+        # Entrada vacía: tipo '/', nombre '###############', resto nulos
+        empty_entry = b'/' + b'###############' + b'\x00' * 48
+        cluster_bytes[slot_offset:slot_offset + 64] = empty_entry
+        self.worker.write_cluster(slot_cluster, bytes(cluster_bytes))
+
+        # Liberar los clústeres de datos en el mapa en memoria
+        start = f_info['start_cluster']
+        size = f_info['size']
+        if start > 0 and size > 0:
+            num_clusters = math.ceil(size / self.metadata['cluster_size'])
+            for i in range(start, start + num_clusters):
+                if i < len(self.cluster_map):
+                    self.cluster_map[i] = False
+
+        # Eliminar de la caché
+        del self.directory[filename]
+
+    # Funciones de ayuda
+    def _find_free_dir_slot(self):
+        """
+        Busca la primera ranura libre (64 bytes) en los clústeres del directorio.
+        """
+        dir_clusters = self.metadata['dir_clusters']
+        for cluster_id in range(1, dir_clusters + 1):
+            cluster_data = self.worker.read_cluster(cluster_id)
+            for offset in range(0, 2048, 64):
+                entry = cluster_data[offset:offset + 64]
+                file_type = entry[0:1].decode('ascii')
+                filename_raw = entry[1:16].decode('ascii')
+                if file_type == '/' or filename_raw == '###############':
+                    return cluster_id, offset
+        raise OSError(errno.ENOSPC, "El directorio está lleno, no hay más ranuras disponibles")
+
+    def _update_dir_entry(self, filename):
+        """
+        Persiste los metadatos de un archivo en su ranura del directorio en disco.
+        """
+        f_info = self.directory[filename]
+        slot_cluster = f_info['meta_cluster_id']
+        slot_offset = f_info['meta_offset']
+        cluster_size = self.metadata['cluster_size']
+
+        now = time.strftime('%Y%m%d%H%M%S')
+        ctime_str = time.strftime('%Y%m%d%H%M%S', time.localtime(f_info['ctime']))
+
+        entry = (
+            b'-'
+            + filename.encode('ascii').ljust(15, b'\x00')
+            + struct.pack('<I', f_info['size'])
+            + struct.pack('<I', f_info['start_cluster'])
+            + b'\x00' * 6
+            + ctime_str.encode('ascii')
+            + b'\x00' * 6
+            + now.encode('ascii')
+        )
+
+        cluster_bytes = bytearray(self.worker.read_cluster(slot_cluster))
+        cluster_bytes[slot_offset:slot_offset + 64] = entry
+        self.worker.write_cluster(slot_cluster, bytes(cluster_bytes))
