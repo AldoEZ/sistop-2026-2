@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 Proyecto 1 — FiUnamFS.
-Etapa 8: cada operacion corre en su propio hilo.
+Etapa 9: interfaz de linea de comandos con argparse y subcomandos.
 """
 
+import argparse
 import math
 import os
 import struct
@@ -329,38 +330,42 @@ def _ejecutar_en_hilo(funcion, *args):
         raise contenedor['error']
 
 
-def main():
-    if len(sys.argv) < 3:
-        print('Uso:')
-        print('  python3 proyecto.py <imagen> listar')
-        print('  python3 proyecto.py <imagen> extraer <nombre> <destino>')
-        return 1
+def _construir_parser():
+    parser = argparse.ArgumentParser(
+        prog='proyecto.py',
+        description='Herramienta para manipular imágenes FiUnamFS (versión 26-2).',
+    )
+    parser.add_argument('imagen', help='Ruta a la imagen FiUnamFS (1440 KB).')
+    sub = parser.add_subparsers(dest='comando', required=True)
 
-    ruta = sys.argv[1]
-    comando = sys.argv[2]
+    sub.add_parser('listar', help='Lista el contenido del directorio.')
+
+    p_ext = sub.add_parser('extraer', help='Copia un archivo al equipo local.')
+    p_ext.add_argument('nombre', help='Nombre del archivo dentro de FiUnamFS.')
+    p_ext.add_argument('destino', help='Ruta local destino.')
+
+    p_ins = sub.add_parser('insertar', help='Copia un archivo local a FiUnamFS.')
+    p_ins.add_argument('ruta_local', help='Archivo local a insertar.')
+
+    p_del = sub.add_parser('eliminar', help='Borrado lógico de un archivo.')
+    p_del.add_argument('nombre', help='Nombre del archivo a eliminar.')
+
+    return parser
+
+
+def main():
+    args = _construir_parser().parse_args()
 
     try:
-        validar_imagen(ruta)
-        if comando == 'listar':
-            _ejecutar_en_hilo(listar, ruta)
-        elif comando == 'extraer':
-            if len(sys.argv) != 5:
-                print('Uso: extraer <nombre> <destino>')
-                return 1
-            _ejecutar_en_hilo(extraer, ruta, sys.argv[3], sys.argv[4])
-        elif comando == 'insertar':
-            if len(sys.argv) != 4:
-                print('Uso: insertar <ruta_local>')
-                return 1
-            _ejecutar_en_hilo(insertar, ruta, sys.argv[3])
-        elif comando == 'eliminar':
-            if len(sys.argv) != 4:
-                print('Uso: eliminar <nombre>')
-                return 1
-            _ejecutar_en_hilo(eliminar, ruta, sys.argv[3])
-        else:
-            print(f'Comando desconocido: {comando}')
-            return 1
+        validar_imagen(args.imagen)
+        if args.comando == 'listar':
+            _ejecutar_en_hilo(listar, args.imagen)
+        elif args.comando == 'extraer':
+            _ejecutar_en_hilo(extraer, args.imagen, args.nombre, args.destino)
+        elif args.comando == 'insertar':
+            _ejecutar_en_hilo(insertar, args.imagen, args.ruta_local)
+        elif args.comando == 'eliminar':
+            _ejecutar_en_hilo(eliminar, args.imagen, args.nombre)
     except (FileNotFoundError, ValueError) as err:
         print(f'Error: {err}', file=sys.stderr)
         return 1
