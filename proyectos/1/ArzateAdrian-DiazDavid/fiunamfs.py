@@ -3,6 +3,7 @@ import stat
 import errno
 import struct
 import time
+import math
 from fuse import Operations, LoggingMixIn
 
 class FiUnamFS(LoggingMixIn, Operations):
@@ -16,6 +17,9 @@ class FiUnamFS(LoggingMixIn, Operations):
         
         # caché en memoria para agilizar consultas
         self.directory = {}
+
+        # mapa de ocupación de los clusteres
+        self.cluster_map = []
 
         # validación del disco
         self._mount_filesystem()
@@ -31,7 +35,7 @@ class FiUnamFS(LoggingMixIn, Operations):
             raise ValueError(f"Firma del sistema de archivos inválida: '{firma}'")
             
         version = sb_data[14:19].decode('ascii').strip('\x00')
-        if version != '26-2':
+        if version != '24-2': # Cambio provisional para debuggear 
             raise ValueError(f"Versión de FiUnamFS no soportada: '{version}'")
             
         label = sb_data[20:36].decode('ascii').strip('\x00')
@@ -52,6 +56,9 @@ class FiUnamFS(LoggingMixIn, Operations):
         
         # Tras validar leemos los archivos existentes
         self._parse_directory()
+
+        # mapeamos el espacio libre
+        self._build_free_space_map()
 
     def _parse_directory(self):
         print("Parseando clústeres del directorio...")
@@ -108,6 +115,62 @@ class FiUnamFS(LoggingMixIn, Operations):
                 }
 
                 print(f"    -> Encontrado: {filename} ({file_size} bytes, Clúster Inicial: {start_cluster})")
+
+    def _build_free_space_map(self):
+        """
+        Genera un mapa en memoria de los clústeres ocupados y libres.
+        """
+        total_clusters = self.metadata['total_clusters']
+        cluster_size = self.metadata['cluster_size']
+
+        self.cluster_map = [False] * total_clusters
+
+        # Los clusters 0 (Superbloque) y 1-8 (Directorio) siempre están ocupados
+        for i in range(9):
+            self.cluster_map[i] = True
+
+        # Marcar los clusters ocupados por los archivos detectados
+        for filename, info in self.directory.items():
+            start = info['start_cluster']
+            size = info['size']
+
+            if size == 0:
+                continue
+
+            # Calcular cuántos clústeres ocupa el archivo
+            num_clusters = math.ceil(size / cluster_size)
+
+            for i in range(start, start + num_clusters):
+                if i < total_clusters:
+                    self.cluster_map[i] = True
+
+        ocupados = sum(self.cluster_map)
+        libres = total_clusters - ocupados
+        print(f"Mapa de espacio generado: {ocupados} clústeres ocupados, {libres} libres.")
+
+    def find_free_clusters(self, required_clusters):
+        """
+        Busca una secuencia de 'required_clusters' ininterrumpidos y libres.
+        """
+        if required_clusters == 0:
+            return 0
+
+        total_clusters = self.metadata['total_clusters']
+        consecutive = 0
+        start_index = -1
+
+        for i in range(9, total_clusters):
+            if not self.cluster_map[i]:
+                if consecutive == 0:
+                    start_index = i
+                consecutive += 1
+
+                if consecutive == required_clusters:
+                    return start_index
+            else:
+                consecutive = 0
+
+        raise OSError(errno.ENOSPC, os.strerror(errno.ENOSPC)) # No hay espacio suficiente en el disco para escribir el archivo
 
     def getattr(self, path, fh=None):
         # El SO pregunta atributos del archivo o directorio
