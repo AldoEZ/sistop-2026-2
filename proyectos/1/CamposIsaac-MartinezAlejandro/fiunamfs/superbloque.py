@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 
 #Programa encargado de leer el superbloque de la imagen proporcionada
-#Autores: 
+#Autores: Isaac Campos, Alejandro Martinez
 #Fecha de realización: 15 Mayo 2026
 
-import struct as s
+from . import herramientas as h
 
 #Constantes del sistema de archivos mencionados en el planteamiento
 
@@ -21,15 +21,8 @@ CLUSTER_FIN_DIR = 8
 NUM_CLUSTER_DIR = 7
 TAM_ENTRADA_DIR = 64
 
-#Funciones para pasar de binario a numero con little endian
-def leerLe(bytes_raw):
-    return s.unpack('<I', bytes_raw)[0]
-
-def escribirLe(numero):
-    return s.pack('<I', numero)
-
-#Se define la clase para el sistema de archivos
-class FiUnamFS():
+#Se define la clase para el superbloque
+class SuperBloque():
     def __init__(self, ruta_img):
         self.ruta_img = ruta_img
         self.leerSuperbloque()
@@ -45,8 +38,8 @@ class FiUnamFS():
             self.version = sp_bloque[14:19].decode('ascii').strip('\x00')
             self.etiqueta = sp_bloque[20:36].decode('ascii').strip('\x00')
 
-            self.tam_cluster = leerLe(sp_bloque[40:44])[0]
-            self.num_clusters_dir = leerLe(sp_bloque[50:54])[0]
+            self.tam_cluster = h.leerLe(sp_bloque[40:44])[0]
+            self.num_clusters_dir = h.leerLe(sp_bloque[50:54])[0]
             self.num_clusters_tot = leerLe(sp_bloque[60:64])[0]
 
             self.desp_dir = CLUSTER_INI_DIR * self.tam_cluster
@@ -61,8 +54,9 @@ class FiUnamFS():
             
 
 #Main para probar que todo se lee bien
+"""
 if __name__ == '__main__':
-    sb = FiUnamFS('../fiunamfs.img')
+    sb = SuperBloque('../fiunamfs.img')
     print(sb.nombre)
     print(sb.version)
     print(sb.etiqueta)
@@ -71,4 +65,4 @@ if __name__ == '__main__':
     print(sb.num_clusters_tot)
     print(sb.desp_dir)
     print(sb.desp_datos)
-
+"""
