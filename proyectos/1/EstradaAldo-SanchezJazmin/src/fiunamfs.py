@@ -226,7 +226,7 @@ class FiUnamFS:
                     break
             
             if libre:
-                return True
+                return cluster_inicio
         return None
     
     """
