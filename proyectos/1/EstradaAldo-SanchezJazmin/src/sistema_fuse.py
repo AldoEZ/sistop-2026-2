@@ -42,7 +42,7 @@ class SistemaFuse(Fuse):
         st = fuse.Stat()
         
         if path == "/":
-            st.st_mode = stat.S_IFDIR | 0o555
+            st.st_mode = stat.S_IFDIR | 0o755
             st.st_nlink = 2
             return st
         
@@ -52,7 +52,7 @@ class SistemaFuse(Fuse):
         if entrada is None:
             return -errno.ENOENT
         
-        st.st_mode = stat.S_IFREG | 0o444
+        st.st_mode = stat.S_IFREG | 0o644
         st.st_nlink = 1
         st.st_size = entrada.tamano
         
@@ -69,3 +69,13 @@ class SistemaFuse(Fuse):
             return -errno.ENOENT
         
         return contenido
+    
+    """
+    elimina un archivo desde el montaje de FUSE
+    """
+    def unlink(self, path):
+        nombre_archivo = path[1:]
+        
+        if not self.fiunamfs.eliminar_archivo(nombre_archivo):
+            return -errno.ENOENT
+        return 0
