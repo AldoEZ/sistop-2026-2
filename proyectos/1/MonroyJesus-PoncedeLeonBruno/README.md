@@ -4,7 +4,9 @@
 - **Monroy Tapia Jesús Alejandro**
 - **Ponce de León Reyes Bruno**
 
-Proyecto Sistemas Operativos — Facultad de Ingeniería, UNAM  
+---
+
+**Proyecto Sistemas Operativos — Facultad de Ingeniería, UNAM**
 Implementación en C con FUSE (Filesystem in Userspace)
 
 ---
@@ -110,7 +112,8 @@ mecanismos de sincronización POSIX:
 
 ### Hilo 1 — Hilo FUSE (principal)
 Este hilo se encarga de gestionar las llamadas del kernel: `getattr`, `readdir`, `read`, `write`,
-`create`, `unlink`, `rename`, etc.  
+`create`, `unlink`, `rename`, etc.
+
 Protege el acceso al directorio en memoria y al descriptor de disco con el
 mutex `fs_mutex`.
 
