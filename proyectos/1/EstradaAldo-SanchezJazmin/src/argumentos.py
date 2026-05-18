@@ -42,7 +42,7 @@ def crear_parser():
     )
     
     operaciones.add_argument(
-        "--extraer",
+        "--copiar",
         metavar="ARCHIVO",
         help="copia un archivo de FiUnamFS al destino local"
     )

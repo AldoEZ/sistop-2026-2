@@ -49,17 +49,17 @@ def main():
         
         print(f"El contenido del archivo '{args.leer} es:'")
         print(contenido.decode("ascii", errors="replace"))
-    elif args.extraer:
+    elif args.copiar:
         ruta_destino = Path(args.destino).resolve()
         
-        if not sistema.extraer_archivo(args.extraer, ruta_destino):
+        if not sistema.copiar_archivo(args.copiar, ruta_destino):
             return 1
     elif args.eliminar:
         if not sistema.eliminar_archivo(args.eliminar):
             return 1
     else:
         print("No se indico ninguna accion")
-        print("Usar --listar, --leer ARCHIVO, --extraer ARCHIVO o --eliminar ARCHIVO")
+        print("Usar --listar, --leer ARCHIVO, --copiar ARCHIVO o --eliminar ARCHIVO")
     
     return 0
 

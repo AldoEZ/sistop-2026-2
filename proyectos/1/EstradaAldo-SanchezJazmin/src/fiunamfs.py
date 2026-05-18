@@ -120,7 +120,7 @@ class FiUnamFS:
     """
     copia un archivo que pertenece a FiUnamFS hacia un directorio local
     """
-    def extraer_archivo(self, nombre_archivo, ruta_destino):
+    def copiar_archivo(self, nombre_archivo, ruta_destino):
         entrada = self.buscar_archivo(nombre_archivo)
         
         if entrada is None:
@@ -144,7 +144,7 @@ class FiUnamFS:
         with open(ruta_salida, "wb") as archivo_salida:
             archivo_salida.write(contenido)
         
-        print(f"El archivo '{nombre_archivo}' fue extraido correctamente")
+        print(f"El archivo '{nombre_archivo}' fue copiado correctamente")
         return True
     
     """
