@@ -24,8 +24,8 @@ def crear_parser():
     )
     
     """
-    operaciones me sirve a que el usuario solo ejecute una de las 2
-    o listar o leer archivo
+    operaciones me sirve a que el usuario solo ejecute una sola accion de todas las 
+    contenidas en el grupo, es decir, no puede listar y eliminar al mismo tiempo
     """
     operaciones = parser.add_mutually_exclusive_group()
     
