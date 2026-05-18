@@ -67,3 +67,22 @@ class EntradaDirectorio:
         datos[1:16] = ENTRADA_VACIA.encode("ascii")
         
         return bytes(datos)
+    
+    """
+    genera los 64 bytes que corresponden a una entrada de archivo al directorio
+    """
+    @staticmethod
+    def bytes_archivo(nombre_archivo, tamano, cluster_inicial, fecha_creacion, fecha_modificacion):
+        datos = bytearray(64)
+        
+        nombre_bytes = nombre_archivo.encode("ascii")
+        datos[0:1] = TIPO_ARCHIVO.encode("ascii")
+        datos[1:16] = nombre_bytes.ljust(15, b" ")
+        
+        datos[16:20] = struct.pack("<I", tamano)
+        datos[20:24] = struct.pack("<I", cluster_inicial)
+        
+        datos[30:44] = fecha_creacion.encode("ascii")
+        datos[50:64] = fecha_modificacion.encode("ascii")
+        
+        return bytes(datos)

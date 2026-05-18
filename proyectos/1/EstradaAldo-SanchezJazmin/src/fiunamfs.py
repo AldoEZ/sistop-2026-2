@@ -2,12 +2,18 @@
 logica utilizada para interpretar la imagen FiUnamFS
 """
 
+from pathlib import Path
+from datetime import datetime
+
 from disco import Disco
 from constantes import (
     NOMBRE_SISTEMA, VERSION, TAM_CLUSTER,
     CLUSTER_INICIO_DIRECTORIO,
     CLUSTER_FINAL_DIRECTORIO,
-    TAM_ENTRADA_DIRECTORIO
+    TAM_ENTRADA_DIRECTORIO,
+    CLUSTER_INICIO_DATOS,
+    TOTAL_CLUSTERS,
+    TAM_NOMBRE_ARCHIVO
 )
 from entrada_directorio import EntradaDirectorio
 
@@ -165,5 +171,134 @@ class FiUnamFS:
         self.disco.escribir_bytes(offset_entrada, datos_vacios)
         
         print(f"El archivo '{nombre_archivo}' fue eliminado de forma correcta")
+        
+        return True
+    
+    """
+    calcula cuatos clusters necesita un archivo por su tamano
+    """
+    def calcular_clusters_necesarios(self, tamano):
+        if tamano == 0:
+            return 0
+        return (tamano + TAM_CLUSTER - 1) // TAM_CLUSTER
+    
+    """
+    busca un entrada libre dentro del directorio
+    """
+    def buscar_entrada_libre(self):
+        entradas = self.leer_directorio()
+        
+        for entrada in entradas:
+            if entrada.esta_vacia():
+                return entrada.indice
+        return None
+    
+    """
+    obtiene los clusters que estan ocupados por los archivos actuales
+    """
+    def obtener_clustes_ocupados(self):
+        ocupados = set()
+        
+        for entrada in self.listar_archivos():
+            clusters = self.calcular_clusters_necesarios(entrada.tamano)
+            
+            for cluster in range(entrada.cluster_inicial, entrada.cluster_inicial + clusters):
+                ocupados.add(cluster)
+        
+        return ocupados
+    
+    """
+    obtiene espacio libre que sea contiguo y suficiente para guardar el nuevo archivo
+    """
+    def buscar_espacio_vacio(self, clusters_necesarios):
+        if clusters_necesarios == 0:
+            return 0
+        
+        ocupados = self.obtener_clustes_ocupados()
+        ultimo_inicio = TOTAL_CLUSTERS - clusters_necesarios
+        
+        for cluster_inicio in range(CLUSTER_INICIO_DATOS, ultimo_inicio + 1):
+            libre = True
+            
+            for desplazamiento in range(clusters_necesarios):
+                if cluster_inicio + desplazamiento in ocupados:
+                    libre = False
+                    break
+            
+            if libre:
+                return True
+        return None
+    
+    """
+    copia un archivo local a FiUnamFS
+    """
+    def insertar_archivo(self, ruta_archivo_local):
+        ruta_archivo_local = Path(ruta_archivo_local)
+        
+        if not ruta_archivo_local.exists():
+            print(f"Error: el archivo '{ruta_archivo_local}' no existe")
+            return False
+        
+        if not ruta_archivo_local.is_file():
+            print(f"Error: la ruta '{ruta_archivo_local}' no es un archivo")
+            return False
+        
+        nombre_archivo = ruta_archivo_local.name
+        
+        try:
+            nombre_archivo.encode("ascii")
+        except:
+            print("Error: el nombre del archivo debe pertenecer al subconjunto ASCII de 7 bits")
+            return False
+        
+        if len(nombre_archivo) > TAM_NOMBRE_ARCHIVO:
+            print(f"Error: el nombre del archivo no puede ser mayor a {TAM_NOMBRE_ARCHIVO}")
+            return False
+        
+        if self.buscar_archivo(nombre_archivo) is not None:
+            print(f"Error: el archivo '{nombre_archivo}' ya existe en el directorio")
+            return False
+        
+        with open(ruta_archivo_local, "rb") as archivo:
+            contenido = archivo.read()
+        
+        tamano = len(contenido)
+        clustes_necesarios = self.calcular_clusters_necesarios(tamano)
+        
+        indice_entrada = self.buscar_entrada_libre()
+        
+        if indice_entrada is None:
+            print("Error: no hay entradas libres en el directorio")
+            return False
+        
+        cluster_inicial = self.buscar_espacio_vacio(clustes_necesarios)
+        
+        if cluster_inicial is None:
+            print("Error: no hay espacio contiguo suficiente")
+            return False
+        
+        if clustes_necesarios > 0:
+            offset_datos = cluster_inicial * TAM_CLUSTER
+            tamano_reservado = clustes_necesarios * TAM_CLUSTER
+            datos_a_escribir = contenido.ljust(tamano_reservado, b"\x00")
+            
+            self.disco.escribir_bytes(offset_datos, datos_a_escribir)
+        
+        fecha_actual = datetime.now().strftime("%Y%m%d%H%M%S")
+        
+        entrada_bytes = EntradaDirectorio.bytes_archivo(
+            nombre_archivo,
+            tamano,
+            cluster_inicial,
+            fecha_actual,
+            fecha_actual
+        )
+        
+        offset_directorio = CLUSTER_INICIO_DIRECTORIO * TAM_CLUSTER
+        offset_entrada = offset_directorio + (indice_entrada * TAM_ENTRADA_DIRECTORIO)
+        
+        self.disco.escribir_bytes(offset_entrada, entrada_bytes)
+        
+        print(f"Archivo '{nombre_archivo}' insertado correctamente")
         
         return True

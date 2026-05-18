@@ -15,13 +15,17 @@ CLUSTER_SUPERBLOQUE = 0
 CLUSTER_INICIO_DIRECTORIO = 1
 CLUSTER_FINAL_DIRECTORIO = 8
 
+CLUSTER_INICIO_DATOS = 9
+TOTAL_CLUSTERS = TAM_DISCO // TAM_CLUSTER
+
 TAM_ENTRADA_DIRECTORIO = 64
 
 # informacion en superbloque
 NOMBRE_SISTEMA = "FiUnamFS"
 VERSION = "26-2"
 
-# especificaciones entrada y tipo de archivo
+# especificaciones de archivos
 ENTRADA_VACIA = "###############"
 TIPO_ARCHIVO = "-"
 TIPO_ENTRADA_VACIA = "/"
+TAM_NOMBRE_ARCHIVO = 15

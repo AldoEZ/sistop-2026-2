@@ -59,6 +59,12 @@ def crear_parser():
         help="elimina un archivo de FiUnamFS"
     )
     
+    operaciones.add_argument(
+        "--insertar",
+        metavar="ARCHIVO_LOCAL",
+        help="copia un archivo del sistema local hacia FiUnamFS"
+    )
+    
     return parser
 
 """

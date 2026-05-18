@@ -57,9 +57,14 @@ def main():
     elif args.eliminar:
         if not sistema.eliminar_archivo(args.eliminar):
             return 1
+    elif args.insertar:
+        ruta_archivo_local = Path(args.insertar).resolve()
+        
+        if not sistema.insertar_archivo(ruta_archivo_local):
+            return 1
     else:
         print("No se indico ninguna accion")
-        print("Usar --listar, --leer ARCHIVO, --copiar ARCHIVO o --eliminar ARCHIVO")
+        print("Usar --listar, --leer ARCHIVO, --copiar ARCHIVO, --eliminar ARCHIVO o --intersar ARCHIVO")
     
     return 0
 
