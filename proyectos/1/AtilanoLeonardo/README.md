@@ -80,6 +80,11 @@ Si al inyectar un archivo nuevo (Opción 3) el usuario lo nombra simplemente com
 
 
 ## 6. Instrucciones de Ejecución y Pruebas en PyCharm
+### Pasos para la ejecución
+1. Abre la terminal integrada de PyCharm (o la terminal de su sistema posicionada en la carpeta del proyecto).
+2. Ejecuta el gestor con el siguiente comando:
+   ```bash
+   python fiunamfs_manager.py
 
 ### Requisitos previos
 * Tener instalado Python 3.8 o superior en el sistema.
