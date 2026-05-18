@@ -1,0 +1,57 @@
+"""
+una entrada del directorio de FiUnamFS
+"""
+
+from constantes import ENTRADA_VACIA, TIPO_ARCHIVO, TIPO_ENTRADA_VACIA
+import struct
+
+"""
+clase que representa una entrada de 64 bytes contenida en el sistema de archivos
+"""
+class EntradaDirectorio:
+    def __init__(self, tipo, nombre, tamano, 
+                cluster_inicial, fecha_creacion, 
+                fecha_modificacion, indice):
+        self.tipo = tipo
+        self.nombre_archivo = nombre
+        self.tamano = tamano
+        self.cluster_inicial = cluster_inicial
+        self.fecha_creacion = fecha_creacion
+        self.fecha_modificacion = fecha_modificacion
+        self.indice = indice
+    
+    """
+    crear una entrada del directorio a partir de 64 bytes en crudo
+    """
+    @classmethod
+    def crear_entrada_directorio(cls, datos, indice):
+        tipo = datos[0:1].decode("ascii", errors="ignore")
+        nombre_archivo = datos[1:16].decode("ascii",errors="ignore").strip("\x00").strip()
+        
+        tamano = struct.unpack("<I", datos[16:20])[0]
+        cluster_inicial = struct.unpack("<I", datos[20:24])[0]
+        
+        fecha_creacion = datos[30:44].decode("ascii",errors="ignore").strip("\x00").strip()
+        fecha_modificacion = datos[50:64].decode("ascii",errors="ignore").strip("\x00").strip()
+        
+        return cls(
+            tipo,
+            nombre_archivo,
+            tamano,
+            cluster_inicial,
+            fecha_creacion,
+            fecha_modificacion,
+            indice
+        )
+    
+    """
+    indica si la entrada del directorio esta vacia
+    """
+    def esta_vacia(self):
+        return self.tipo == TIPO_ENTRADA_VACIA or self.nombre_archivo == ENTRADA_VACIA
+    
+    """
+    indica si la entrada es un archivo valido
+    """
+    def es_archivo(self):
+        return self.tipo == TIPO_ARCHIVO and not self.esta_vacia()

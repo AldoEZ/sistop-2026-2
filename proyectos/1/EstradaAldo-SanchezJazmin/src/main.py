@@ -12,15 +12,6 @@ from constantes import NOMBRE_SISTEMA, VERSION
 from argumentos import crear_parser, validar_rutas
 from fiunamfs import FiUnamFS
 
-"""
-Funcion auxiliar para mostrar la configuracion inicial
-"""
-def configuracion_inicial(ruta_imagen, ruta_montaje):
-    print(f"{NOMBRE_SISTEMA} versión {VERSION}")
-    print("Inicializando micro sistema de archivos...")
-    print(f"Imagen: {ruta_imagen}")
-    print(f"Punto de montaje: {ruta_montaje}")
-
 def main():
     parser = crear_parser()
     args = parser.parse_args()
@@ -31,17 +22,25 @@ def main():
     if not validar_rutas(ruta_imagen, ruta_montaje):
         return 1
     
-    configuracion_inicial(
-        ruta_imagen,
-        ruta_montaje
-    )
-    
     sistema = FiUnamFS(ruta_imagen)
     if not sistema.validar_superbloque():
         return 1
     
     print("Superbloque validado de forma correcta.")
-    print("Configuracion inicial correcta.")
+    
+    archivos = sistema.listar_archivos()
+    print("\nConteido del directorio:")
+    if not archivos:
+        print("No hay archivos registrados")
+    else:
+        for archivo in archivos:
+            print(
+                f"- {archivo.nombre_archivo} | "
+                f"{archivo.tamano} | "
+                f"cluster inicial: {archivo.cluster_inicial} | "
+                f"fecha creacion: {archivo.fecha_creacion} | "
+                f"ultima modificacion: {archivo.fecha_modificacion}"
+            )
     
     return 0
 
