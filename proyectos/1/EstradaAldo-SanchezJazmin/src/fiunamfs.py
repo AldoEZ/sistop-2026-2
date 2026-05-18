@@ -216,7 +216,7 @@ class FiUnamFS:
     """
     obtiene los clusters que estan ocupados por los archivos actuales
     """
-    def obtener_clustes_ocupados(self):
+    def obtener_clusters_ocupados(self):
         ocupados = set()
         
         for entrada in self.listar_archivos():
@@ -232,9 +232,9 @@ class FiUnamFS:
     """
     def buscar_espacio_vacio(self, clusters_necesarios):
         if clusters_necesarios == 0:
-            return 0
+            return CLUSTER_INICIO_DATOS
         
-        ocupados = self.obtener_clustes_ocupados()
+        ocupados = self.obtener_clusters_ocupados()
         ultimo_inicio = TOTAL_CLUSTERS - clusters_necesarios
         
         for cluster_inicio in range(CLUSTER_INICIO_DATOS, ultimo_inicio + 1):
@@ -253,23 +253,33 @@ class FiUnamFS:
     copia un archivo local a FiUnamFS
     """
     def insertar_archivo(self, ruta_archivo_local):
+        ruta_archivo_local = Path(ruta_archivo_local)
+        
+        if not ruta_archivo_local.exists():
+            print(f"Error: el archivo '{ruta_archivo_local}' no existe")
+            return False
+        
+        if not ruta_archivo_local.is_file():
+            print(f"Error: la ruta '{ruta_archivo_local}' no es un archivo")
+            return False
+        
+        nombre_archivo = ruta_archivo_local.name
+        
+        with open(ruta_archivo_local, "rb") as archivo:
+            contenido = archivo.read()
+        
+        return self.insertar_archivo_desde_bytes(nombre_archivo, contenido)
+    
+    """
+    inserta un archivo en FiUnamFS por su nombre y contenido en bytes
+    """
+    def insertar_archivo_desde_bytes(self, nombre_archivo, contenido):
         with self.sincronizacion.bloqueo_disco:
-            self.sincronizacion.notificar(f"Insertanto '{ruta_archivo_local}'")
-            ruta_archivo_local = Path(ruta_archivo_local)
-            
-            if not ruta_archivo_local.exists():
-                print(f"Error: el archivo '{ruta_archivo_local}' no existe")
-                return False
-            
-            if not ruta_archivo_local.is_file():
-                print(f"Error: la ruta '{ruta_archivo_local}' no es un archivo")
-                return False
-            
-            nombre_archivo = ruta_archivo_local.name
+            self.sincronizacion.notificar(f"Insertando archivo '{nombre_archivo}' en FiUnamFS")
             
             try:
                 nombre_archivo.encode("ascii")
-            except:
+            except UnicodeEncodeError:
                 print("Error: el nombre del archivo debe pertenecer al subconjunto ASCII de 7 bits")
                 return False
             
@@ -281,11 +291,8 @@ class FiUnamFS:
                 print(f"Error: el archivo '{nombre_archivo}' ya existe en el directorio")
                 return False
             
-            with open(ruta_archivo_local, "rb") as archivo:
-                contenido = archivo.read()
-            
             tamano = len(contenido)
-            clustes_necesarios = self.calcular_clusters_necesarios(tamano)
+            clusters_necesarios = self.calcular_clusters_necesarios(tamano)
             
             indice_entrada = self.buscar_entrada_libre()
             
@@ -293,15 +300,15 @@ class FiUnamFS:
                 print("Error: no hay entradas libres en el directorio")
                 return False
             
-            cluster_inicial = self.buscar_espacio_vacio(clustes_necesarios)
+            cluster_inicial = self.buscar_espacio_vacio(clusters_necesarios)
             
             if cluster_inicial is None:
                 print("Error: no hay espacio contiguo suficiente")
                 return False
             
-            if clustes_necesarios > 0:
+            if clusters_necesarios > 0:
                 offset_datos = cluster_inicial * TAM_CLUSTER
-                tamano_reservado = clustes_necesarios * TAM_CLUSTER
+                tamano_reservado = clusters_necesarios * TAM_CLUSTER
                 datos_a_escribir = contenido.ljust(tamano_reservado, b"\x00")
                 
                 self.disco.escribir_bytes(offset_datos, datos_a_escribir)
@@ -321,7 +328,5 @@ class FiUnamFS:
             
             self.disco.escribir_bytes(offset_entrada, entrada_bytes)
             
-            self.sincronizacion.notificar("Inserion realizada exitosamente")
-            print(f"Archivo '{nombre_archivo}' insertado correctamente")
-            
+            self.sincronizacion.notificar("Insercion realizada exitosamente")
             return True
