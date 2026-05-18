@@ -102,14 +102,21 @@ class SistemaFuse(Fuse):
     def crear_archivo_temporal(self, path):
         nombre_archivo = path[1:]
         
-        if self.fiunamfs.buscar_archivo(nombre_archivo) is not None:
-            return -errno.EEXIST
-        
         if nombre_archivo in self.archivos_temporales:
             return 0
         
-        self.archivos_temporales[nombre_archivo] = bytearray()
+        entrada = self.fiunamfs.buscar_archivo(nombre_archivo)
         
+        if entrada is not None:
+            contenido = self.fiunamfs.leer_archivo(nombre_archivo)
+            
+            if contenido is None:
+                return -errno.ENOENT
+            
+            self.archivos_temporales[nombre_archivo] = bytearray(contenido)
+            return 0
+        
+        self.archivos_temporales[nombre_archivo] = bytearray()
         return 0
     
     """
@@ -132,9 +139,15 @@ class SistemaFuse(Fuse):
         
         if nombre_archivo not in self.archivos_temporales:
             if self.fiunamfs.buscar_archivo(nombre_archivo) is not None:
-                return -errno.EEXIST
-            
-            self.archivos_temporales[nombre_archivo] = bytearray()
+                contenido = self.fiunamfs.leer_archivo(nombre_archivo)
+                
+                if contenido is None:
+                    return -errno.ENOENT
+                
+                self.archivos_temporales[nombre_archivo] = bytearray(contenido)
+                
+            else:
+                self.archivos_temporales[nombre_archivo] = bytearray()
         
         contenido = self.archivos_temporales[nombre_archivo]
         fin = offset + len(body)
@@ -178,10 +191,14 @@ class SistemaFuse(Fuse):
         
         contenido = bytes(self.archivos_temporales[nombre_archivo])
         
-        if not self.fiunamfs.insertar_archivo_desde_bytes(nombre_archivo, contenido):
-            del self.archivos_temporales[nombre_archivo]
-            return -errno.EIO
-        
+        if self.fiunamfs.buscar_archivo(nombre_archivo) is None:
+            if not self.fiunamfs.insertar_archivo_desde_bytes(nombre_archivo, contenido):
+                del self.archivos_temporales[nombre_archivo]
+                return -errno.EIO
+        else:
+            if not self.fiunamfs.reemplazar_archivo_desde_bytes(nombre_archivo, contenido):
+                del self.archivos_temporales[nombre_archivo]
+                return -errno.EIO
         del self.archivos_temporales[nombre_archivo]
         
         return 0

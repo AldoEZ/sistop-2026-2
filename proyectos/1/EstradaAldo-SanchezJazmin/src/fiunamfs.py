@@ -273,7 +273,7 @@ class FiUnamFS:
     """
     inserta un archivo en FiUnamFS por su nombre y contenido en bytes
     """
-    def insertar_archivo_desde_bytes(self, nombre_archivo, contenido):
+    def insertar_archivo_desde_bytes(self, nombre_archivo, contenido, fecha_creacion=None):
         with self.sincronizacion.bloqueo_disco:
             self.sincronizacion.notificar(f"Insertando archivo '{nombre_archivo}' en FiUnamFS")
             
@@ -314,12 +314,14 @@ class FiUnamFS:
                 self.disco.escribir_bytes(offset_datos, datos_a_escribir)
             
             fecha_actual = datetime.now().strftime("%Y%m%d%H%M%S")
+            if fecha_creacion is None:
+                fecha_creacion = fecha_actual
             
             entrada_bytes = EntradaDirectorio.bytes_archivo(
                 nombre_archivo,
                 tamano,
                 cluster_inicial,
-                fecha_actual,
+                fecha_creacion,
                 fecha_actual
             )
             
@@ -329,4 +331,42 @@ class FiUnamFS:
             self.disco.escribir_bytes(offset_entrada, entrada_bytes)
             
             self.sincronizacion.notificar("Insercion realizada exitosamente")
+            return True
+    
+    """
+    reemplza un archivo que ya existe en FiUnamFS con un nuevo contenido en bytes
+    """
+    def reemplazar_archivo_desde_bytes(self, nombre_archivo, contenido):
+        with self.sincronizacion.bloqueo_disco:
+            self.sincronizacion.notificar(f"Remplazando archivo '{nombre_archivo}' en FiUnamFS")
+            
+            entrada = self.buscar_archivo(nombre_archivo)
+            
+            if entrada is None:
+                print(f"Error: el archivo '{nombre_archivo}' no existe")
+                return False
+            
+            fecha_creacion = entrada.fecha_creacion
+            
+            offset_directorio = CLUSTER_INICIO_DIRECTORIO * TAM_CLUSTER
+            offset_entrada = offset_directorio + (entrada.indice * TAM_ENTRADA_DIRECTORIO)
+            
+            datos_vacios = EntradaDirectorio.bytes_entrada_vacia()
+            self.disco.escribir_bytes(offset_entrada, datos_vacios)
+            
+            if not self.insertar_archivo_desde_bytes(nombre_archivo, contenido, fecha_creacion):
+                entrada_original = EntradaDirectorio.bytes_archivo(
+                    nombre_archivo,
+                    entrada.tamano,
+                    entrada.cluster_inicial,
+                    entrada.fecha_creacion,
+                    entrada.fecha_modificacion
+                )
+                
+                self.disco.escribir_bytes(offset_entrada, entrada_original)
+                print(f"Error: no se pudo reemplazar el archivo '{nombre_archivo}'")
+                return False
+            
+            self.sincronizacion.notificar(f"El archivo '{nombre_archivo}' fue reemplazado")
+            
             return True
