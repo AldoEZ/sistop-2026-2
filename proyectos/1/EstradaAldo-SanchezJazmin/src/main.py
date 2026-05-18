@@ -28,19 +28,32 @@ def main():
     
     print("Superbloque validado de forma correcta.")
     
-    archivos = sistema.listar_archivos()
-    print("\nConteido del directorio:")
-    if not archivos:
-        print("No hay archivos registrados")
+    if args.listar:
+        archivos = sistema.listar_archivos()
+        
+        print("\nConteido del directorio:")
+        if not archivos:
+            print("No hay archivos registrados")
+        else:
+            for archivo in archivos:
+                print(
+                    f"- {archivo.nombre_archivo} | "
+                    f"{archivo.tamano} | "
+                    f"cluster inicial: {archivo.cluster_inicial} | "
+                    f"fecha creacion: {archivo.fecha_creacion} | "
+                    f"ultima modificacion: {archivo.fecha_modificacion}"
+                )
+    elif args.leer:
+        contenido = sistema.leer_archivo(args.leer)
+        
+        if contenido is None:
+            return 1
+        
+        print(f"El contenido del archivo '{args.leer} es:'")
+        print(contenido.decode("ascii", errors="replace"))
     else:
-        for archivo in archivos:
-            print(
-                f"- {archivo.nombre_archivo} | "
-                f"{archivo.tamano} | "
-                f"cluster inicial: {archivo.cluster_inicial} | "
-                f"fecha creacion: {archivo.fecha_creacion} | "
-                f"ultima modificacion: {archivo.fecha_modificacion}"
-            )
+        print("No se indico ninguna accion")
+        print("Usar --listar o --leer ARCHIVO")
     
     return 0
 

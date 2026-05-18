@@ -80,3 +80,40 @@ class FiUnamFS:
                 archivos.append(entrada)
         
         return archivos
+    
+    """
+    busca un archivo del directorio de FiUnamFS, regresando la entrada del directorio
+    si es que el archivo existe, o sino regresa un None
+    """
+    def buscar_archivo(self, nombre_archivo):
+        entradas = self.listar_archivos()
+        
+        for entrada in entradas:
+            if entrada.nombre_archivo == nombre_archivo:
+                return entrada
+            else:
+                return None
+    
+    """
+    lee el contenido del archivo de FiUnamFS , donde se tiene que:
+    nombre_archivo: nombre del archivo
+    cantidad_bytes: cantidad maxima de bytes a leer
+    desplazamiento: posicion inicial dentro del archivo
+    """
+    def leer_archivo(self, nombre_archivo, cantidad_bytes=None, desplazamiento=0):
+        entrada = self.buscar_archivo(nombre_archivo)
+        
+        if entrada is None:
+            print(f"Error: el archivo '{nombre_archivo}' no existe")
+            return None
+        
+        if desplazamiento >= entrada.tamano:
+            return b""
+        
+        if cantidad_bytes is None or desplazamiento + cantidad_bytes > entrada.tamano:
+            cantidad_bytes = entrada.tamano - desplazamiento
+        
+        offset_archivo = entrada.cluster_inicial * TAM_CLUSTER
+        offset_lectura = offset_archivo + desplazamiento
+        
+        return self.disco.leer_bytes(offset_lectura, cantidad_bytes)

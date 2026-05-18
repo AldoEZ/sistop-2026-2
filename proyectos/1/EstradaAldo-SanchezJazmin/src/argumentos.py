@@ -23,6 +23,24 @@ def crear_parser():
         help="Directorio donde se va a montar el sistema de archivos"
     )
     
+    """
+    operaciones me sirve a que el usuario solo ejecute una de las 2
+    o listar o leer archivo
+    """
+    operaciones = parser.add_mutually_exclusive_group()
+    
+    operaciones.add_argument(
+        "--listar",
+        action="store_true",
+        help="lista los archivos que hay en FiUnamFS"
+    )
+    
+    operaciones.add_argument(
+        "--leer",
+        metavar="ARCHIVO",
+        help="lee el contenido de un archivo de FiUnamFS."
+    )
+    
     return parser
 
 """
