@@ -1,1 +1,1 @@
-contenido de prueba
+archivo para prueba con FUSE
