@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Proyecto 1 — FiUnamFS.
-Etapa 9: interfaz de linea de comandos con argparse y subcomandos.
+Etapa 10: modo interactivo con menu numerado.
 """
 
 import argparse
@@ -330,15 +330,59 @@ def _ejecutar_en_hilo(funcion, *args):
         raise contenedor['error']
 
 
+_BANNER = """
+======================================================
+            FiUnamFS — modo interactivo
+======================================================
+  1) Listar archivos
+  2) Extraer archivo  (FiUnamFS → equipo local)
+  3) Insertar archivo (equipo local → FiUnamFS)
+  4) Eliminar archivo
+  5) Salir
+"""
+
+
+def _menu_interactivo(ruta):
+    while True:
+        print(_BANNER)
+        try:
+            opcion = input('Elige una opción [1-5]: ').strip()
+        except (EOFError, KeyboardInterrupt):
+            print('\nHasta luego.')
+            return
+
+        try:
+            if opcion == '1':
+                _ejecutar_en_hilo(listar, ruta)
+            elif opcion == '2':
+                nombre = input('Nombre del archivo en FiUnamFS: ').strip()
+                destino = input('Ruta de destino local: ').strip()
+                _ejecutar_en_hilo(extraer, ruta, nombre, destino)
+            elif opcion == '3':
+                local = input('Ruta del archivo local: ').strip()
+                _ejecutar_en_hilo(insertar, ruta, local)
+            elif opcion == '4':
+                nombre = input('Nombre del archivo a eliminar: ').strip()
+                _ejecutar_en_hilo(eliminar, ruta, nombre)
+            elif opcion == '5':
+                print('Hasta luego.')
+                return
+            else:
+                print('Opción no reconocida.')
+        except (ValueError, FileNotFoundError) as err:
+            print(f'Error: {err}')
+
+
 def _construir_parser():
     parser = argparse.ArgumentParser(
         prog='proyecto.py',
         description='Herramienta para manipular imágenes FiUnamFS (versión 26-2).',
     )
     parser.add_argument('imagen', help='Ruta a la imagen FiUnamFS (1440 KB).')
-    sub = parser.add_subparsers(dest='comando', required=True)
+    sub = parser.add_subparsers(dest='comando')
 
     sub.add_parser('listar', help='Lista el contenido del directorio.')
+    sub.add_parser('menu', help='Inicia el modo interactivo.')
 
     p_ext = sub.add_parser('extraer', help='Copia un archivo al equipo local.')
     p_ext.add_argument('nombre', help='Nombre del archivo dentro de FiUnamFS.')
@@ -358,7 +402,9 @@ def main():
 
     try:
         validar_imagen(args.imagen)
-        if args.comando == 'listar':
+        if args.comando in (None, 'menu'):
+            _menu_interactivo(args.imagen)
+        elif args.comando == 'listar':
             _ejecutar_en_hilo(listar, args.imagen)
         elif args.comando == 'extraer':
             _ejecutar_en_hilo(extraer, args.imagen, args.nombre, args.destino)
