@@ -11,6 +11,7 @@ import sys
 from argumentos import crear_parser, validar_rutas
 from fiunamfs import FiUnamFS
 from sincronizacion import Sincronizacion
+from sistema_fuse import SistemaFuse
 
 def main():
     parser = crear_parser()
@@ -67,8 +68,20 @@ def main():
             if not sistema.insertar_archivo(ruta_archivo_local):
                 return 1
         else:
-            print("No se indico ninguna accion")
-            print("Usar --listar, --leer ARCHIVO, --copiar ARCHIVO, --eliminar ARCHIVO o --intersar ARCHIVO")
+            servidor = SistemaFuse(
+                sistema,
+                version="%prog",
+                usage="FiUnamFS montado con FUSE",
+                dash_s_do="setsingle"
+            )
+            
+            servidor.parse(
+                values=servidor,
+                errex=1,
+                args=[sys.argv[0], str(ruta_montaje)]
+            )
+            
+            servidor.main()
         
         return 0
     finally:

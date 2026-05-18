@@ -1,9 +1,4 @@
 __pycache__/
 *.pyc
 
-*.img
-
-montaje/*
-!montaje/.gitkeep
-
 .vscode/
