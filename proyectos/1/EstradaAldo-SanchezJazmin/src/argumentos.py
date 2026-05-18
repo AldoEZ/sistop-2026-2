@@ -22,7 +22,6 @@ def crear_parser():
         "montaje",
         help="Directorio donde se va a montar el sistema de archivos"
     )
-    
     """
     operaciones me sirve a que el usuario solo ejecute una sola accion de todas las 
     contenidas en el grupo, es decir, no puede listar y eliminar al mismo tiempo

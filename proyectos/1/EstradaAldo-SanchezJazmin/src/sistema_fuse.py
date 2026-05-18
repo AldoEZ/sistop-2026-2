@@ -192,11 +192,13 @@ class SistemaFuse(Fuse):
         contenido = bytes(self.archivos_temporales[nombre_archivo])
         
         if self.fiunamfs.buscar_archivo(nombre_archivo) is None:
-            if not self.fiunamfs.insertar_archivo_desde_bytes(nombre_archivo, contenido):
+            if not self.fiunamfs.insertar_archivo_desde_bytes(nombre_archivo, 
+                                                              contenido):
                 del self.archivos_temporales[nombre_archivo]
                 return -errno.EIO
         else:
-            if not self.fiunamfs.reemplazar_archivo_desde_bytes(nombre_archivo, contenido):
+            if not self.fiunamfs.reemplazar_archivo_desde_bytes(nombre_archivo, 
+                                                                contenido):
                 del self.archivos_temporales[nombre_archivo]
                 return -errno.EIO
         del self.archivos_temporales[nombre_archivo]

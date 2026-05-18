@@ -63,7 +63,8 @@ class FiUnamFS:
         entradas = []
         
         offset_directorio = CLUSTER_INICIO_DIRECTORIO * TAM_CLUSTER
-        tamano_directorio = (CLUSTER_FINAL_DIRECTORIO - CLUSTER_INICIO_DIRECTORIO + 1) * TAM_CLUSTER
+        tamano_directorio = (CLUSTER_FINAL_DIRECTORIO 
+                             - CLUSTER_INICIO_DIRECTORIO + 1) * TAM_CLUSTER
         
         datos_directorio = self.disco.leer_bytes(offset_directorio, tamano_directorio)
         
@@ -136,7 +137,8 @@ class FiUnamFS:
             
             contenido = self.disco.leer_bytes(offset_lectura, cantidad_bytes)
             
-            self.sincronizacion.notificar(f"Archivo '{nombre_archivo}' leido correctamente")
+            self.sincronizacion.notificar(f"Archivo '{nombre_archivo}' leido "
+                                          "correctamente")
             
             return contenido
     
@@ -189,7 +191,8 @@ class FiUnamFS:
             
             self.disco.escribir_bytes(offset_entrada, datos_vacios)
             
-            self.sincronizacion.notificar(f"La entrada archivo '{nombre_archivo}' fue marcada como vacia")
+            self.sincronizacion.notificar(f"La entrada archivo '{nombre_archivo}'"
+                                          " fue marcada como vacia")
             print(f"El archivo '{nombre_archivo}' fue eliminado de forma correcta")
             
             return True
@@ -222,7 +225,8 @@ class FiUnamFS:
         for entrada in self.listar_archivos():
             clusters = self.calcular_clusters_necesarios(entrada.tamano)
             
-            for cluster in range(entrada.cluster_inicial, entrada.cluster_inicial + clusters):
+            for cluster in range(entrada.cluster_inicial, 
+                                 entrada.cluster_inicial + clusters):
                 ocupados.add(cluster)
         
         return ocupados
@@ -273,18 +277,22 @@ class FiUnamFS:
     """
     inserta un archivo en FiUnamFS por su nombre y contenido en bytes
     """
-    def insertar_archivo_desde_bytes(self, nombre_archivo, contenido, fecha_creacion=None):
+    def insertar_archivo_desde_bytes(self, nombre_archivo, contenido, 
+                                     fecha_creacion=None):
         with self.sincronizacion.bloqueo_disco:
-            self.sincronizacion.notificar(f"Insertando archivo '{nombre_archivo}' en FiUnamFS")
+            self.sincronizacion.notificar(f"Insertando archivo '{nombre_archivo}'"
+                                          " en FiUnamFS")
             
             try:
                 nombre_archivo.encode("ascii")
             except UnicodeEncodeError:
-                print("Error: el nombre del archivo debe pertenecer al subconjunto ASCII de 7 bits")
+                print("Error: el nombre del archivo debe pertenecer al subconjunto ASCII"
+                      " de 7 bits")
                 return False
             
             if len(nombre_archivo) > TAM_NOMBRE_ARCHIVO:
-                print(f"Error: el nombre del archivo no puede ser mayor a {TAM_NOMBRE_ARCHIVO}")
+                print("Error: el nombre del archivo no puede ser mayor a "
+                      f"{TAM_NOMBRE_ARCHIVO}")
                 return False
             
             if self.buscar_archivo(nombre_archivo) is not None:
@@ -338,7 +346,8 @@ class FiUnamFS:
     """
     def reemplazar_archivo_desde_bytes(self, nombre_archivo, contenido):
         with self.sincronizacion.bloqueo_disco:
-            self.sincronizacion.notificar(f"Remplazando archivo '{nombre_archivo}' en FiUnamFS")
+            self.sincronizacion.notificar(f"Remplazando archivo '{nombre_archivo}'"
+                                          " en FiUnamFS")
             
             entrada = self.buscar_archivo(nombre_archivo)
             
@@ -354,7 +363,8 @@ class FiUnamFS:
             datos_vacios = EntradaDirectorio.bytes_entrada_vacia()
             self.disco.escribir_bytes(offset_entrada, datos_vacios)
             
-            if not self.insertar_archivo_desde_bytes(nombre_archivo, contenido, fecha_creacion):
+            if not self.insertar_archivo_desde_bytes(nombre_archivo, contenido, 
+                                                     fecha_creacion):
                 entrada_original = EntradaDirectorio.bytes_archivo(
                     nombre_archivo,
                     entrada.tamano,
@@ -367,6 +377,7 @@ class FiUnamFS:
                 print(f"Error: no se pudo reemplazar el archivo '{nombre_archivo}'")
                 return False
             
-            self.sincronizacion.notificar(f"El archivo '{nombre_archivo}' fue reemplazado")
+            self.sincronizacion.notificar(f"El archivo '{nombre_archivo}'"
+                                          " fue reemplazado")
             
             return True

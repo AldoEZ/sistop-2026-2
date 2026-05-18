@@ -72,7 +72,8 @@ class EntradaDirectorio:
     genera los 64 bytes que corresponden a una entrada de archivo al directorio
     """
     @staticmethod
-    def bytes_archivo(nombre_archivo, tamano, cluster_inicial, fecha_creacion, fecha_modificacion):
+    def bytes_archivo(nombre_archivo, tamano, cluster_inicial, 
+                      fecha_creacion, fecha_modificacion):
         datos = bytearray(64)
         
         nombre_bytes = nombre_archivo.encode("ascii")
