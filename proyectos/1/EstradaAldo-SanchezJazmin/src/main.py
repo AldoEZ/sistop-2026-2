@@ -26,8 +26,6 @@ def main():
     if not sistema.validar_superbloque():
         return 1
     
-    print("Superbloque validado de forma correcta.")
-    
     if args.listar:
         archivos = sistema.listar_archivos()
         
@@ -56,9 +54,12 @@ def main():
         
         if not sistema.extraer_archivo(args.extraer, ruta_destino):
             return 1
+    elif args.eliminar:
+        if not sistema.eliminar_archivo(args.eliminar):
+            return 1
     else:
         print("No se indico ninguna accion")
-        print("Usar --listar, --leer ARCHIVO o --extraer ARCHIVO")
+        print("Usar --listar, --leer ARCHIVO, --extraer ARCHIVO o --eliminar ARCHIVO")
     
     return 0
 

@@ -53,6 +53,12 @@ def crear_parser():
         help="destino donde se va a guardar el archivo extraido"
     )
     
+    operaciones.add_argument(
+        "--eliminar",
+        metavar="ARCHIVO",
+        help="elimina un archivo de FiUnamFS"
+    )
+    
     return parser
 
 """

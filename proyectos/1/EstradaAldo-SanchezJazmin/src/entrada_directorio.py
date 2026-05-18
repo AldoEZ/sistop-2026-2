@@ -55,3 +55,15 @@ class EntradaDirectorio:
     """
     def es_archivo(self):
         return self.tipo == TIPO_ARCHIVO and not self.esta_vacia()
+    
+    """
+    genera los 64 bytes correspondientes a una entrada vacia
+    """
+    @staticmethod
+    def bytes_entrada_vacia():
+        datos = bytearray(64)
+        
+        datos[0:1] = TIPO_ENTRADA_VACIA.encode("ascii")
+        datos[1:16] = ENTRADA_VACIA.encode("ascii")
+        
+        return bytes(datos)

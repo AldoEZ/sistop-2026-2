@@ -146,3 +146,24 @@ class FiUnamFS:
         
         print(f"El archivo '{nombre_archivo}' fue extraido correctamente")
         return True
+    
+    """
+    elimina un archivo de FiUnamFS, lo hace marcando su entrada de directorio como vacia
+    """
+    def eliminar_archivo(self, nombre_archivo):
+        entrada = self.buscar_archivo(nombre_archivo)
+        
+        if entrada is None:
+            print(f"Error: el archivo '{nombre_archivo}' no existe")
+            return False
+        
+        offset_directorio = CLUSTER_INICIO_DIRECTORIO * TAM_CLUSTER
+        offset_entrada = offset_directorio + (entrada.indice * TAM_ENTRADA_DIRECTORIO)
+        
+        datos_vacios = EntradaDirectorio.bytes_entrada_vacia()
+        
+        self.disco.escribir_bytes(offset_entrada, datos_vacios)
+        
+        print(f"El archivo '{nombre_archivo}' fue eliminado de forma correcta")
+        
+        return True

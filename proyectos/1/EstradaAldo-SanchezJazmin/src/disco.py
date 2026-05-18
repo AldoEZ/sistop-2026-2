@@ -17,3 +17,11 @@ class Disco:
         with open(self.ruta_imagen, "rb") as imagen:
             imagen.seek(desplazamiento)
             return imagen.read(cantidad)
+    
+    """
+    escritura de bytes en la imagen a partir de un desplazamiento
+    """
+    def escribir_bytes(self, desplazamiento, datos):
+        with open(self.ruta_imagen, "r+b") as imagen:
+            imagen.seek(desplazamiento)
+            imagen.write(datos)
