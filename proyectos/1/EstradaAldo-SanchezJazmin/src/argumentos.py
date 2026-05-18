@@ -41,6 +41,18 @@ def crear_parser():
         help="lee el contenido de un archivo de FiUnamFS."
     )
     
+    operaciones.add_argument(
+        "--extraer",
+        metavar="ARCHIVO",
+        help="copia un archivo de FiUnamFS al destino local"
+    )
+    
+    parser.add_argument(
+        "--destino",
+        default=".",
+        help="destino donde se va a guardar el archivo extraido"
+    )
+    
     return parser
 
 """

@@ -89,7 +89,6 @@ class FiUnamFS:
         entradas = self.listar_archivos()
         
         for entrada in entradas:
-            print(f"Comparando: {repr(entrada.nombre_archivo)} con {repr(nombre_archivo)}")
             if entrada.nombre_archivo == nombre_archivo:
                 return entrada
         return None
@@ -117,3 +116,33 @@ class FiUnamFS:
         offset_lectura = offset_archivo + desplazamiento
         
         return self.disco.leer_bytes(offset_lectura, cantidad_bytes)
+    
+    """
+    copia un archivo que pertenece a FiUnamFS hacia un directorio local
+    """
+    def extraer_archivo(self, nombre_archivo, ruta_destino):
+        entrada = self.buscar_archivo(nombre_archivo)
+        
+        if entrada is None:
+            print(f"Error: el archivo '{nombre_archivo}' no existe")
+            return False
+        
+        contenido = self.leer_archivo(nombre_archivo)
+        if contenido is None:
+            return None
+        
+        if not ruta_destino.exists():
+            print(f"Error: no existe el directorio '{ruta_destino}'")
+            return False
+        
+        if not ruta_destino.is_dir():
+            print(f"Error: la ruta '{ruta_destino}' no es un directorio")
+            return False
+        
+        ruta_salida = ruta_destino / entrada.nombre_archivo
+        
+        with open(ruta_salida, "wb") as archivo_salida:
+            archivo_salida.write(contenido)
+        
+        print(f"El archivo '{nombre_archivo}' fue extraido correctamente")
+        return True

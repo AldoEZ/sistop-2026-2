@@ -51,9 +51,14 @@ def main():
         
         print(f"El contenido del archivo '{args.leer} es:'")
         print(contenido.decode("ascii", errors="replace"))
+    elif args.extraer:
+        ruta_destino = Path(args.destino).resolve()
+        
+        if not sistema.extraer_archivo(args.extraer, ruta_destino):
+            return 1
     else:
         print("No se indico ninguna accion")
-        print("Usar --listar o --leer ARCHIVO")
+        print("Usar --listar, --leer ARCHIVO o --extraer ARCHIVO")
     
     return 0
 
