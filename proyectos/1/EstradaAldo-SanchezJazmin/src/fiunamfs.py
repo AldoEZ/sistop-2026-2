@@ -89,10 +89,10 @@ class FiUnamFS:
         entradas = self.listar_archivos()
         
         for entrada in entradas:
+            print(f"Comparando: {repr(entrada.nombre_archivo)} con {repr(nombre_archivo)}")
             if entrada.nombre_archivo == nombre_archivo:
                 return entrada
-            else:
-                return None
+        return None
     
     """
     lee el contenido del archivo de FiUnamFS , donde se tiene que:
