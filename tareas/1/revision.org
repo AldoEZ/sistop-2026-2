@@ -1,0 +1,645 @@
+** Alejandro Arias
+- Documentación :: [[./AriasAlejandro/README.md][README.md]]
+- Archivos :: [[./AriasAlejandro/turtle.py][turtle.py]]
+- Comentarios ::
+  - ¡Muy bien por implementar expansión de variables!
+    - No estaba dentro del planteamiento de la tarea. ¡Pero me parece
+      excelente que lo agregaras! 😃
+  - No evitas la interrupción de la ejecución con ~SIGINT~
+    - Sí lo /re-activas/ al estado por omisión para los procesos hijos
+      (línea 72))
+    - Pero la lógica de la línea 88 (=except KeyboardInterrupt=) no hace
+      que se ignore (o maneje de alguna manera) a esta señal
+    - Tendrías que haberlo hecho como en la línea 46, donde procesas
+      ~SIGCHLD~.
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |           10 |      6. |
+  | Manejo de señales                |    0.2 |          7.5 |     1.5 |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     9.5 |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Adrián Arzate, David Díaz
+- Documentación :: [[./ArzateAdrian-DiazDavid/README.md][README.md]]
+- Archivos :: [[./ArzateAdrian-DiazDavid/minishell.py][minishell.py]]
+- Comentarios ::
+  - Muy bien por la implementación de la separación de comando y argumentos
+    usando ~shlex~ 😃
+  - Me llama la atención que usen ~sys.stdout.write()~ en vez de un
+    ~print()~, que es mucho más natural en Python. ¿Por qué?
+    - Bien por haber encontrado que a veces hace falta el ~flush()~,
+      pero... ¿En ~stdout~, siguiendo a un ~\n~, lo sintieron necesario?
+  - Muy bien por intentar encontrar los diferentes causantes del fallo
+    cuando no puede hacerse el ~fork()~ / ~execvp()~ 😃
+    - Aunque hay un pequeño error: Cuando falla el ~execvp()~, llaman a
+      ~os.exit(1)~... Pero esa función no existe 😛
+    - Tendría que ser sencillamente =exit(1)=.
+  - Buen manejo de la distinción entre cadenas de documentación por función
+    y comentarios donde hacen falta 🤓
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |           10 |      6. |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     10. |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Leonardo Atilano
+- Documentación :: [[./AtilanoLeonardo/README.md][README.md]]
+- Archivos :: [[./AtilanoLeonardo/scriptSO.py][scriptSO.py]]
+- Comentarios ::
+  - ¡Muy bien por manejar ejecución en segundo plano! 😃
+  - ¡Muy bueno por manejar ~shlex.split()~! (Y gracias por la explicación
+    respecto a su /tokenizador/ 😃)
+  - Respecto a la compatibilidad: Claro, les comenté que en Windows no
+    existe ~fork()~. Lo bueno es que hay muchas maneras de hacerlo ahora
+    sin que resulte muy complicado ☺
+  - ¡Excelente que encontraste el reestablecimiento de señales con
+    ~SIG_DFL~!
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |           10 |      6. |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     10. |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Andrés Basilio
+- Documentación :: [[./BasilioAndres/README.md][README.md]]
+- Archivos :: [[./BasilioAndres/minishell.c][minishell.c]]
+- Comentarios ::
+  - ¡Excelente que te animaras a hacer esta tarea en C! 😃
+    - A mucha gente le da miedo el supuesto /bajo nivel/ de este
+      lenguaje... pero como puedes ver, no es mucho más complicado que el
+      código de Python que me entregaron casi todos tus compañeros
+  - ¡Excelente el uso de ~strtok~ para /tokenizar/ la cadena!
+  - La implementación es correcta dada el ámbito planteado. Sin embargo, me
+    llama la atención el par de ~#defines~ que tienen, ~MAX_LINE 1024~ y
+    ~MAX_ARGS 100~.
+    - Es poco probable que un usuario “inocente” abuse de ellos,
+      pero... ¿Qué pasa si establezco más de 64 argumentos, o líneas de más
+      de 1024 caracteres? ¿Dónde cae el sobrante?
+    - (ya lo platicaremos 😉)
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |           10 |      6. |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     10. |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Santiago Bello, Baruc López
+- Documentación :: [[./BelloSantiago-LopezBaruc/README.md][README.md]]
+- Archivos :: [[./BelloSantiago-LopezBaruc/T01.py][T01.py]]
+- Comentarios ::
+  - Hicieron la decisión consciente / explícita de no esperar a que termine
+    la ejecución del proceso hijo con un ~waitpid~... pero eso tiene
+    impacto negativo en la usabilidad:
+
+    #+begin_src text
+      $ python3 T01.py 
+      minishell> pwd
+      minishell> /home/gwolf/vcs/sistop-2026-2/tareas/1/BelloSantiago-LopezBaruc
+      ls
+      minishell> README.md  T01.py
+      help
+      minishell> minishell: help: comando no encontrado
+      exit
+      Terminando minishell...
+    #+end_src
+    - Funciona correctamente, pero el prompt (~minishell>~) se muestra
+      /antes de presentar el resultado/ de la ejecución del proceso hijo 🙁
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |            8 |     4.8 |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     8.8 |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Isaías Blancas, Hans Martínez
+- Documentación :: [[./BlancasIsaias-MartinezHans/Documentacion.md][Documentacion.md]]
+- Archivos :: [[./BlancasIsaias-MartinezHans/Minishell.py][Minishell.py]]
+- Comentarios ::
+  - Interesante que implementen dos “caminos” de salida, uno para ~EOF~ y
+    el otro para ~exit~ 🙃
+  - Habrán notado que nunca se entra al código que ocurre cuando ~except
+    KeyboardInterrupt~: Nunca se genera dicha interrupción, porque la señal
+    relevante es atrapada.
+  - Hicieron la decisión consciente / explícita de no esperar a que termine
+    la ejecución del proceso hijo con un ~waitpid~... pero eso tiene
+    impacto negativo en la usabilidad:
+
+    #+begin_src text
+      $ python3 Minishell.py 
+      Minishell> pwd
+      Minishell> /home/gwolf/vcs/sistop-2026-2/tareas/1/BlancasIsaias-MartinezHans
+      ls
+      Minishell> Documentacion.md  Minishell.py
+      exit
+      Adiós!
+    #+end_src
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |            8 |     4.8 |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     8.8 |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Víctor Brena, Lizbeth Cruz
+- Documentación :: [[./BrenaVictor-CruzLizbeth/README.md][README.md]], [[./BrenaVictor-CruzLizbeth/minishell_evidencia.png][minishell_evidencia.png]]
+- Archivos :: [[./BrenaVictor-CruzLizbeth/minishell.py][minishell.py]]
+- Comentarios ::
+  - ¡Muy bien que emplearan ~shlex~ para separar los argumentos!
+  - Manejan correctamente las excepciones por comandos no encontrados.
+  - El “error” que refieren, de “permiso denegado” al intentar ejecutar
+    algo que no es un comando, es completamente normal, y van a ver la
+    misma respuesta en cualquier shell.
+    - Podrían haberlo manejado con excepciones. En la línea 77, intenten
+      insertar:
+      #+begin_src python
+	except PermissionError:
+	    print('No puedo 🙁')
+      #+end_src
+      Y les presentaría ese “bonito” error. ¡Pero no le hace! La
+      implementación cubre lo que esperábamos 😃
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |           10 |      6. |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     10. |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Isaac Campos, Alex Martínez
+- Documentación :: [[./CamposIsaac-MartinezAlex/readme.md][readme.md]]
+- Archivos :: [[./CamposIsaac-MartinezAlex/shAI.c][shAI.c]]
+- Comentarios ::
+  - Jé, ligero detalle en la documentación: Línea 37, indican ~-o shAI~
+    como argumento al compilador, indicando el nombre del archivo
+    ejecutable a crear, pero línea 47, indican ~./shell~ como programa a
+    ejecutar
+    - Es un detalle muy menor, no los voy a penalizar por ello 😉
+  - Si acaso... Extrañé que generaran un ~.gitignore~ para que yo no
+    tuviera que acordarme de borrar el binario ya compilado 🙁
+  - ¡Excelente el uso de ~readline~! Hace toda la diferencia del mundo en
+    cuestión de usabilidad.
+    - Sería muy sencillo agregarle la memoria de múltiples líneas de
+      entrada. Pero bueno, para este ejemplo... estaría más que sobrado 😃
+  - ¡Muy bien que implementaran /comandos internos/, particularmente ~cd~:
+    ninguno de los compañeros que he evaluado hasta este momento lo
+    implementan. 😃
+    - ¿Por qué creen que ~cd~ /requiere/ implementarse de esta manera?
+  - Buen manejo de ~strtok()~ para parsear la entrada. Y muy bien que
+    /parametricen/ al divisor 😃
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |           10 |      6. |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     10. |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Hugo Chacón, Sebastián Valdez
+- Documentación :: [[./ChaconHugo-ValdezSebastian/README.md][README.md]]
+- Archivos :: [[./ChaconHugo-ValdezSebastian/minishell.py][minishell.py]]
+- Comentarios ::
+  - Me parece excelente que describan las /Dificultades durante el
+    desarrollo/. ¡Son precisamente los principales puntos que quería que
+    apreciaran! 😉
+  - Me parece muy bien que reciban ~_, status = os.waitpid(pid,0)~. Y para
+    el ámbito que estamos manejando, es más que suficiente ignorarlos, como
+    lo hicieron (simplemente ~pass~). Pero puede ser muy útil manejarlos y
+    reportarlos 😁
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |           10 |      6. |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     10. |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Samuel Cruz
+- Documentación :: [[./CruzSamuel/README.md][README.md]]
+- Archivos :: [[./CruzSamuel/Minishell.py][Minishell.py]]
+- Comentarios ::
+  - Verifica que el sistema no sea un “nt”. ¡Muy bien! Eso puede evitar la
+    pérdida de cabello en tu usuario 😃
+    - Y está muy bien que intente ejecutarse, así sea en “modo
+      degradado”... Pero viendo este programa, creo que lo adecuado sería
+      llamar a ~exit()~ después de la advertencia en caso de ser “nt”,
+      porque no va a funcionar...
+  - ¡Ojo! Lo que implementaron *no es* una terminal: es un /intérprete de
+    comandos/.
+    - Es muy diferente: Una terminal es un dispositivo (físico o virtual)
+      que genera y emite un flujo de caracteres y gestiona la interacción
+      con dispositivo de entrada (¿teclado?) y salida (¿monitor?).
+    - /Requieres de/ una terminal para utilizar este intérprete de
+      comandos.
+  - Es, hasta ahora, el código más compacto que he evaluado. Y cumple con
+    todo lo requerido. ¡Muy bien! 😃
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |           10 |      6. |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     10. |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Sara Sofía Espinosa, Karina Lizeth Rosete
+- Documentación :: [[./EspinosaGonzalez-RoseteManzano/README.md][README.md]]
+- Archivos :: [[./EspinosaGonzalez-RoseteManzano/minishell (1).py][minishell (1).py]]
+- Comentarios ::
+  - Implementación limpia y bien documentada. ¡Muy bien!
+  - ¡Muy bien por manejar ejecución en segundo plano!
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |           10 |      6. |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     10. |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Aldo Estrada, Jazmín Sánchez
+- Documentación :: [[./EstradaAldo-SanchezJazmin/README.md][README.md]]
+- Archivos :: [[./EstradaAldo-SanchezJazmin/minishell.c][minishell.c]]
+- Comentarios ::
+  - Escriben código en C, incluyendo instrucciones de compilación, y
+    acompañan con un ~.gitignore~. ¡Muy bien! 😃
+  - ¡Ojo! Declaran ~MAX_INPUT_SIZE~ a 100. Y ustedes han visto que a veces
+    escribo líneas de comando que sobrepasan los 100 caracteres... ¿Qué
+    pasa si le doy más de 100 caracteres a la línea de comando?
+    - Si son exactamente 100, todo bien:
+      #+begin_src text
+	minishell$ echo 1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234
+	1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234
+      #+end_src
+    - ...Pero un caracter más, y:
+      #+begin_src text
+	minishell$ echo 12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345
+	1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234
+	minishell$ Error al ejecutar el comando: No such file or directory
+      #+end_src
+    - Estamos cayendo en un /desbordamiento de buffer/ 😱 ¡Ojo!
+
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |           10 |      6. |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     10. |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** José Ferrer
+- Documentación :: [[./FerrerJosé/README.md][README.md]]
+- Archivos :: [[./FerrerJosé/minishell.py][minishell.py]]
+- Comentarios ::
+  - ¡Interesante el manejo de un ~set()~ para mantener la lista de procesos
+    hijos activos!
+    - Me gustó la lógica del manejador de ~SIGCHLD~, hasta ahora eres el
+      único que despliega el estado del resultado del comando.
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |           10 |      6. |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     10. |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Fredy Navarro, Emily Ramirez
+- Documentación :: [[./FredyNavarro-RamirezEmily/README.md][README.md]], [[./FredyNavarro-RamirezEmily/captura1.png][captura1.png]], [[./FredyNavarro-RamirezEmily/captura2.png][captura2.png]], [[./FredyNavarro-RamirezEmily/captura3.png][captura3.png]]
+- Archivos :: [[./FredyNavarro-RamirezEmily/minishell.cpp][minishell.cpp]]
+- Comentarios ::
+  - Bonita manera de /tokenizar/ (separar en sus elementos) a la línea
+    recibida. La lógica de C++ con sus operaciones sobre ~cin~ / ~cout~
+    siempre me ha parecido curiosa 😉 y nunca había visto que su resultado
+    se iterara como hacen con ~flujo_texto >> palabra~.
+  - Excelente que desarrollen la solución en C++ 😃
+    - Pero... Me quedé esperando un ~.gitignore~ para el binario compilado
+      🙁
+  - Como lo muestra su ~captura3.png~:
+    [[./FredyNavarro-RamirezEmily/captura3.png]]
+    el shell /no espera a que termine un proceso hijo/ antes de volver a
+    mostrar el prompt, lo cual puede resultar en una ejecución confusa
+    - Los procesos hijos se están /limpiando/ correctamente
+    - Pero típicamente veríamos un ~waitpid()~ o un intercambio de
+      ~pause()~ / ~SIGCONT~
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |            9 |     5.4 |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     9.4 |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Josué Garibay, Carlos López
+- Documentación :: [[./GaribayJosue-LopezCarlos/README.md][README.md]], [[./GaribayJosue-LopezCarlos/img/C1.png][C1.png]], [[./GaribayJosue-LopezCarlos/img/C2.png][C2.png]], [[./GaribayJosue-LopezCarlos/img/C3.png][C3.png]], [[./GaribayJosue-LopezCarlos/img/C4.png][C4.png]], [[./GaribayJosue-LopezCarlos/img/C5.png][C5.png]], [[./GaribayJosue-LopezCarlos/img/C6.png][C6.png]]
+- Archivos :: [[./GaribayJosue-LopezCarlos/minishell.py][minishell.py]]
+- Comentarios ::
+  - Buena implementación
+  - ¡Bien por utilizar ~shlex~ para separar la línea recibida en sus
+    componentes!
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |           10 |      6. |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     10. |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Fernando González, Emir Quezada
+- Documentación :: [[./GonzalezFernando-QuezadaEmir/README.md][README.md]]
+- Archivos :: [[./GonzalezFernando-QuezadaEmir/shell.py][shell.py]]
+- Comentarios ::
+  - ¡Bien por el uso de ~shlex~ y de ~readline~!
+  - Respecto a la condición de carrera que mencionan... ¡Justo al revés! 😉
+    - Si bien es ingenioso hacer un ~sleep(0.03)~ para que se demore en
+      imprimir el prompt, ¿qué pasa cuando el comando demora más de 0.03
+      segundos o genera algo de mensajes de error?
+      #+begin_src shell
+	minishell> du -sh /var
+	du: cannot read directory '/var/lib/apt/lists/partial': Permission denied
+	minishell> du: cannot read directory '/var/lib/private': Permission denied
+	du: cannot read directory '/var/lib/bluetooth': Permission denied
+	du: cannot read directory '/var/lib/libvirt/qemu': Permission denied
+	du: cannot read directory '/var/lib/libvirt/boot': Permission denied
+	(...)
+	2.2G     /var
+      #+end_src
+    - El /prompt/ ~minishell>~ quedó “sepultado” líneas atrás... Nada me
+      indica que el shell ya esta listo
+    - El comportamiento habitual es que el padre haga un ~waitpid()~ para
+      esperar a que el proceso hijo termine
+    - De todos modos es necesario entrar al manejador de ~SIGCHLD~.
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |            8 |     4.8 |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     8.8 |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Luis González, Fernando López
+- Documentación :: [[./GonzalezLuis-LopezFernando/Anexos/Ejemplo de ejecucion.png][Ejemplo de ejecucion.png]], [[./GonzalezLuis-LopezFernando/README.md][README.md]]
+- Archivos :: [[./GonzalezLuis-LopezFernando/minishell.c][minishell.c]]
+- Comentarios ::
+  - Excelente que desarrollen la solución en C 😃
+    - Pero... Me quedé esperando un ~.gitignore~ para el binario compilado
+      🙁
+  - El manejo de ~SIGCHLD~ está implementado correctamente, pero el manejo
+    de ~SIGINT~ hace que se ejecute nuevamente (¡y de forma parcial!) el
+    comando anterior:
+    - Si no he ejectuado ningún comando, causa que se ejecute “” (cadena
+      vacía):
+      #+begin_src shell
+	$ ./minishell 
+	minishell> ^Cexecvp: No such file or directory
+	minishell> ^Cexecvp: No such file or directory
+	minishell> ^Cexecvp: No such file or directory
+	minishell> 
+      #+end_src
+    - Si el último comando en ejecutarse no lleva argumentos, lo repite tal
+      cual:
+      #+begin_src shell
+	minishell> ls
+	Anexos	minishell  minishell.c	README.md
+	minishell> ^CAnexos	minishell  minishell.c	README.md
+	minishell> ^CAnexos	minishell  minishell.c	README.md
+	minishell> ^CAnexos	minishell  minishell.c	README.md
+	minishell> 
+      #+end_src
+    - Si el último comando tiene argumentos, ejecuta al comando sin argumentos
+      #+begin_src shell
+	minishell> ls /home
+	gwolf
+	minishell> ^CAnexos	minishell  minishell.c	README.md
+	minishell> ^CAnexos	minishell  minishell.c	README.md
+      #+end_src
+    - Seguramente pueden pensar en más de una manera de explotar esto de
+      forma adversarial 🙁
+  - Y si en vez de salir con ~exit~ mando un Ctrl-D (caracter de fin de
+    archivo), repite el último comando ejecutado sin fin 😰
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |            8 |     4.8 |
+  | Manejo de señales                |    0.2 |            8 |     1.6 |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     8.4 |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Derek López, Emilio Rodríguez
+- Documentación :: [[./LopezDerek_RodriguezEmilio/Comando_minishell.png][Comando_minishell.png]], [[./LopezDerek_RodriguezEmilio/Exit_Ctrl+D.png][Exit_Ctrl+D.png]], [[./LopezDerek_RodriguezEmilio/README.md][README.md]]
+- Archivos :: [[./LopezDerek_RodriguezEmilio/minishell.py][minishell.py]]
+- Comentarios ::
+  - Me gusta la implementación que hicieron, corta y concisa
+  - Únicamente a excepción de lo que ocurre en la línea 46: Si después del
+    ~fork()~ es el proceso padre, un simple ~pass~ hace que el /prompt/ por
+    el siguiente comando /no espere/ a que éste haya terminando antes de
+    continuar
+    - Algunos de sus compañeros resolvieron este problema imprimiendo el
+      /prompt/ desde el manejador de ~SIGCHLD~, por ejemplo
+    - Otros, haciendo un ~waitpid()~ expreso desde el proceso padre
+
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |            8 |     4.8 |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     8.8 |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Francisco Mérida, Leonardo Quezada
+- Documentación :: [[./MeridaFrancisco-QuezadaLeonardo/README.md][README.md]]
+- Archivos :: [[./MeridaFrancisco-QuezadaLeonardo/T01.py][T01.py]]
+- Comentarios ::
+  - Me gusta cómo manejan ~shlex~, y cómo manejan expresamente que pueda
+    emitir un ~ValueError~. ¡Bien!
+  - El ~sleep 0.01~ previo a la impresión del /prompt/ _parecería_ resolver
+    el problema de que el /prompt/ sea impreso antes de que el comando
+    invocado entregue sus resultados
+    - Pero si el comando tarda un poquito más en entregar...
+      #+begin_src shell
+	miniShell🏀>: ls /usr/bin
+	miniShell🏀>: '['				     getkeycodes		      llvm-symbolizer-21		 pybabel-python3
+	 411toppm			     getmapdl			      llvm-tapi-diff-14		 pydoc3
+	 7z				     getopt			      llvm-tapi-diff-15		 pydoc3.11
+	 7za				     gettext			      llvm-tapi-diff-16		 pydoc3.13
+	 7zr				     gettextize		      llvm-tapi-diff-17		 pydoc3.14
+	(...)
+	 getent				     llvm-symbolizer-17	      py7zr
+	 getfacl			     llvm-symbolizer-19	      pybabel
+      #+end_src
+      Nada me indica que puedo dar el nuevo comando 🙁
+    - Algunos alumnos lo resolvieron llamando a ~waitpid()~ directamente al
+      reconocer que es el proceso padre
+    - Otros, imprimiendo el prompt desde el manejador de ~SIGCHLD~...
+  - Cuando cierro el programa con Ctrl-D (que emite un fin de archivo,
+    ~EOF~) me entrega una excpeción bien feíta 🙁
+      #+begin_src shell
+	miniShell🏀>: Traceback (most recent call last):
+	  File "/home/gwolf/vcs/sistop-2026-2/tareas/1/MeridaFrancisco-QuezadaLeonardo/T01.py", line 99, in <module>
+	    main()
+	    ~~~~^^
+	  File "/home/gwolf/vcs/sistop-2026-2/tareas/1/MeridaFrancisco-QuezadaLeonardo/T01.py", line 49, in main
+	    prompt = input("miniShell🏀>: ")
+	             ~~~~~^^^^^^^^^^^^^^^^^^
+	EOFError
+      #+end_src
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |            8 |     4.8 |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     8.8 |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Jesús Monroy, Bruno Ponce de León
+- Documentación :: [[./MonroyJesus-PoncedeleonBruno/README.md][README.md]], [[./MonroyJesus-PoncedeleonBruno/img/image-49.png][image-49.png]], [[./MonroyJesus-PoncedeleonBruno/img/image-50.png][image-50.png]]
+- Archivos :: [[./MonroyJesus-PoncedeleonBruno/minishell.c][minishell.c]]
+- Comentarios ::
+  - Excelente que desarrollen la solución en C 😃
+    - Pero... Me quedé esperando un ~.gitignore~ para el binario compilado
+      🙁
+    - ¡Excelente que se documenten respecto a las llamadas a sistema en C
+      mediante las páginas de ~man~! 😃
+  - La implementación es correcta dada el ámbito planteado. Sin embargo, me
+    llama la atención el par de ~#defines~ que tienen, ~MAX_LINE 1024~ y
+    ~MAX_ARGS 64~.
+    - Es poco probable que un usuario “inocente” abuse de ellos,
+      pero... ¿Qué pasa si establezco más de 64 argumentos, o líneas de más
+      de 1024 caracteres? ¿Dónde cae el sobrante?
+    - (ya lo platicaremos 😉)
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |           10 |      6. |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     10. |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Fernando Ortega
+- Documentación :: [[./OrtegaFernando/README.md][README.md]]
+- Archivos :: [[./OrtegaFernando/minishell.py][minishell.py]]
+- Comentarios ::
+  - Interesante el problema que se les presentó con ~InterruptedError~,
+    ¡pero bien resuelto!
+  - Bien por el uso de ~shlex~.
+    - Aunque me llama la atención que vean importante el manejo de
+      abrir/cerrar comillas 😉 ¿De dónde slaió esa necesidad que no es
+      expresa?
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |           10 |      6. |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     10. |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Edgar Sotomayor, Jorge Terán
+- Documentación :: [[./SotomayorEdgar-TeranJorge/README.md][README.md]], [[./SotomayorEdgar-TeranJorge/captura1.png][captura1.png]], [[./SotomayorEdgar-TeranJorge/captura2.png][captura2.png]], [[./SotomayorEdgar-TeranJorge/captura3.png][captura3.png]], [[./SotomayorEdgar-TeranJorge/captura4.png][captura4.png]], [[./SotomayorEdgar-TeranJorge/captura5.png][captura5.png]]
+- Archivos :: [[./SotomayorEdgar-TeranJorge/minishell.py][minishell.py]]
+- Comentarios ::
+  - La implementación está mayormente bien... Únicamente llamo su atención
+    a lo que ocurre en la línea 71: Si después del ~fork()~ es el proceso
+    padre, un simple ~pass~ hace que el /prompt/ por el siguiente comando
+    /no espere/ a que éste haya terminando antes de continuar
+    - Algunos de sus compañeros resolvieron este problema imprimiendo el
+      /prompt/ desde el manejador de ~SIGCHLD~, por ejemplo
+    - Otros, haciendo un ~waitpid()~ expreso desde el proceso padre
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |            8 |     4.8 |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     8.8 |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+** Luis Torres, Luis Zavala
+- Documentación :: [[./TorresLuis-ZavalaLuis/README.md][README.md]]
+- Archivos :: [[./TorresLuis-ZavalaLuis/minishell.py][minishell.py]]
+- Comentarios ::
+  - ¡Interesante el manejo de un ~set()~ para mantener la lista de procesos
+    hijos activos!
+  - Muy bien comentado _y_ documentado 😃
+  - Veo que manejan expresamente las diferentes líneas de excepción que se
+    me ocurren 😃
+- Calificación ::
+  | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
+  |----------------------------------+--------+--------------+---------|
+  | Funcionamiento correcto          |    0.6 |           10 |      6. |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
+  |----------------------------------+--------+--------------+---------|
+  | *Total*                          |        |              |     10. |
+  #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
+
+

@@ -1,0 +1,7 @@
+#Se ignorar los archivos ejecutables
+*.class
+*.exe   
+*.sqlite
+*.o
+#bitacoras 
+*.log

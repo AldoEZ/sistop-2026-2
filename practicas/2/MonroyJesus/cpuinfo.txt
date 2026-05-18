@@ -1,0 +1,91 @@
+Nombre de host:                            ALEJANDROVICTUS
+Nombre del sistema operativo:              Microsoft Windows 11 Home
+Versión del sistema operativo:             10.0.26200 N/D Compilación 26200
+Fabricante del sistema operativo:          Microsoft Corporation
+Configuración del sistema operativo:       Estación de trabajo independiente
+Tipo de compilación del sistema operativo: Multiprocessor Free
+Propietario registrado:                    jesus.alex.2505@hotmail.com
+Organización registrada:                   HP
+Id. del producto:                          00342-22584-04202-AAOEM
+Fecha de instalación original:             15/11/2025, 10:27:05 p. m.
+Tiempo de arranque del sistema:            15/02/2026, 02:20:33 p. m.
+Fabricante del sistema:                    HP
+Modelo del sistema:                        Victus by HP Gaming Laptop 15-fb3xxx
+Tipo de sistema:                           x64-based PC
+Procesadores:                              1 Procesadores instalados.
+                                           [01]: AMD64 Family 25 Model 124 Stepping 0 AuthenticAMD ~3201 Mhz
+Versión del BIOS:                          AMI F.11, 03/07/2025
+Directorio de Windows:                     C:\windows
+Directorio de sistema:                     C:\windows\system32
+Dispositivo de arranque:                   \Device\HarddiskVolume1
+Configuración regional del sistema:        es-mx;Español (México)
+Idioma de entrada:                         es-mx;Español (México)
+Zona horaria:                              (UTC-06:00) Guadalajara, Ciudad de México, Monterrey
+Memoria física total:                      15,631 MB
+Memoria física disponible:                 3,511 MB
+Memoria virtual: tamaño máximo:            26,383 MB
+Memoria virtual: disponible:               3,135 MB
+Memoria virtual: en uso:                   23,248 MB
+Ubicaciones de archivos de página:         C:\pagefile.sys
+Dominio:                                   WORKGROUP
+Servidor de inicio de sesión:              \\ALEJANDROVICTUS
+Revisiones:                                7 revisión(es) instaladas.
+                                           [01]: KB5066128
+                                           [02]: KB5050575
+                                           [03]: KB5054156
+                                           [04]: KB5070349
+                                           [05]: KB5077181
+                                           [06]: KB5071142
+                                           [07]: KB5077869
+Tarjetas de red:                           7 Tarjetas de interfaz de red instaladas.
+                                           [01]: Realtek Gaming GbE Family Controller
+                                                 Nombre de conexión: Ethernet
+                                                 Estado:             Medios desconectados
+                                           [02]: Realtek 8852BE-VT Wireless LAN WiFi 6 PCI-E NIC
+                                                 Nombre de conexión: Wi-Fi
+                                                 DHCP habilitado:    Sí
+                                                 Servidor DHCP:      10.128.128.128
+                                                 Direcciones IP
+                                                 [01]: 10.231.251.51
+                                                 [02]: fe80::942c:11df:9c65:802f
+                                           [03]: Bluetooth Device (Personal Area Network)
+                                                 Nombre de conexión: Bluetooth Network Connection
+                                                 Estado:             Medios desconectados
+                                           [04]: Wintun Userspace Tunnel
+                                                 Nombre de conexión: OpenVPN Wintun
+                                                 Estado:             Medios desconectados
+                                           [05]: VirtualBox Host-Only Ethernet Adapter
+                                                 Nombre de conexión: Ethernet 2
+                                                 DHCP habilitado:    No
+                                                 Direcciones IP
+                                                 [01]: 192.168.56.1
+                                                 [02]: fe80::4172:7c9e:dd2:44fc
+                                           [06]: TAP-Windows Adapter V9
+                                                 Nombre de conexión: OpenVPN TAP-Windows6
+                                                 Estado:             Medios desconectados
+                                           [07]: OpenVPN Data Channel Offload
+                                                 Nombre de conexión: OpenVPN Data Channel Offload
+                                                 Estado:             Medios desconectados
+Seguridad basada en virtualización:        Estado: En ejecución
+                                           Propiedades de seguridad requeridas:
+                                                 Compatibilidad con la virtualización base
+                                           Propiedades de seguridad disponibles:
+                                                 Compatibilidad con la virtualización base
+                                                 Arranque seguro
+                                                 Protección de DMA
+                                                 Código UEFI de solo lectura
+                                                 SMM Security Mitigations 1.0
+                                                 Control de ejecución basado en el modo
+                                           Services Configured:
+                                                 Integridad del código reforzada por el hipervisor
+                                                 Inicio seguro
+                                                 Medición del firmware de SMM
+                                           Services Running:
+                                                 Integridad del código reforzada por el hipervisor
+                                                 Inicio seguro
+                                                 Medición del firmware de SMM
+                                           App Control for Business policy: Forzado
+                                           App Control for Business user mode policy: Desactivado
+                                           Características de seguridad habilitadas:
+                                           Nivel de aislamiento de SMM: 30
+Requisitos Hyper-V:                        Se detectó un hipervisor. No se mostrarán las características necesarias para Hyper-V.

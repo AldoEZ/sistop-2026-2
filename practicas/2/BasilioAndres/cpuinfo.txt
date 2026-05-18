@@ -1,0 +1,58 @@
+
+Nombre de host:                            BASSTOP
+Nombre del sistema operativo:              Microsoft Windows 11 Pro
+Versi¢n del sistema operativo:             10.0.26200 N/D Compilaci¢n 26200
+Fabricante del sistema operativo:          Microsoft Corporation
+Configuraci¢n del sistema operativo:       Estaci¢n de trabajo independiente
+Tipo de compilaci¢n del sistema operativo: Multiprocessor Free
+Propietario registrado:                    andresbasilioillescas@outlook.com
+Organizaci¢n registrada:                   N/D
+Id. del producto:                          00330-80000-00000-AA983
+Fecha de instalaci¢n original:             13/06/2025, 08:52:54 p. m.
+Tiempo de arranque del sistema:            15/02/2026, 11:12:31 a. m.
+Fabricante del sistema:                    System manufacturer
+Modelo del sistema:                        System Product Name
+Tipo de sistema:                           x64-based PC
+Procesadores:                              1 Procesadores instalados.
+                                           [01]: AMD64 Family 25 Model 80 Stepping 0 AuthenticAMD ~3901 Mhz
+Versi¢n del BIOS:                          American Megatrends Inc. 6042, 28/04/2022
+Directorio de Windows:                     C:\WINDOWS
+Directorio de sistema:                     C:\WINDOWS\system32
+Dispositivo de arranque:                   \Device\HarddiskVolume7
+Configuraci¢n regional del sistema:        es-mx;Espa¤ol (M‚xico)
+Idioma de entrada:                         es-mx;Espa¤ol (M‚xico)
+Zona horaria:                              (UTC-06:00) Guadalajara, Ciudad de M‚xico, Monterrey
+Memoria f¡sica total:                      15,666 MB
+Memoria f¡sica disponible:                 7,830 MB
+Memoria virtual: tama¤o m ximo:            31,538 MB
+Memoria virtual: disponible:               22,058 MB
+Memoria virtual: en uso:                   9,480 MB
+Ubicaciones de archivos de p gina:         C:\pagefile.sys
+Dominio:                                   WORKGROUP
+Servidor de inicio de sesi¢n:              \\BASSTOP
+Revisiones:                                7 revisi¢n(es) instaladas.
+                                           [01]: KB5066128
+                                           [02]: KB5050575
+                                           [03]: KB5054156
+                                           [04]: KB5054273
+                                           [05]: KB5059093
+                                           [06]: KB5074109
+                                           [07]: KB5071142
+Tarjetas de red:                           1 Tarjetas de interfaz de red instaladas.
+                                           [01]: Realtek PCIe GbE Family Controller
+                                                 Nombre de conexi¢n: Ethernet
+                                                 DHCP habilitado:    S¡
+                                                 Servidor DHCP:      192.168.0.1
+                                                 Direcciones IP
+                                                 [01]: 192.168.0.16
+                                                 [02]: fe80::714:4754:2c4b:6406
+                                                 [03]: 2806:2a0:a22:8b0c:54ca:4f1a:7590:a2fe
+                                                 [04]: 2806:2a0:a22:8b0c:a15a:e06b:ed11:afd4
+Seguridad basada en virtualizaci¢n:        Estado:ÿNo habilitado
+                                           App Control for Business policy: Forzado
+                                           App Control for Business user mode policy: Desactivado
+                                           Caracter¡sticas de seguridad habilitadas:
+Requisitos Hyper-V:                        Extensiones de modo de monitor de VM: S¡
+                                           Se habilit¢ la virtualizaci¢n en el firmware: No
+                                           Traducci¢n de direcciones de segundo nivel: S¡
+                                           La prevenci¢n de ejecuci¢n de datos est  disponible: S¡

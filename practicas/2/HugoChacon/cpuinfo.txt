@@ -1,0 +1,6 @@
+
+DeviceID Name                                            Caption               
+-------- ----                                            -------               
+CPU0     AMD Ryzen 5 5600G with Radeon Graphics          AMD64 Family 25 Mod...
+
+

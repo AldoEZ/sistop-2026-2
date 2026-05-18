@@ -1,0 +1,74 @@
+#+title: Exposiciones frente al grupo
+#+author: Gunnar Wolf
+
+* Calendario de exposiciones
+  La evaluación de las exposiciones sigue los criterios descritos en
+  la última sección de este archivo (/Criterios de evaluación grupal/
+  y /por el docente/).
+
+  |--------------+----------------------------------------------------------------+------------------------------------------------------------------------------------+---------+----------------------------------------+-------------------------------------------------|
+  | *Fecha*      | *Integrantes*                                                  | *Título*                                                                           | *Video* | *Documentos*                           | *Evaluación*                                    |
+  |--------------+----------------------------------------------------------------+------------------------------------------------------------------------------------+---------+----------------------------------------+-------------------------------------------------|
+  | 02-mar-2026  | Hans Martínez Sánchez e Isaías Blancas Díaz                    | /Thrashing/ en la Memoria Virtual                                                  | [[https://youtu.be/Bl3WWtUFZ5Y][Ver]]     | [[./BlancasIsaias-MartinezHans/GUION.pdf][Guión]], [[./BlancasIsaias-MartinezHans/Memoria Virtual.pdf][Presentación]]                    | [[./BlancasIsaias-MartinezHans/evaluacion_alumnos.pdf][Evaluación de los compañeros]], [[./BlancasIsaias-MartinezHans/evaluacion.org][Evaluación global]] |
+  | 09-mar-2026  | Jesús Alejandro Monroy Tapia y Bruno Ponce de León             | Vulnerabilidad /Eternal Blue/ de Windows NT                                        | [[https://youtu.be/JY2tWV0eXvs][Ver]]     | [[./MonroyTapia-Poncedeleón/MonroyTapia-Ponceleon-Escrito.pdf][Escrito]], [[./MonroyTapia-Poncedeleón/MonroyTapia-Ponceleon-Presentacion.pdf][Presentación]]                  | [[./MonroyTapia-Poncedeleón/evaluacion_alumnos.pdf][Evaluación de los compañeros]], [[./MonroyTapia-Poncedeleón/evaluacion.org][Evaluación global]] |
+  | 09-mar-2026  | Lizbeth Cruz Manríquez y Víctor Javier Brena de León           | Unidades de procesamiento neuronal (NPUs)                                          | [[https://youtu.be/jGdrEaOLQrM][Ver]]     | [[./BrenaVictor-CruzLizbeth/Unidades de Procesamiento Neuronal - Guion.pdf][Guión]], [[./BrenaVictor-CruzLizbeth/Unidades de Procesamiento neuronal - Presentacion.pdf][Presentación]]                    | [[./BrenaVictor-CruzLizbeth/evaluacion_alumnos.pdf][Evaluación de los compañeros]], [[./BrenaVictor-CruzLizbeth/evaluacion.org][Evaluación global]] |
+  | 16-mar-2026  | Adrián Axel Arzate Ríos y David Díaz Antunez                   | La relación entre los sistemas operativos y las tarjetas gráficas (GPUs)           | [[https://youtu.be/yjmdH8EzMlU][Ver]]     | [[./ArzateAdrian-DiazDavid/TrabajoEscrito.GPU-SO.pdf][Escrito]], [[./ArzateAdrian-DiazDavid/Presentación.GPU-SO.pdf][Presentación]]                  | [[./ArzateAdrian-DiazDavid/evaluacion_alumnos.pdf][Evaluación de los compañeros]], [[./ArzateAdrian-DiazDavid/evaluacion.org][Evaluación global]] |
+  | 16-mar-2026  | Leonardo Atilano Velázquez y Sebastián Valdez Subirachs        | Memoria caché del CPU                                                              | [[https://youtu.be/-9PJO4BnqFs][Ver]]     | [[./AtilanoLeonardo-ValdezSebastian/Documentación.pdf][Documentación]], [[./AtilanoLeonardo-ValdezSebastian/MemoriaCacheCPU.pdf][Presentación]]            | [[./AtilanoLeonardo-ValdezSebastian/evaluacion_alumnos.pdf][Evaluación de los compañeros]], [[./AtilanoLeonardo-ValdezSebastian/evaluacion.org][Evaluación global]] |
+  | 6-abr-2026   | Fernando González y Emir Quezada                               | El proceso de arranque de una computadora                                          | [[https://youtu.be/Pvuf1BibXHA][Ver]]     | [[./GonzalezFernando-QuezadaEmir/Documentación.pdf][Documentación]], [[./GonzalezFernando-QuezadaEmir/Presentación.pdf][Presentación]]            | [[./GonzalezFernando-QuezadaEmir/evaluacion_alumnos.pdf][Evaluación de los compañeros]], [[./GonzalezFernando-QuezadaEmir/evaluacion.org][Evaluación global]] |
+  | 6-abr-2026   | Jorge Andrés Terán y Edgar Antonio Sotomayor                   | El rol de los controladores (/drivers/)                                            | [[https://youtu.be/yjqaq-OgIEk][Ver]]     | [[./SotomayorEdgar-TeranJorge/Documentación.pdf][Documentación]], [[./SotomayorEdgar-TeranJorge/Presentación.pdf][Presentación]]            | [[./SotomayorEdgar-TeranJorge/evaluacion_alumnos.pdf][Evaluación de los compañeros]], [[./SotomayorEdgar-TeranJorge/evaluacion.org][Evaluación global]] |
+  | 13-abr-2026  | Aldo Axel Estrada y Jazmín Sánchez                             | Planificación de tareas y ejecución paralela                                       | [[https://youtu.be/oE_ZA8DFIhk][Ver]]     | [[./EstradaAldo-SanchezJazmin/Documentación.pdf][Documentación]], [[./EstradaAldo-SanchezJazmin/Presentación.pdf][Presentación]]            | [[./EstradaAldo-SanchezJazmin/evaluacion_alumnos.pdf][Evaluación de los compañeros]], [[./EstradaAldo-SanchezJazmin/evaluacion.org][Evaluación global]] |
+  | 13-abr-2026  | Andrés Basilio Illescas y Samuel Santiago Cruz Macedo          | /Namespaces/ y /CGroups/ en la virtualización ligera                               | [[https://youtu.be/hBkEwB-lNSE][Ver]]     | [[./BasilioAndres-CruzSamuel/Trabajo Escrito - SO.pdf][Trabajo escrito]], [[./BasilioAndres-CruzSamuel/Diapositivas - SO.pdf][Diapositivas]]          | [[./BasilioAndres-CruzSamuel/evaluacion_alumnos.pdf][Evaluación de los compañeros]], [[./BasilioAndres-CruzSamuel/evaluacion.org][Evaluación global]] |
+  | 20-abr-2026  | Karina Lizeth Rosete Manzano y Sara Espinosa González          | Defensas preventivas de los sistemas operativos ante ataques informáticos          | [[https://youtu.be/h1-7AXvFZAw][Ver]]     | [[./EspinosaSara-RoseteKarina/Trabajo_escrito.pdf][Trabajo escrito]], [[./EspinosaSara-RoseteKarina/Defensas_preventivas.pdf][Presentación]]          | [[./EspinosaSara-RoseteKarina/evaluacion_alumnos.pdf][Evaluación de los compañeros]], [[./EspinosaSara-RoseteKarina/evaluacion.org][Evaluación global]] |
+  | 20-abr-2026  | Isaac  Campos y Alejandro Martínez                             | El ataque a la cadena de suministro de xz                                          | [[https://youtu.be/YtLjNY7TWfM][Ver]]     | [[./CamposIsaac-MartinezAlejandro/Propuesta.pdf][Trabajo escrito]], [[./CamposIsaac-MartinezAlejandro/animaciones][Animaciones empleadas]] | [[./CamposIsaac-MartinezAlejandro/evaluacion_alumnos.pdf][Evaluación de los compañeros]], [[./CamposIsaac-MartinezAlejandro/evaluacion.org][Evaluación global]] |
+  | 27-abr-2026  | Derek André López y Fernando Ortega                            | El problema del año 2038 (Y2K38)                                                   | [[https://youtu.be/kSGAOx1pG4I][Ver]]     | [[./OrtegaFernando-LopezDerek/Documentación.pdf][Documentación]], [[./OrtegaFernando-LopezDerek/Presentacion.pdf][Presentación]]            | [[./OrtegaFernando-LopezDerek/evaluacion_alumnos.pdf][Evaluación de los compañeros]], [[./OrtegaFernando-LopezDerek/evaluacion.org][Evaluación global]] |
+  | 27-abr-2026  | José Manuel Ferrer y Hugo Emmanuel Chacón                      | ¿Cómo funciona FUSE por dentro?                                                    | [[https://youtu.be/O7SUFLZduqI][Ver]]     | [[./FerrerJose-ChaconHugo/Previo FUSE.pdf][Documentación]], [[./FerrerJose-ChaconHugo/¿Cómo funciona FUSE por dentro.pdf][Presentación]]            | [[./FerrerJose-ChaconHugo/evaluacion_alumnos.pdf][Evaluación de los compañeros]], [[./FerrerJose-ChaconHugo/evaluacion.org][Evaluación global]] |
+  | 4-mayo-2026  | Francisco Jared Mérida Serralde y Leonardo André Quezada Yépez | Meltdown y Spectre. Fallas críticas en la seguridad de los procesadores modernos   | [[https://youtu.be/S3_Y7v9RCJ0][Ver]]     | [[./MeridaFrancisco-QuezadaLeonardo/Documentación Meltdown y Spectre.pdf][Documentación]], [[./MeridaFrancisco-QuezadaLeonardo/Presentación.pdf][Presentación]]            | [[./MeridaFrancisco-QuezadaLeonardo/evaluacion_alumnos.pdf][Evaluación de los compañeros]], [[./MeridaFrancisco-QuezadaLeonardo/evaluacion.org][Evaluación global]] |
+  | 4-mayo-2026  | Luis Arturo Zavala y Luis Torres                               | Multithreading en la /vida real/                                                   | [[https://youtu.be/UIGGgDBgy6M][Ver]]     | [[./TorresLozano-ZavalaMagaña/Multithreading_documentacion.pdf][Documentación]], [[./TorresLozano-ZavalaMagaña/Multithreading en la vida real presentación.pdf][Presentación]]            | [[./TorresLozano-ZavalaMagaña/evaluacion_alumnos.pdf][Evaluación de los compañeros]], [[./TorresLozano-ZavalaMagaña/evaluacion.org][Evaluación global]] |
+  | 11-mayo-2026 | Luis Adrián González Falcón y Fernando Samuel López Morales    | Evolución del protocolo X11 al protocolo Wayland en sistemas UNIX                  | [[https://youtu.be/NmehmqXZ2Fg][Ver]]     | [[./GonzalezLuis-LopezFernando/Evolución del protocolo X11 al protocolo Wayland en sistemas UNIX.pdf][Trabajo escrito]], [[./GonzalezLuis-LopezFernando/Dispositivas.pdf][Diapositivas]]          | [[https://encuestas.iiec.unam.mx/951373][Evaluación a los compañeros]]                     |
+  | 11-mayo-2026 | Sergio Quiroz Salazar                                          | /Edge Computing/                                                                   | [[https://youtu.be/mQw3goQjGlA][Ver]]     | [[./QuirozSergio/EdgeComputing_TrabajoEscrito.pdf][Trabajo escrito]], [[./QuirozSergio/Edge Computing presentación.pdf][Presentación]]          | [[https://encuestas.iiec.unam.mx/349339][Evaluación a los compañeros]]                     |
+  | 18-mayo-2026 | Santiago Arath Bello Sánchez y David Baruc López Romero        | ¿Por qué mi celular cierra apps /de la nada/? Gestión de memoria y el /OOM Killer/ |         |                                        |                                                 |
+  | 18-mayo-2026 | Josué Benjamín Garinay y Carlos Daniel López                   | Máquinas virtuales                                                                 |         |                                        |                                                 |
+  |--------------+----------------------------------------------------------------+------------------------------------------------------------------------------------+---------+----------------------------------------+-------------------------------------------------|
+  #+TBLFM: 
+
+* Rúbrica de evaluación
+
+  La evaluación de la exposición considera factores tanto de la calidad
+  del material desarrollado como de la forma en que se presenta al
+  grupo, como puede apreciarse en la siguiente tabla.
+
+  Toda exposición se evaluará considerando como requisitos
+  indispensables:
+
+  - El material presentado debe ser desarrollado íntegramente por el o
+    los alumnos expositores (con citas textuales indicadas expresamente)
+    o será descalificado.
+  - La elección de tema y fecha deben ser acordadas previamente con el
+    profesor, con no menos de dos semanas de anticipación.
+
+  La exposición ante el grupo constará de dos calificaciones: Un 70%
+  asignado por el profesor, y un 30% proveniente de evaluación grupal en
+  que los compañeros presentes en la sesión evalúen cuantitativamente y
+  de forma anónima.
+
+** Criterios de evaluación grupal
+
+   - Originalidad
+   - Nivel adecuado
+   - Relevancia
+   - Claridad en la presentación
+   - Presencia
+
+   Los compañeros tendrán también un campo para hacer comentarios en
+   formato libre al ponente.
+
+** Criterios de evaluación por el docente
+
+| Criterio                                | Excelente (100%)                                                                                               | Satisfactorio (70%)                                                                                       | Deficiente (40% o menos)                                                       | Peso |
+|-----------------------------------------+----------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------+------|
+| *1. Contenido Técnico y Profundidad*    | Explica conceptos clave con precisión, usa 3+ ejemplos técnicos bien desarrollados y relaciona con la materia. | Explicaciones correctas pero poco profundas, usa 1-2 ejemplos sin mucho análisis.                         | Definiciones imprecisas, sin ejemplos técnicos o sin relación con la materia.  |  30% |
+| *2. Fuentes Bibliográficas*             | 3+ fuentes formales (investigación, libros académicos), bien citadas y analizadas.                             | 1-2 fuentes formales con referencias parciales o poco integradas.                                         | Fuentes no formales predominan o falta citar adecuadamente.                    |  15% |
+| *3. Organización*                       | Introducción, desarrollo y conclusión bien definidas; información fluida y lógica.                             | Presenta estructura pero con fallas en la secuencia o transiciones.                                       | Desorden, falta alguna sección clave o sin lógica clara.                       |  15% |
+| *4. Comunicación Oral y Uso del Tiempo* | Habla con fluidez, volumen y ritmo adecuados; usa términos precisos; no lee guion; exposición dura 15-20 min.  | Dicción aceptable, lee ocasionalmente, términos técnicos poco explicados; tiempo entre 12-15 o 20-23 min. | Lee constantemente, voz poco clara, mal uso de términos; tiempo <12 o >23 min. |  25% |
+| *5. Uso de Recursos Visuales*           | Diapositivas y gráficos claros, bien diseñados y relevantes para la exposición.                                | Uso de recursos con fallos en claridad o diseño; algo de sobrecarga de texto.                             | No usa recursos o estos son confusos y poco útiles.                            |  15% |
+|-----------------------------------------+----------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------+------|

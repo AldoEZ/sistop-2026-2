@@ -1,0 +1,80 @@
+#+title: Evaluación de la exposición
+#+author: Gunnar Wolf
+
+* El problema del año 2038 (Y2K38)
+
+- Tema presentado por :: Derek André López y Fernando Ortega
+- Calificación global :: 
+
+|------------------------+------+--------------------+------+---------|
+| Evaluación  compañeros | Peso | Evaluación docente | Peso | *Total* |
+|------------------------+------+--------------------+------+---------|
+|                   9.75 |  0.3 |               8.65 |  0.7 |    8.98 |
+|------------------------+------+--------------------+------+---------|
+#+TBLFM: @2$5=$1*$2+$3*$4;f-2
+
+* Evaluación grupal
+
+|              | 1 | 2 | 3 | 4 | 5 | Total |
+|--------------+---+---+---+---+---+-------|
+| Originalidad | 0 | 0 | 0 | 1 | 7 |  9.75 |
+| Nivel        | 0 | 0 | 0 | 1 | 7 |  9.75 |
+| Relevancia   | 0 | 0 | 0 | 1 | 7 |  9.75 |
+| Claridad     | 0 | 0 | 0 | 1 | 7 |  9.75 |
+| Presencia    | 0 | 0 | 0 | 1 | 7 |  9.75 |
+|--------------+---+---+---+---+---+-------|
+|              |   |   |   |   |   |  9.75 |
+#+TBLFM: @2$7..@6$7=10 * (0.2*$2 + 0.4*$3 + 0.6*$4 + 0.8*$5 + $6 ) / vsum($2..$6); f-2::@7$7=vmean(@2$7..@6$7); f-2
+
+** Comentarios de los compañeros
+
+- ninguno
+- Todo bien, me parecio un buen forma de desenvolverse
+- Tema muy original e interesante, buena vinculación con la materia y buena
+  explicación
+
+* Evaluación por parte del docente
+
+| *Aspecto*                          | *Peso* | *Evaluación* | *Puntos* |
+|------------------------------------+--------+--------------+----------|
+| Contenido técnico y profundidad    |    0.3 |            7 |      2.1 |
+| Fuentes bibliográficas             |   0.15 |           10 |      1.5 |
+| Organización                       |   0.15 |           10 |      1.5 |
+| Comunicación oral y uso del tiempo |   0.25 |           10 |      2.5 |
+| Uso de recursos visuales           |   0.15 |            7 |     1.05 |
+|------------------------------------+--------+--------------+----------|
+| *Global*                           |        |              |     8.65 |
+#+TBLFM: @<<$4..@>>$4=$2*$3::$4=vsum(@<<..@>>);f-2
+
+** Comentarios
+
+- El material presentado es correcto, pero a nivel técnico se queda muy en
+  lo introductorio, cayendo en varios errores fácticos o conceptuales
+- Me parece que el ejemplo que presentan del planificador no está basado en
+  la realidad. El planificador opera con “micro-tiempo”, con
+  desplazamientos en tiempo a partir del contador interno del CPU (y no le
+  importa el tiempo “externo”).
+  - La mayor parte de las afectaciones se ubican en espacio de usuario → en
+    valores almacenados en bases de datos, fechas de expiración de
+    recursos, etc.
+  - El tiempo de 64 bits (~time_t64~) /redefine/ un tipo de datos dentro de
+    la biblioteca de C, por lo que hay que /recompilar/
+- ⸘Por qué en Python no se pueden utilizar números negativos muy grandes‽
+  #+begin_src python
+    $ python3
+    Python 3.13.12 (main, Feb  4 2026, 15:06:39) [GCC 15.2.0] on linux
+    Type "help", "copyright", "credits" or "license" for more information.
+    >>> -2**128 - 1
+    -340282366920938463463374607431768211457
+    >>> a = 2**64; b=-2**128; c=a*b
+    >>> c
+    -6277101735386680763835789423207666416102355444464034512896
+    >>> c / b
+    1.8446744073709552e+19
+    >>> a
+    18446744073709551616
+    >>> a == c/b
+    True
+    >>> 
+  #+end_src
+- El video ya estaba terminando, pero en 19:34 corta de forma muy abrupta 🙁

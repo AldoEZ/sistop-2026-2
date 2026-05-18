@@ -1,0 +1,67 @@
+#+title: Evaluación de la exposición
+#+author: Gunnar Wolf
+
+* El rol de los controladores (/drivers/)
+
+- Tema presentado por :: Jorge Andrés Terán y Edgar Antonio Sotomayor
+- Calificación global :: 9.01
+
+|------------------------+------+--------------------+------+---------|
+| Evaluación  compañeros | Peso | Evaluación docente | Peso | *Total* |
+|------------------------+------+--------------------+------+---------|
+|                   7.75 |  0.3 |               9.55 |  0.7 |    9.01 |
+|------------------------+------+--------------------+------+---------|
+#+TBLFM: @2$5=$1*$2+$3*$4;f-2
+
+* Evaluación grupal
+
+|              | 1 | 2 | 3 | 4 | 5 | Total |
+|--------------+---+---+---+---+---+-------|
+| Originalidad | 2 | 0 | 0 | 1 | 5 |  7.75 |
+| Nivel        | 2 | 0 | 0 | 1 | 5 |  7.75 |
+| Relevancia   | 2 | 0 | 0 | 0 | 6 |  8.00 |
+| Claridad     | 2 | 0 | 1 | 0 | 5 |  7.50 |
+| Presencia    | 2 | 0 | 0 | 1 | 5 |  7.75 |
+|--------------+---+---+---+---+---+-------|
+|              |   |   |   |   |   |  7.75 |
+#+TBLFM: @2$7..@6$7=10 * (0.2*$2 + 0.4*$3 + 0.6*$4 + 0.8*$5 + $6 ) / vsum($2..$6); f-2::@7$7=vmean(@2$7..@6$7); f-2
+
+** Comentarios de los compañeros
+- Perfecta exposición, buena dicción, investigación profunda, tema
+  interesante y fácil de digerir.
+- Es un ingeniero increible
+- Me pareció bastante interactiva la expo, haciendo muchos ejemplos de
+  manera sencilla para entender, personalmente no conocía la importancia de
+  los drivers y aprendí mucho
+- Excelente analogía con traductor-drivers, se queda mejor la idea de lo
+  que hacen.
+
+* Evaluación por parte del docente
+
+| *Aspecto*                          | *Peso* | *Evaluación* | *Puntos* |
+|------------------------------------+--------+--------------+----------|
+| Contenido técnico y profundidad    |    0.3 |           10 |       3. |
+| Fuentes bibliográficas             |   0.15 |           10 |      1.5 |
+| Organización                       |   0.15 |           10 |      1.5 |
+| Comunicación oral y uso del tiempo |   0.25 |           10 |      2.5 |
+| Uso de recursos visuales           |   0.15 |            7 |     1.05 |
+|------------------------------------+--------+--------------+----------|
+| *Global*                           |        |              |     9.55 |
+#+TBLFM: @<<$4..@>>$4=$2*$3::$4=vsum(@<<..@>>);f-2
+
+** Comentarios
+- Buen ritmo de exposición. Me gusta que vayan intercambiando el “control”
+  entre los miembros del equipo, es más dinámico que partir en “tu mitad” y
+  “mi mitad”
+- Buena estructuración del material. Muy bien por dar el mapa de la
+  presentación al principio para saber “qué nos espera” de forma
+  “platicadita”.
+- ¿Drivers en espacio de usuario? ¿Seguros? ¡Hasta algo de tan bajo ancho
+  de banda como un teclado es gestionado directamente por el kernel!
+  - La diferencia no es el ancho de banda, sino sencillamente /el acceso a
+    hardware/.
+  - El UMDF (/User-Mode Driver Framework/) que mencionan se refiere a
+    /reducir al mínimo posible/ la cantidad de código que se ejecuta en
+    espacio de kernel, y posiblemente brindar algunos /macros principales/
+    para abstraer el uso de ciertos buses. Pero por su naturaleza misma, un
+    driver no puede /removerse por completo/ del espacio de núcleo.

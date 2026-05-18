@@ -1,0 +1,57 @@
+#+title: Evaluación de la exposición
+#+author: Gunnar Wolf
+
+* Proceso de arranque de una computadora: De la señal “Power Good” a la inicialización del entorno de usuario
+
+- Tema presentado por :: Fernando González y Emir Quezada
+- Calificación global :: 8.7
+
+|------------------------+------+--------------------+------+---------|
+| Evaluación  compañeros | Peso | Evaluación docente | Peso | *Total* |
+|------------------------+------+--------------------+------+---------|
+|                    8.8 |  0.3 |               8.65 |  0.7 |    8.70 |
+|------------------------+------+--------------------+------+---------|
+#+TBLFM: @2$5=$1*$2+$3*$4;f-2
+
+* Evaluación grupal
+
+|              | 1 | 2 | 3 | 4 | 5 | Total |
+|--------------+---+---+---+---+---+-------|
+| Originalidad | 1 | 0 | 0 | 0 | 6 |  8.86 |
+| Nivel        | 1 | 0 | 0 | 0 | 6 |  8.86 |
+| Relevancia   | 1 | 0 | 0 | 0 | 6 |  8.86 |
+| Claridad     | 1 | 0 | 0 | 1 | 5 |  8.57 |
+| Presencia    | 1 | 0 | 0 | 0 | 6 |  8.86 |
+|--------------+---+---+---+---+---+-------|
+|              |   |   |   |   |   |  8.80 |
+#+TBLFM: @2$7..@6$7=10 * (0.2*$2 + 0.4*$3 + 0.6*$4 + 0.8*$5 + $6 ) / vsum($2..$6); f-2::@7$7=vmean(@2$7..@6$7); f-2
+
+** Comentarios de los compañeros
+- Muy buena explicación
+- Excelente presentación, muy organizada.
+- muy buen tema, muy interesante, y muy buenos ponentes, se expresan de
+  forma clara
+- Organizaron bastante bien la información, considero que las explicaciones
+  fueron entendibles con un buen nivel entre entendible y técnico
+- Me agradó como explicaron la BIOS y ahora lo más nuevo UEFI
+
+* Evaluación por parte del docente
+
+| *Aspecto*                          | *Peso* | *Evaluación* | *Puntos* |
+|------------------------------------+--------+--------------+----------|
+| Contenido técnico y profundidad    |    0.3 |           10 |       3. |
+| Fuentes bibliográficas             |   0.15 |            7 |     1.05 |
+| Organización                       |   0.15 |            7 |     1.05 |
+| Comunicación oral y uso del tiempo |   0.25 |           10 |      2.5 |
+| Uso de recursos visuales           |   0.15 |            7 |     1.05 |
+|------------------------------------+--------+--------------+----------|
+| *Global*                           |        |              |     8.65 |
+#+TBLFM: @<<$4..@>>$4=$2*$3::$4=vsum(@<<..@>>);f-2
+
+** Comentarios
+- Me gusta que la presentación que hacen muestra que conocen el tema, lo
+  hacen claramente a partir de su conocimiento y siguiendo la presentación,
+  no leyendo, particularmente el primer ponente (pero también el
+  segundo). Da muy buena impresión 😃
+- Me parece, sin embargo, que la manera en que saltaron un par de veces de
+  un tema a otro es un poco desordenado e inesperado.

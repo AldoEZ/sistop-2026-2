@@ -1,0 +1,73 @@
+#+title: Evaluación de la exposición
+#+author: Gunnar Wolf
+
+* Memoria caché del CPU
+
+- Tema presentado por :: Leonardo Atilano y Sebastián Valdez
+- Calificación global :: 9.33
+
+|------------------------+------+--------------------+------+---------|
+| Evaluación  compañeros | Peso | Evaluación docente | Peso | *Total* |
+|------------------------+------+--------------------+------+---------|
+|                    8.8 |  0.3 |               9.55 |  0.7 |    9.33 |
+|------------------------+------+--------------------+------+---------|
+#+TBLFM: @2$5=$1*$2+$3*$4;f-2
+
+* Evaluación grupal
+
+|              | 1 | 2 | 3 | 4 | 5 | Total |
+|--------------+---+---+---+---+---+-------|
+| Originalidad | 1 | 0 | 0 | 3 | 5 |  8.44 |
+| Nivel        | 1 | 0 | 0 | 0 | 8 |  9.11 |
+| Relevancia   | 1 | 0 | 1 | 0 | 7 |  8.67 |
+| Claridad     | 0 | 1 | 0 | 1 | 7 |  9.11 |
+| Presencia    | 1 | 0 | 0 | 2 | 6 |  8.67 |
+|--------------+---+---+---+---+---+-------|
+|              |   |   |   |   |   |  8.80 |
+#+TBLFM: @2$7..@6$7=10 * (0.2*$2 + 0.4*$3 + 0.6*$4 + 0.8*$5 + $6 ) / vsum($2..$6); f-2::@7$7=vmean(@2$7..@6$7); f-2
+
+** Comentarios de los compañeros
+- Muy buena exposición
+- Considero que al tratarse de un tema de clase es de gran ayuda para su
+  comprensión y análisis de forma específica.
+- Me gustó mucho que durante la primera mitad de la exposición se hicieron
+  ejemplos sencillos para presentar los conceptos, además de las imágenes
+  divertidas de la presentación lo hicieron más didáctico sin que se
+  hiciera pesado el tema
+
+* Evaluación por parte del docente
+
+| *Aspecto*                          | *Peso* | *Evaluación* | *Puntos* |
+|------------------------------------+--------+--------------+----------|
+| Contenido técnico y profundidad    |    0.3 |           10 |       3. |
+| Fuentes bibliográficas             |   0.15 |            7 |     1.05 |
+| Organización                       |   0.15 |           10 |      1.5 |
+| Comunicación oral y uso del tiempo |   0.25 |           10 |      2.5 |
+| Uso de recursos visuales           |   0.15 |           10 |      1.5 |
+|------------------------------------+--------+--------------+----------|
+| *Global*                           |        |              |     9.55 |
+#+TBLFM: @<<$4..@>>$4=$2*$3::$4=vsum(@<<..@>>);f-2
+
+** Comentarios
+- Mencionan que un procesador actual tiene no más de 100MB entre los tres
+  niveles de caché
+  - Les he comentado que la computadora que actualmente tengo en la UNAM es
+    de /muy/ alta gama... Tiene un CPU [[https://www.techpowerup.com/cpu-specs/ryzen-9-9950x.c3649][AMD Ryzen 9 9950X]] — y sí, tiene 80MB
+    de caché en total (64MB total L3, 1MB por núcleo L2, 80KB por núcleo
+    L1), con 16 núcleos
+  - Un CPU Intel de gama alta de escritorio ([[https://www.intel.com/content/www/us/en/products/sku/230496/intel-core-i913900k-processor-36m-cache-up-to-5-80-ghz/specifications.html][Intel i9-13900]]) tiene 68MB
+    (36MB total L3 + 32MB total L2; no menciona cuánto L1)
+  - Pero un CPU de última generación, rango medio como el [[https://www.techpowerup.com/cpu-specs/core-i5-12400.c2549][Intel i5-14400]]
+    apenas llega a los 26MB...
+  - Y si comparamos con [[https://www.eatyourbytes.com/desktop-cpus-ranked-by-the-size-of-their-l3-cache/][equipos de hace 5+ años]], similares a los que
+    habitualmente utilizamos... Verán que 10MB es considerado ya gama alta.
+- Al hablar de los niveles L1/L2/L3, es importante aclarar que no es el
+  sistema operativo el que decide qué va en cada nivel, sino que lo
+  gestiona /el hardware mismo/.
+  - La configuración que modificaron en el BIOS del sistema de prueba
+    redujo el caché total disponible y ciertos /flujos/ (como lo
+    mencionaron, la optimización a 3D), pero no es que el sistema operativo 
+  - El sistema operativo no gestiona los hilos en el GPU; este es en buena
+    medida una computadora independiente, con su propia lógica y
+    planificación.
+

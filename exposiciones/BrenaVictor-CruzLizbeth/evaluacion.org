@@ -1,0 +1,102 @@
+#+title: Evaluación de la exposición
+#+author: Gunnar Wolf
+
+* Unidades de Procesamiento Neuronal (NPUs)
+
+- Tema presentado por :: Víctor Javier Brena de León y Lizbeth Cruz
+  Manríquez
+- Calificación global :: 8.57
+
+|------------------------+------+--------------------+------+---------|
+| Evaluación  compañeros | Peso | Evaluación docente | Peso | *Total* |
+|------------------------+------+--------------------+------+---------|
+|                   9.09 |  0.3 |               8.35 |  0.7 |    8.57 |
+|------------------------+------+--------------------+------+---------|
+#+TBLFM: @2$5=$1*$2+$3*$4;f-2
+
+* Evaluación grupal
+
+|              | 1 | 2 | 3 | 4 |  5 | Total |
+|--------------+---+---+---+---+----+-------|
+| Originalidad | 0 | 0 | 0 | 6 | 11 |  9.29 |
+| Nivel        | 0 | 0 | 0 | 6 | 11 |  9.29 |
+| Relevancia   | 0 | 0 | 0 | 7 | 10 |  9.18 |
+| Claridad     | 0 | 0 | 2 | 5 | 10 |  8.94 |
+| Presencia    | 0 | 0 | 2 | 7 |  8 |  8.71 |
+|--------------+---+---+---+---+----+-------|
+|              |   |   |   |   |    |  9.08 |
+#+TBLFM: @2$7..@6$7=10 * (0.2*$2 + 0.4*$3 + 0.6*$4 + 0.8*$5 + $6 ) / vsum($2..$6); f-2::@7$7=vmean(@2$7..@6$7); f-2
+
+** Comentarios de los compañeros
+
+- Un muy buen tema, me gustó mucho la organización de la información y cómo
+  lo explicaron
+- Hicieron muy entretenida la explicación
+- Un poco extenso pero mucha claridad y buena información en las
+  diapositivas
+- ninguno :)
+- El tema es muy bueno e interesante. Recomendaría practicar un poco más la
+  explicación del tema, para mejorar y evitar el uso de muletillas, y hacer
+  un poco más fácil el seguimiento de ideas.
+
+* Evaluación por parte del docente
+
+| *Aspecto*                          | *Peso* | *Evaluación* | *Puntos* |
+|------------------------------------+--------+--------------+----------|
+| Contenido técnico y profundidad    |    0.3 |           10 |       3. |
+| Fuentes bibliográficas             |   0.15 |           10 |      1.5 |
+| Organización                       |   0.15 |            7 |     1.05 |
+| Comunicación oral y uso del tiempo |   0.25 |            7 |     1.75 |
+| Uso de recursos visuales           |   0.15 |            7 |     1.05 |
+|------------------------------------+--------+--------------+----------|
+| *Global*                           |        |              |     8.35 |
+#+TBLFM: @<<$4..@>>$4=$2*$3::$4=vsum(@<<..@>>);f-2
+
+** Comentarios
+
+- Las láminas que desarrollaron acompañan bien al material, pero en la
+  parte más /densa/ de su presentación, le faltó dinamismo: la misma lámina
+  con información más bien /básica/ se mantuvo durante mucho tiempo. Esto
+  puede llevar a que se pierda la atención de su público.
+- El ritmo de la presentación es bueno. El tono y la inflexión de la voz
+  denotan seguridad, conocimiento de su material. En algunos puntos se
+  siente un poco de abuso de muletillas, pero es menor.
+  - El tiempo, sin embargo, excede del límite sugerido.
+- Mencionan apenas una vez, y casi por casualidad, la importancia del
+  /reloj predecible/ de la multiplicación acumulativa (MAC). Este es un
+  punto _fundamental_ del modelo de los NPU. ¡Hay que darle mayor énfasis!
+- No asuman que su público sabe lo mismo que saben todos ustedes: Cuando
+  presentan respecto a FP32 / FP16 / INT8, dicen que se usa FP32 para el
+  entrenamiento.
+  - ¿Están seguros de que quien va siguiendo la presentación sabe respecto
+    a las tres etapas que se siguen en el entrenamiento de un modelo de red
+    neuronal?
+  - No han comentado hasta ahora que las NPU sirven para acelerar las
+    /inferencias/, aunque no se utilizan para el /entrenamiento y pruebas/,
+    si es que entiendo correctamente. ¡Es un punto fundamental!
+- La eficiencia energética no se debe únicamente a la reduccióñ de la
+  resolución. El manejo, a nivel compuertas electrónicas, de la aritmética
+  entera es /mucho/ más sencillo (eficiente) que el de la de punto
+  flotante.
+- Al hablar de en qué componentes se van integrando SoCs con NPUs, /caminas
+  un tanto en círculos/, posiblemente perdiendo la atención del público
+- Cuando exponen el /caminito/ que sigue la operación del NPU, mencionan
+  que es el NPU el que copia los datos de la memoria el sistema a la
+  interna del NPU.
+  - ¡Es al revés! El sistema operativo se comunica con el NPU, que
+    funcionalmente podría ser una computadora separada de propósito
+    específico, y le copia tanto el modelo como los datos a su memoria.
+  - El NPU /no puede tener acceso/ a la memoria del sistema. Es como si
+    fuera una comunicación en red con una computadora independiente
+  - /No es un caso/ de multiprocesamiento asimétrico, es más bien un caso
+    particular de cómputo distribuido (aunque estén dentro del mismo chip).
+- Ustedes han profundizado en este tema mucho más que yo. Sin embargo...
+  - En las aplicaciones, me parece que las basadas en /transformers/
+    (modelos de lenguaje e IA generativa) /no serían/ buenos casos de uso
+    para un NPU, por lo menos no para uno como los que presentan con
+    énfasis en incorporación en dispositivos, por los grandes requisitos de
+    memoria que tienen.
+  - CNNs y RNNs tienen lógicas de trabajo /muy/ distintas, y sería
+    económicamente inviable generar NPUs /a escala/ “buenos” para tanto un
+    extremo como el otro.
+

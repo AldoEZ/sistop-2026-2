@@ -1,0 +1,40 @@
+- Ronda 1:
+  C: 0, t=1; A: 2, t=3; B: 7, t=4; E: 7, t=3; D: 9, t=2 (tot:13)
+  FCFS: T=4.40, E=1.80, P=1.77
+  C-AAA--BBBBEEEDD
+  RR: T=5.20, E=2.60, P=1.92
+  C-AAA--BEBEDBEDB
+  SPN: T=3.80, E=1.20, P=1.35
+  C-AAA--EEEDDBBBB
+  FB: T=5.00, E=2.40, P=1.78
+  C-AAA--BEDBEDBEB
+- Ronda 2:
+  C: 1, t=5; A: 2, t=2; D: 2, t=5; B: 5, t=1; E: 8, t=5 (tot:18)
+  FCFS: T=8.40, E=4.80, P=3.48
+  -CCCCCAADDDDDBEEEEE
+  RR: T=9.20, E=5.60, P=2.78
+  -CCADCADBCDECDEDEEE
+  SPN: T=7.40, E=3.80, P=2.22
+  -CCCCCBAADDDDDEEEEE
+  FB: T=9.80, E=6.20, P=2.42
+  -CADCBADEECDECDECDE
+- Ronda 3:
+  D: 1, t=4; A: 2, t=1; B: 6, t=1; C: 6, t=1; E: 6, t=3 (tot:10)
+  FCFS: T=3.20, E=1.20, P=1.93
+  -DDDDABCEEE
+  RR: T=3.00, E=1.00, P=1.58
+  -DDADDBCEEE
+  SPN: T=3.20, E=1.20, P=1.93
+  -DDDDABCEEE
+  FB: T=2.80, E=0.80, P=1.38
+  -DADDDBCEEE
+- Ronda 4:
+  D: 1, t=5; E: 4, t=3; B: 6, t=4; A: 10, t=3; C: 10, t=2 (tot:17)
+  FCFS: T=6.20, E=2.80, P=2.08
+  -DDDDDEEEBBBBAAACC
+  RR: T=7.40, E=4.00, P=2.32
+  -DDDDEDEBEBACBACBA
+  SPN: T=6.00, E=2.60, P=1.92
+  -DDDDDEEEBBBBCCAAA
+  FB: T=8.80, E=5.40, P=2.47
+  -DDDEEBBDEACACBDAB

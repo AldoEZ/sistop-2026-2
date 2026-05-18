@@ -1,0 +1,75 @@
+#+title: Evaluación de la exposición
+#+author: Gunnar Wolf
+
+* Memoria virtual (thrashing) e hiperpaginación
+
+- Tema presentado por :: Hans Martínez Sánchez e Isaías Blancas Díaz
+- Calificación global :: *8.82*
+
+|------------------------+------+--------------------+------+---------|
+| Evaluación  compañeros | Peso | Evaluación docente | Peso | *Total* |
+|------------------------+------+--------------------+------+---------|
+|                    9.2 |  0.3 |               8.65 |  0.7 |    8.82 |
+|------------------------+------+--------------------+------+---------|
+#+TBLFM: @2$5=$1*$2+$3*$4;f-2
+
+* Evaluación grupal
+
+|              | 1 | 2 | 3 | 4 |  5 | Total |
+|--------------+---+---+---+---+----+-------|
+| Originalidad | 1 | 0 | 0 | 2 | 12 |  9.20 |
+| Nivel        | 0 | 0 | 1 | 2 | 12 |  9.47 |
+| Relevancia   | 0 | 1 | 0 | 2 | 12 |  9.33 |
+| Claridad     | 0 | 0 | 2 | 2 | 11 |  9.20 |
+| Presencia    | 0 | 2 | 0 | 3 | 10 |  8.80 |
+|--------------+---+---+---+---+----+-------|
+|              |   |   |   |   |    |  9.20 |
+#+TBLFM: @2$7..@6$7=10 * (0.2*$2 + 0.4*$3 + 0.6*$4 + 0.8*$5 + $6 ) / vsum($2..$6); f-2::@7$7=vmean(@2$7..@6$7); f-2
+
+** Comentarios de los compañeros
+- algunos detalles en cuestión de dicción, de fluidez en la oratoria. Suena
+  a que leyeron un poco en vez de presentar de manera profesional un
+  tema. De ahí en fuera fue muy buen flujo del tema
+- Si van a utilizar elementos gráficos procurar utilizar animaciones para
+  explicar los conceptos quedarían un poco más claros, los memes o imagenes
+  de momento comico que tengan que ver un poco más con el tema. La terminal
+  no se veía bien y el tono de la voz y la entonación la haría más activa
+  para llamar la atención del público a que se quede en el vídeo. No usar
+  tanto texto en el video ya que no se termina de entender los conceptos
+  solamente con la imagen. Además ayudaría que al igual que el principio la
+  grafica hubiera estado animado o con la pizarra para entender mejor la
+  idea
+- Me pareció una muy buena exposición ya que explicaron de manera sencilla
+  y entendible
+- Explicación muy clara.
+- Me gustó la implementación de comandos en la terminal
+- Me gustó que hicieran la demostración.
+
+* Evaluación por parte del docente
+
+| *Aspecto*                          | *Peso* | *Evaluación* | *Puntos* |
+|------------------------------------+--------+--------------+----------|
+| Contenido técnico y profundidad    |    0.3 |            7 |      2.1 |
+| Fuentes bibliográficas             |   0.15 |            7 |     1.05 |
+| Organización                       |   0.15 |           10 |      1.5 |
+| Comunicación oral y uso del tiempo |   0.25 |           10 |      2.5 |
+| Uso de recursos visuales           |   0.15 |           10 |      1.5 |
+|------------------------------------+--------+--------------+----------|
+| *Global*                           |        |              |     8.65 |
+#+TBLFM: @<<$4..@>>$4=$2*$3::$4=vsum(@<<..@>>);f-2
+
+** Comentarios
+
+¡Me pareció una excelente presentación! El tema no es muy complejo, y forma
+parte del temario de la materia, pero en mi opinión la presentación tiene
+muy buena fluidez; si bien estoy de acuerdo con el compañero que indicó
+que, particularmente hacia el principio, se sentía que iban leyendo, me
+resulta claro que dominaron el material y pudieron preparar una
+presentación dinámica y activa.
+
+Hubo un par de errores conceptuales /menores/, y un par de “tropezones”,
+como no recordar que tenían que llamar al comando ~sysctl~ para modificar
+la “configuración viva” de ~vm.swappiness~; ilustraron la modificación de
+~vm.swappiness~, pero no demostraron su efecto (y, estoy de acuerdo, va un
+poco más a fondo que algo así de sencillo de demostrar). Pero, en general,
+la presentación me pareció más que adecuada 😃

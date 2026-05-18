@@ -1,0 +1,58 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2868
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 ArialMT;\f1\fswiss\fcharset0 Arial-BoldMT;\f2\froman\fcharset0 Times-Roman;
+}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\margl1440\margr1440\vieww28600\viewh18000\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\qc\partightenfactor0
+
+\f1\b\fs36 \cf0 DOCUMENTACI\'d3N\
+\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f0\b0\fs24 \cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 El problema elegido fue el del elevador.\
+Fue desarrollado en Python. Necesita Python 3; se us\'f3 la biblioteca nativa 
+\fs26 threading
+\fs24  para el uso de hilos y para los mecanismos de sincronizaci\'f3n. No se usaron bibliotecas externas. Para ejecutarlo, basta con usar el comando 
+\fs26 python3 elevador.py
+\fs24  en el directorio donde est\'e9 el archivo.\
+\pard\pardeftab720\sa280\partightenfactor0
+
+\f1\b\fs28 \cf0 ESTRATEGIAS DE SINCRONIZACI\'d3N\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f0\b0\fs24 \cf0 Se usaron dos mecanismos:\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b \cf0 - Sem\'e1foros:\
+ 
+\f0\b0  El uso de los sem\'e1foros se aplic\'f3 para el control de los lugares disponibles en el elevador. Este sem\'e1foro se inicializ\'f3 en 5 (capacidad m\'e1xima del elevador); de esta forma evit\'e1bamos que la capacidad fuera superada ya que solo hab\'eda 5 permisos.\
+Tambi\'e9n se us\'f3 un sem\'e1foro inicializado en 1 como primera aproximaci\'f3n. M\'e1s tarde, con el entendimiento de los Mutex (Locks), nos dimos cuenta de que se pudo haber usado uno para este caso. Sin embargo, era m\'e1s expl\'edcito de esta manera y nos ayud\'f3 a comprender mucho mejor el tema de las secciones cr\'edticas y c\'f3mo los sem\'e1foros nos evitan condiciones de carrera en el arreglo 
+\fs26 USR_ESPERANDO
+\fs24 . Esta variable fue usada para el control de espera del elevador.\
+
+\f1\b - Mutex (Locks)
+\f0\b0  \
+Este mecanismo de sincronizaci\'f3n no se us\'f3 para la resoluci\'f3n del problema l\'f3gico en s\'ed, sino para el manejo de mensajes en terminal. Sirve como control para poder acceder a la lista inicializada para guardar los mensajes de cada estado y gestionar c\'f3mo se imprimen; de esta forma, los mensajes no se encimaban (
+\fs26 mutex_mensajes
+\fs24 ).\
+El 
+\fs26 mutex_pasajeros
+\fs24  fue usado para llevar el conteo exacto de usuarios en el elevador en el momento que toca imprimir la representaci\'f3n del mismo. De esta forma, evit\'e1bamos que dos o m\'e1s hilos produjeran un conteo incorrecto. Con ayuda de esta variable fue posible la impresi\'f3n correcta del elevador.\
+\pard\pardeftab720\sa280\partightenfactor0
+
+\f1\b\fs28 \cf0 REFINAMIENTOS\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f0\b0\fs24 \cf0 El refinamiento implementado fue el \'fanico planteado para este problema: evitar que dos usuarios monopolicen el elevador. Esto fue resuelto indirectamente XD mediante c\'f3mo se plante\'f3 la soluci\'f3n. O m\'e1s bien, por el comportamiento del elevador. Nuestro elevador va a funcionar como un \'93elevador terco\'94: si empieza en el piso 0 ir\'e1 al piso 5, y de la misma forma cuando vaya en direcci\'f3n opuesta (pasando obviamente por sus pisos intermedios), sin importar que haya usuarios que lo pidan (se aprovech\'f3 la condici\'f3n de que los usuarios no esperan la direcci\'f3n correcta).
+\f2 \
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b \cf0 \'c1REA DE MEJORA\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f0\b0 \cf0 Nuestra representaci\'f3n del funcionamiento del c\'f3digo(terminal), sentimos que hay demasiada oportunidad de mejora sobre todo con la limpieza de los mensajes de cada usuario. Tal vez con otro hilo separar ese proceso de esta forma tener una impresi\'f3n paralela del estado del elevador y los mensajes. Estamos abiertos a cualquier comentario sobre nuestro uso de los m\'e9todos de sincronizaci\'f3n.}

@@ -1,0 +1,57 @@
+#+title: Evaluación de la exposición
+#+author: Gunnar Wolf
+
+*  Planificación de tareas y ejecución paralela
+
+- Tema presentado por :: Aldo Estrada y Jazmín Sánchez
+- Calificación global :: 8.99
+
+|------------------------+------+--------------------+------+---------|
+| Evaluación  compañeros | Peso | Evaluación docente | Peso | *Total* |
+|------------------------+------+--------------------+------+---------|
+|                   9.78 |  0.3 |               8.65 |  0.7 |    8.99 |
+|------------------------+------+--------------------+------+---------|
+#+TBLFM: @2$5=$1*$2+$3*$4;f-2
+
+* Evaluación grupal
+
+|              | 1 | 2 | 3 | 4 | 5 | Total |
+|--------------+---+---+---+---+---+-------|
+| Originalidad | 0 | 0 | 0 | 2 | 7 |  9.56 |
+| Nivel        | 0 | 0 | 0 | 1 | 8 |  9.78 |
+| Relevancia   | 0 | 0 | 0 | 0 | 9 | 10.00 |
+| Claridad     | 0 | 0 | 0 | 1 | 8 |  9.78 |
+| Presencia    | 0 | 0 | 0 | 1 | 8 |  9.78 |
+|--------------+---+---+---+---+---+-------|
+|              |   |   |   |   |   |  9.78 |
+#+TBLFM: @2$7..@6$7=10 * (0.2*$2 + 0.4*$3 + 0.6*$4 + 0.8*$5 + $6 ) / vsum($2..$6); f-2::@7$7=vmean(@2$7..@6$7); f-2
+
+** Comentarios de los compañeros
+
+- Muy buenos temas, completaron de buena forma lo visto en clase.
+- Muy clara la exposición ��
+- temas muy interesantes
+- El tema fue muy bien explicado, buenos ejemplos para hacerlo más
+  comprensivo, buen uso del tiempo para exponer cada uno de los puntos del
+  tema, bastante bien la exposición
+
+* Evaluación por parte del docente
+
+| *Aspecto*                          | *Peso* | *Evaluación* | *Puntos* |
+|------------------------------------+--------+--------------+----------|
+| Contenido técnico y profundidad    |    0.3 |            7 |      2.1 |
+| Fuentes bibliográficas             |   0.15 |           10 |      1.5 |
+| Organización                       |   0.15 |           10 |      1.5 |
+| Comunicación oral y uso del tiempo |   0.25 |           10 |      2.5 |
+| Uso de recursos visuales           |   0.15 |            7 |     1.05 |
+|------------------------------------+--------+--------------+----------|
+| *Global*                           |        |              |     8.65 |
+#+TBLFM: @<<$4..@>>$4=$2*$3::$4=vsum(@<<..@>>);f-2
+
+** Comentarios
+- Muy bueno que presenten un enfoque diferente de lo que vemos en clase:
+  Paralelismo de datos vs. paralelismo de tareas, rutas críticas. Costo de
+  la paralelización.
+- Me parece una buena exposición, pero me habría gustado ver que metieran
+  ejemplos más aplicados: comparaciones o símiles sobre casos concretos, no
+  en abstracto.

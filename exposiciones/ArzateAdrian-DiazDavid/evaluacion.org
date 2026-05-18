@@ -1,0 +1,78 @@
+#+title: Evaluación de la exposición
+#+author: Gunnar Wolf
+
+* El sistema operativo y la GPU
+
+- Tema presentado por :: Adrián Arzate y David Díaz
+- Calificación global :: 8.21
+
+|------------------------+------+--------------------+------+---------|
+| Evaluación  compañeros | Peso | Evaluación docente | Peso | *Total* |
+|------------------------+------+--------------------+------+---------|
+|                   9.28 |  0.3 |               7.75 |  0.7 |    8.21 |
+|------------------------+------+--------------------+------+---------|
+#+TBLFM: @2$5=$1*$2+$3*$4;f-2
+
+* Evaluación grupal
+
+|              | 1 | 2 | 3 | 4 |  5 | Total |
+|--------------+---+---+---+---+----+-------|
+| Originalidad | 0 | 0 | 1 | 4 | 10 |  9.20 |
+| Nivel        | 0 | 1 | 0 | 1 | 13 |  9.47 |
+| Relevancia   | 0 | 0 | 0 | 5 | 10 |  9.33 |
+| Claridad     | 1 | 0 | 1 | 2 | 11 |  8.93 |
+| Presencia    | 0 | 0 | 0 | 4 | 11 |  9.47 |
+|--------------+---+---+---+---+----+-------|
+|              |   |   |   |   |    |  9.28 |
+#+TBLFM: @2$7..@6$7=10 * (0.2*$2 + 0.4*$3 + 0.6*$4 + 0.8*$5 + $6 ) / vsum($2..$6); f-2::@7$7=vmean(@2$7..@6$7); f-2
+
+** Comentarios de los compañeros
+
+- La información fue clara con la ayuda del proceso de datos.
+- en general fue una buena exposicion, tiene lo justo y necesario para
+  poder generar nuevos conocimientos
+- Tema interesante para mi
+- Me gustó el tema de la exposición
+- Todo bien
+- excelente
+- Me gustó el tema, hace ver las diferencias entre los procesadores que se
+  han hablado en clase, npu y ahora gpu
+- Considero que la exposición fue muy buena
+
+* Evaluación por parte del docente
+
+| *Aspecto*                          | *Peso* | *Evaluación* | *Puntos* |
+|------------------------------------+--------+--------------+----------|
+| Contenido técnico y profundidad    |    0.3 |            7 |      2.1 |
+| Fuentes bibliográficas             |   0.15 |            4 |      0.6 |
+| Organización                       |   0.15 |            7 |     1.05 |
+| Comunicación oral y uso del tiempo |   0.25 |           10 |      2.5 |
+| Uso de recursos visuales           |   0.15 |           10 |      1.5 |
+|------------------------------------+--------+--------------+----------|
+| *Global*                           |        |              |     7.75 |
+#+TBLFM: @<<$4..@>>$4=$2*$3::$4=vsum(@<<..@>>);f-2
+
+** Comentarios
+
+- Recuerden lo que les dije en la revisión de su versión previa: En
+  español, se dice «bibliotecas», no «librería»
+  - Sí, en inglés es /“library”/... Pero en inglés, /librería/ se dice
+    /“book store”/
+- Uno de los cambios importantes que se dieron hacia fines de los 1990s es
+  que, hasta ese punto, las tarjetas gráficas eran /realmente/ sólo eso:
+  herramientas para /volcar/ memoria a un dispositivo de video.
+  - La diferencia de los GPUs, con la introducción del soporte a 3D, es que
+    permiten realizar cálculos (optimizados para operaciones de álgebra
+    lineal — manejo matricial) representando las torsiones, inclinaciones,
+    iluminación, etc. de las superficies (/texturas/)
+  - Este modelo termina siendo aplicable a entornos /externos al gráfico/,
+    como al /minado de criptodivisas/ o difusión de valores sobre una red
+    neuronal, por lo que las GPUs se han hecho increíblemente grandes,
+    mucho más allá de lo que el modelo original apuntaba...
+- No es que las aplicaciones “se sientan huérfanas” fuera del sistema
+  Windows, sino que buscan ejecutarse con un API de sistema operativo
+  (llamadas al sistema) incompatible.
+- ⸘Y el ejemplo práctico‽ 🙁 Lo que presentaron fue la explicación del
+  caminito que tendría que seguir... pero me quedé con las ganas de ver
+  cómo son las llamadas, y dónde el código hace que nuestro código se
+  transforme y salte de un entorno a otro...
