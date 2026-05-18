@@ -16,14 +16,20 @@ from constantes import (
     TAM_NOMBRE_ARCHIVO
 )
 from entrada_directorio import EntradaDirectorio
+from sincronizacion import Sincronizacion
 
 """
 clase que representa el sistema de archivos contenido en la imagen
 """
 class FiUnamFS:
-    def __init__(self, ruta_imagen):
+    def __init__(self, ruta_imagen, sincronizacion=None):
         self.ruta_imagen = ruta_imagen
         self.disco = Disco(ruta_imagen)
+        
+        if sincronizacion is None:
+            self.sincronizacion = Sincronizacion()
+        else:
+            self.sincronizacion = sincronizacion
     
     """
     funcion que lee una cadena ASCII de la imagen usando un rango [inicio,fin)
@@ -78,14 +84,18 @@ class FiUnamFS:
     se regresa una lisata con los archivos existentes en FiUnamFS
     """
     def listar_archivos(self):
-        entradas = self.leer_directorio()
-        archivos = []
-        
-        for entrada in entradas:
-            if entrada.es_archivo():
-                archivos.append(entrada)
-        
-        return archivos
+        with self.sincronizacion.bloqueo_disco:
+            self.sincronizacion.notificar("Leyendo directorio FiUnamFS")
+            
+            entradas = self.leer_directorio()
+            archivos = []
+            
+            for entrada in entradas:
+                if entrada.es_archivo():
+                    archivos.append(entrada)
+            
+            self.sincronizacion.notificar("Directorio leido correctamente")
+            return archivos
     
     """
     busca un archivo del directorio de FiUnamFS, regresando la entrada del directorio
@@ -106,22 +116,29 @@ class FiUnamFS:
     desplazamiento: posicion inicial dentro del archivo
     """
     def leer_archivo(self, nombre_archivo, cantidad_bytes=None, desplazamiento=0):
-        entrada = self.buscar_archivo(nombre_archivo)
-        
-        if entrada is None:
-            print(f"Error: el archivo '{nombre_archivo}' no existe")
-            return None
-        
-        if desplazamiento >= entrada.tamano:
-            return b""
-        
-        if cantidad_bytes is None or desplazamiento + cantidad_bytes > entrada.tamano:
-            cantidad_bytes = entrada.tamano - desplazamiento
-        
-        offset_archivo = entrada.cluster_inicial * TAM_CLUSTER
-        offset_lectura = offset_archivo + desplazamiento
-        
-        return self.disco.leer_bytes(offset_lectura, cantidad_bytes)
+        with self.sincronizacion.bloqueo_disco:
+            self.sincronizacion.notificar(f"Leyendo el archivo '{nombre_archivo}'")
+            
+            entrada = self.buscar_archivo(nombre_archivo)
+            
+            if entrada is None:
+                print(f"Error: el archivo '{nombre_archivo}' no existe")
+                return None
+            
+            if desplazamiento >= entrada.tamano:
+                return b""
+            
+            if cantidad_bytes is None or desplazamiento + cantidad_bytes > entrada.tamano:
+                cantidad_bytes = entrada.tamano - desplazamiento
+            
+            offset_archivo = entrada.cluster_inicial * TAM_CLUSTER
+            offset_lectura = offset_archivo + desplazamiento
+            
+            contenido = self.disco.leer_bytes(offset_lectura, cantidad_bytes)
+            
+            self.sincronizacion.notificar(f"Archivo '{nombre_archivo}' leido correctamente")
+            
+            return contenido
     
     """
     copia un archivo que pertenece a FiUnamFS hacia un directorio local
@@ -157,22 +174,25 @@ class FiUnamFS:
     elimina un archivo de FiUnamFS, lo hace marcando su entrada de directorio como vacia
     """
     def eliminar_archivo(self, nombre_archivo):
-        entrada = self.buscar_archivo(nombre_archivo)
-        
-        if entrada is None:
-            print(f"Error: el archivo '{nombre_archivo}' no existe")
-            return False
-        
-        offset_directorio = CLUSTER_INICIO_DIRECTORIO * TAM_CLUSTER
-        offset_entrada = offset_directorio + (entrada.indice * TAM_ENTRADA_DIRECTORIO)
-        
-        datos_vacios = EntradaDirectorio.bytes_entrada_vacia()
-        
-        self.disco.escribir_bytes(offset_entrada, datos_vacios)
-        
-        print(f"El archivo '{nombre_archivo}' fue eliminado de forma correcta")
-        
-        return True
+        with self.sincronizacion.bloqueo_disco:
+            self.sincronizacion.notificar(f"Eliminando archivo '{nombre_archivo}'")
+            entrada = self.buscar_archivo(nombre_archivo)
+            
+            if entrada is None:
+                print(f"Error: el archivo '{nombre_archivo}' no existe")
+                return False
+            
+            offset_directorio = CLUSTER_INICIO_DIRECTORIO * TAM_CLUSTER
+            offset_entrada = offset_directorio + (entrada.indice * TAM_ENTRADA_DIRECTORIO)
+            
+            datos_vacios = EntradaDirectorio.bytes_entrada_vacia()
+            
+            self.disco.escribir_bytes(offset_entrada, datos_vacios)
+            
+            self.sincronizacion.notificar(f"La entrada archivo '{nombre_archivo}' fue marcada como vacia")
+            print(f"El archivo '{nombre_archivo}' fue eliminado de forma correcta")
+            
+            return True
     
     """
     calcula cuatos clusters necesita un archivo por su tamano
@@ -233,72 +253,75 @@ class FiUnamFS:
     copia un archivo local a FiUnamFS
     """
     def insertar_archivo(self, ruta_archivo_local):
-        ruta_archivo_local = Path(ruta_archivo_local)
-        
-        if not ruta_archivo_local.exists():
-            print(f"Error: el archivo '{ruta_archivo_local}' no existe")
-            return False
-        
-        if not ruta_archivo_local.is_file():
-            print(f"Error: la ruta '{ruta_archivo_local}' no es un archivo")
-            return False
-        
-        nombre_archivo = ruta_archivo_local.name
-        
-        try:
-            nombre_archivo.encode("ascii")
-        except:
-            print("Error: el nombre del archivo debe pertenecer al subconjunto ASCII de 7 bits")
-            return False
-        
-        if len(nombre_archivo) > TAM_NOMBRE_ARCHIVO:
-            print(f"Error: el nombre del archivo no puede ser mayor a {TAM_NOMBRE_ARCHIVO}")
-            return False
-        
-        if self.buscar_archivo(nombre_archivo) is not None:
-            print(f"Error: el archivo '{nombre_archivo}' ya existe en el directorio")
-            return False
-        
-        with open(ruta_archivo_local, "rb") as archivo:
-            contenido = archivo.read()
-        
-        tamano = len(contenido)
-        clustes_necesarios = self.calcular_clusters_necesarios(tamano)
-        
-        indice_entrada = self.buscar_entrada_libre()
-        
-        if indice_entrada is None:
-            print("Error: no hay entradas libres en el directorio")
-            return False
-        
-        cluster_inicial = self.buscar_espacio_vacio(clustes_necesarios)
-        
-        if cluster_inicial is None:
-            print("Error: no hay espacio contiguo suficiente")
-            return False
-        
-        if clustes_necesarios > 0:
-            offset_datos = cluster_inicial * TAM_CLUSTER
-            tamano_reservado = clustes_necesarios * TAM_CLUSTER
-            datos_a_escribir = contenido.ljust(tamano_reservado, b"\x00")
+        with self.sincronizacion.bloqueo_disco:
+            self.sincronizacion.notificar(f"Insertanto '{ruta_archivo_local}'")
+            ruta_archivo_local = Path(ruta_archivo_local)
             
-            self.disco.escribir_bytes(offset_datos, datos_a_escribir)
-        
-        fecha_actual = datetime.now().strftime("%Y%m%d%H%M%S")
-        
-        entrada_bytes = EntradaDirectorio.bytes_archivo(
-            nombre_archivo,
-            tamano,
-            cluster_inicial,
-            fecha_actual,
-            fecha_actual
-        )
-        
-        offset_directorio = CLUSTER_INICIO_DIRECTORIO * TAM_CLUSTER
-        offset_entrada = offset_directorio + (indice_entrada * TAM_ENTRADA_DIRECTORIO)
-        
-        self.disco.escribir_bytes(offset_entrada, entrada_bytes)
-        
-        print(f"Archivo '{nombre_archivo}' insertado correctamente")
-        
-        return True
+            if not ruta_archivo_local.exists():
+                print(f"Error: el archivo '{ruta_archivo_local}' no existe")
+                return False
+            
+            if not ruta_archivo_local.is_file():
+                print(f"Error: la ruta '{ruta_archivo_local}' no es un archivo")
+                return False
+            
+            nombre_archivo = ruta_archivo_local.name
+            
+            try:
+                nombre_archivo.encode("ascii")
+            except:
+                print("Error: el nombre del archivo debe pertenecer al subconjunto ASCII de 7 bits")
+                return False
+            
+            if len(nombre_archivo) > TAM_NOMBRE_ARCHIVO:
+                print(f"Error: el nombre del archivo no puede ser mayor a {TAM_NOMBRE_ARCHIVO}")
+                return False
+            
+            if self.buscar_archivo(nombre_archivo) is not None:
+                print(f"Error: el archivo '{nombre_archivo}' ya existe en el directorio")
+                return False
+            
+            with open(ruta_archivo_local, "rb") as archivo:
+                contenido = archivo.read()
+            
+            tamano = len(contenido)
+            clustes_necesarios = self.calcular_clusters_necesarios(tamano)
+            
+            indice_entrada = self.buscar_entrada_libre()
+            
+            if indice_entrada is None:
+                print("Error: no hay entradas libres en el directorio")
+                return False
+            
+            cluster_inicial = self.buscar_espacio_vacio(clustes_necesarios)
+            
+            if cluster_inicial is None:
+                print("Error: no hay espacio contiguo suficiente")
+                return False
+            
+            if clustes_necesarios > 0:
+                offset_datos = cluster_inicial * TAM_CLUSTER
+                tamano_reservado = clustes_necesarios * TAM_CLUSTER
+                datos_a_escribir = contenido.ljust(tamano_reservado, b"\x00")
+                
+                self.disco.escribir_bytes(offset_datos, datos_a_escribir)
+            
+            fecha_actual = datetime.now().strftime("%Y%m%d%H%M%S")
+            
+            entrada_bytes = EntradaDirectorio.bytes_archivo(
+                nombre_archivo,
+                tamano,
+                cluster_inicial,
+                fecha_actual,
+                fecha_actual
+            )
+            
+            offset_directorio = CLUSTER_INICIO_DIRECTORIO * TAM_CLUSTER
+            offset_entrada = offset_directorio + (indice_entrada * TAM_ENTRADA_DIRECTORIO)
+            
+            self.disco.escribir_bytes(offset_entrada, entrada_bytes)
+            
+            self.sincronizacion.notificar("Inserion realizada exitosamente")
+            print(f"Archivo '{nombre_archivo}' insertado correctamente")
+            
+            return True
