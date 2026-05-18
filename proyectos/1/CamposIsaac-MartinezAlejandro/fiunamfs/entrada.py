@@ -4,7 +4,7 @@
 #Autores: Isaac Campos, Alejandro Martinez
 #Fecha de realización: 17 Mayo 2026
 
-from . import herramientas as h
+import herramientas as h
 
 #Constantes para identificar el tipo de directorio conforme al planteamiento
 
@@ -13,6 +13,9 @@ ARCHIVO_VACIO = '/'
 NOMBRE_VACIO = '###############'
 
 #Se define la clase para los archivos
+
+#Cabe aclarar que se utilizan archivo y entrada para referirse a lo mismo
+#Un archivo = entrada(de un directorio)
 
 class EntradaDir:
 
@@ -34,11 +37,11 @@ class EntradaDir:
     def parsear(self,bytes_raw):
 
         self.tipo_archivo = chr(bytes_raw[0])
-        self.nombre_archivo = bytes_raw[1:15].decode('ascii').strip('\x00')
+        self.nombre_archivo = bytes_raw[1:15].decode('ascii').strip('\x00').strip()
         self.tam_archivo = h.leerLe(bytes_raw[16:20])
         self.cluster_incial = h.leerLe(bytes_raw[20:24])
-        self.hf_creado = bytes_raw[30:44].decode('ascii').strip('\x00')
-        self.hf_modificado = bytes_raw[50:64].decode('ascii').strip('\x00')
+        self.hf_creado = bytes_raw[30:44].decode('ascii').strip('\x00').strip()
+        self.hf_modificado = bytes_raw[50:64].decode('ascii').strip('\x00').strip()
 
     #Funcion para crear un nuevo archivo, toma el nombre, tamaño y el cluster de inicio de este nuevo archivo
     
@@ -76,9 +79,14 @@ class EntradaDir:
 
         return bytes(datos)
 
+    def __str__(self):
+        return (f"Nombre: {self.nombre_archivo.strip()} | "
+                f"Tamaño: {self.tam_archivo} bytes | "
+                f"Cluster: {self.cluster_incial} | "
+                f"Creado: {self.hf_creado}")
+
 
 #Pruebas para verificar que funciona adecuadamente - Se hizo uso de Claude -> Sonnet 4.6 adaptativo para agilizar la generación de estas pruebas
-    
 
 if __name__ == '__main__':
     # Prueba 1: leer una entrada real del disco

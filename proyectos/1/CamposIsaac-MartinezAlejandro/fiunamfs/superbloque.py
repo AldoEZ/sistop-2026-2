@@ -4,7 +4,7 @@
 #Autores: Isaac Campos, Alejandro Martinez
 #Fecha de realización: 15 Mayo 2026
 
-from . import herramientas as h
+import herramientas as h
 
 #Constantes del sistema de archivos mencionados en el planteamiento
 
@@ -22,7 +22,7 @@ NUM_CLUSTER_DIR = 7
 TAM_ENTRADA_DIR = 64
 
 #Se define la clase para el superbloque
-class SuperBloque():
+class SuperBloque:
     def __init__(self, ruta_img):
         self.ruta_img = ruta_img
         self.leerSuperbloque()
@@ -38,9 +38,9 @@ class SuperBloque():
             self.version = sp_bloque[14:19].decode('ascii').strip('\x00')
             self.etiqueta = sp_bloque[20:36].decode('ascii').strip('\x00')
 
-            self.tam_cluster = h.leerLe(sp_bloque[40:44])[0]
-            self.num_clusters_dir = h.leerLe(sp_bloque[50:54])[0]
-            self.num_clusters_tot = leerLe(sp_bloque[60:64])[0]
+            self.tam_cluster = h.leerLe(sp_bloque[40:44])
+            self.num_clusters_dir = h.leerLe(sp_bloque[50:54])
+            self.num_clusters_tot = h.leerLe(sp_bloque[60:64])
 
             self.desp_dir = CLUSTER_INI_DIR * self.tam_cluster
             self.tam_dir = self.num_clusters_dir * self.tam_cluster
