@@ -1,16 +1,8 @@
 import os
 import struct
 import threading
+import math
 from datetime import datetime
-
-## COMMIT 1.
-## -Creación de las dos clases principales del programa. Sistema de archivos: FiUnamFs, Archivo: File
-## -Creación de los métodos para la obtención para el mapeo de directorios. Checando solamente los archivos denotados por "-" poara denotar que la entrada no esta vacia. 
-##  Adjuntando los metadatos de los archivos existente a una lista de archivos, atributo de la clase FiUnamFs.
-## -Creación del método de carga para el sistema de archivos. Cargando solamente archivos válidos mediante la cadena 'FiUnamFs24-2'
-## -Creación de dos métodos, el primero para la obtención del contenido de los archivos perse. Donde el segundo de manera complementaria hara uso de este primero para la inserción
-##  al sistema de computo del usuario.
-## -Esta primera implementación no hace uso de hilos. Sin embargo se esta planificando para que la implementación sea sencilla. Es solamente para tener la lógica fundamental primero.
 
 class File:
     """
@@ -156,21 +148,102 @@ class FiUnamFS:
             except:
                 return False
     
+    def _buscar_espacio_libre(self, file_size: int) -> int:
+        clusters_necesarios = math.ceil(file_size / self.tam_cluster)
+        
+        rangos_ocupados = []
+        for archivo in self.lista_archivos:
+            c_ini = archivo.initial_cluster
+            c_fin = c_ini + math.ceil(archivo.size / self.tam_cluster)
+            rangos_ocupados.append((c_ini, c_fin))
+            
+        rangos_ocupados.sort()
+        cluster_actual = 1 + self.clusters_dir
+        
+        for c_ini, c_fin in rangos_ocupados:
+            if cluster_actual + clusters_necesarios <= c_ini:
+                return cluster_actual 
+            cluster_actual = max(cluster_actual, c_fin)
+            
+        if cluster_actual + clusters_necesarios <= self.clusters_unity:
+            return cluster_actual
+            
+        return -1 
+
+    def _buscar_entrada_directorio_libre(self) -> int:
+        offset_dir = 1 * self.tam_cluster
+        total_entradas = self.clusters_dir * (self.tam_cluster // 64)
+        
+        with open(self.path, 'rb') as file:
+            file.seek(offset_dir)
+            for i in range(total_entradas):
+                entrada = file.read(64)
+                if not entrada or entrada[0] != 45: 
+                    return offset_dir + (i * 64)
+                    
+        return -1 
+
+    def copia_TO_FiUnamFS(self, ruta_local: str) -> bool:
+        if not os.path.exists(ruta_local):
+            print(f"Error: El archivo local '{ruta_local}' no existe.")
+            return False
+            
+        nombre_archivo = os.path.basename(ruta_local)
+        if len(nombre_archivo) > 15:
+            print("Error: El nombre del archivo excede los 15 caracteres permitidos.")
+            return False
+
+        tam_archivo = os.path.getsize(ruta_local)
+        
+        cluster_inicial = self._buscar_espacio_libre(tam_archivo)
+        if cluster_inicial == -1:
+            print("Error: No hay espacio suficiente en FiUnamFS.")
+            return False
+            
+        offset_entrada = self._buscar_entrada_directorio_libre()
+        if offset_entrada == -1:
+            print("Error: No hay más espacio en el directorio.")
+            return False
+            
+        try:
+            with open(ruta_local, 'rb') as f_local:
+                datos = f_local.read()
+                
+            with open(self.path, 'r+b') as fs:
+                fs.seek(cluster_inicial * self.tam_cluster)
+                fs.write(datos)
+                
+                nombre_bytes = nombre_archivo.ljust(15).encode('ascii')
+                fecha_str = datetime.now().strftime("%Y%m%d%H%M%S").encode('ascii')
+                
+                entrada_directorio = bytearray(64)
+                entrada_directorio[0:1] = b'-'                             
+                entrada_directorio[1:16] = nombre_bytes                    
+                entrada_directorio[16:20] = struct.pack('<I', tam_archivo) 
+                entrada_directorio[20:24] = struct.pack('<I', cluster_inicial) 
+                entrada_directorio[30:44] = fecha_str                      
+                entrada_directorio[50:64] = fecha_str                      
+                
+                fs.seek(offset_entrada)
+                fs.write(entrada_directorio)
+                
+            print(f"\n¡Éxito! '{nombre_archivo}' copiado a FiUnamFS correctamente.")
+            self.mapear_directorio() 
+            return True
+            
+        except Exception as e:
+            print(f"Error al escribir en FiUnamFS: {e}")
+            return False
+
     def upload(self) -> bool:
-        """
-        Valida el superbloque del sistema de archivos comprobando firmas, versión y extrayendo 
-        la configuración básica (tamaño de clúster, número de clústers, etc.).
-        """
         try:
             with open(self.path, 'rb') as file:
-                # Capa 1: Validación de bytes nulos iniciales (0 a 3)
                 file.seek(0)
                 if file.read(4) != b'\x00\x00\x00\x00':
                     print('Archivo no válido. CAPA 1')
                     return False
                 print('Capa 1 EXITOSA')
 
-                # Capa 2: Validación del nombre del sistema "FiUnamFS" (bytes 5 a 12)
                 file.seek(5)
                 f13 = file.read(8)
                 if f13.decode('ascii') != 'FiUnamFS':
@@ -178,7 +251,6 @@ class FiUnamFS:
                     return False
                 print("Capa 2 EXITOSA_Sistema válido")
 
-                # Capa 3: Validación de la versión "24-2" (bytes 14 a 17)
                 file.seek(14)
                 f18 = file.read(4)
                 version_leida = f18.decode('ascii')
@@ -187,7 +259,6 @@ class FiUnamFS:
                     return False
                 print("Capa 3 EXITOSA_Version compatible")
 
-                # Extracción de metadatos del Superbloque
                 file.seek(20)
                 self.etiqueta = file.read(15).decode('ascii').strip()
 
@@ -208,10 +279,39 @@ class FiUnamFS:
         except Exception as e:
             print(f"Error inesperado: {e}")
             return False
+    
+    def _eliminarArchivo(self, nameFile: str) -> bool:
+        if nameFile not in self.archivos_validos: 
+            print("No existe archivo con nombre:", nameFile)
+            return False 
 
+        byte_inicio = self.mapDirectorio.get(nameFile)
+        if byte_inicio is None:
+            print("Error: El archivo está en la lista pero no se encontró su dirección física.")
+            return False
+
+        try:
+            with open(self.path, 'rb+') as file:
+                file.seek(byte_inicio)
+                marca_borrado = b'/' + b'#' * 14  
+                file.write(marca_borrado)
+        
+            # Limpieza en memoria
+            del self.archivos_validos[nameFile]
+            del self.mapDirectorio[nameFile]
+            self.lista_archivos = [f for f in self.lista_archivos if f.name != nameFile]
+
+            print(f"Archivo '{nameFile}' eliminado exitosamente.")
+            return True
+
+        except FileNotFoundError:
+            print(f"Error: El archivo del sistema de archivos ({self.path}) no existe.")
+            return False
+        except Exception as e:
+            print(f"Error inesperado al escribir en el disco: {e}")
+            return False
 
     def __str__(self):
-        """Representación en texto de los metadatos principales del volumen."""
         return (f"--- FiUnamFS Info ---\n"
                 f"Etiqueta: {self.etiqueta}\n"
                 f"Tamaño Clúster: {self.tam_cluster} bytes\n"
@@ -221,19 +321,23 @@ class FiUnamFS:
 
 
 # ==========================================
-# BLOQUE DE PRUEBAS DEL SCRIPT
+# CASO DE PRUEBA
 # ==========================================
+
 ruta_disco = '/Users/santiagobello/Downloads/fiunamfs.img'
 
+ruta_imagen_local = '/Users/santiagobello/Downloads/IMG_1757.jpg' 
+
 try:
+    # 1. Montar el disco
     disco = FiUnamFS(ruta_disco)
     print(disco)
     
+    # 2. Mapear directorio actual
     disco.mapear_directorio()
 
-    print(disco.archivos_validos['mensaje.jpg'])
-    
-    print(disco.copia_TO_MyPC('/Users/santiagobello/Downloads/'))
+    for key, values in disco.mapDirectorio.items():
+        print('llaves:', key ,'valores', values)
 
 except Exception as e:
-    print(f"Hubo un error al leer el sistema de archivos: {e}")
+    print(f"Hubo un error general: {e}")
