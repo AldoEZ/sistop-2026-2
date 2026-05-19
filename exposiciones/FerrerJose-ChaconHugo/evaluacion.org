@@ -1,0 +1,58 @@
+#+title: Evaluación de la exposición
+#+author: Gunnar Wolf
+
+* ¿Cómo funciona FUSE por dentro?
+
+- Tema presentado por :: José Ferrer y Hugo Chacón
+- Calificación global :: 
+
+|------------------------+------+--------------------+------+---------|
+| Evaluación  compañeros | Peso | Evaluación docente | Peso | *Total* |
+|------------------------+------+--------------------+------+---------|
+|                   8.13 |  0.3 |               8.35 |  0.7 |    8.28 |
+|------------------------+------+--------------------+------+---------|
+#+TBLFM: @2$5=$1*$2+$3*$4;f-2
+
+* Evaluación grupal
+
+|              | 1 | 2 | 3 | 4 | 5 | Total |
+|--------------+---+---+---+---+---+-------|
+| Originalidad | 0 | 1 | 0 | 1 | 4 |  8.67 |
+| Nivel        | 0 | 1 | 0 | 1 | 4 |  8.67 |
+| Relevancia   | 0 | 1 | 0 | 2 | 3 |  8.33 |
+| Claridad     | 0 | 1 | 1 | 2 | 2 |  7.67 |
+| Presencia    | 0 | 1 | 2 | 1 | 2 |  7.33 |
+|--------------+---+---+---+---+---+-------|
+|              |   |   |   |   |   |  8.13 |
+#+TBLFM: @2$7..@6$7=10 * (0.2*$2 + 0.4*$3 + 0.6*$4 + 0.8*$5 + $6 ) / vsum($2..$6); f-2::@7$7=vmean(@2$7..@6$7); f-2
+
+** Comentarios de los compañeros
+
+- ninguno
+- Un tema muy interesante
+- El audio del segundo expositor era algo malo y algunas diapositivas
+  tenían mucho texto
+
+* Evaluación por parte del docente
+
+| *Aspecto*                          | *Peso* | *Evaluación* | *Puntos* |
+|------------------------------------+--------+--------------+----------|
+| Contenido técnico y profundidad    |    0.3 |           10 |       3. |
+| Fuentes bibliográficas             |   0.15 |            7 |     1.05 |
+| Organización                       |   0.15 |           10 |      1.5 |
+| Comunicación oral y uso del tiempo |   0.25 |            7 |     1.75 |
+| Uso de recursos visuales           |   0.15 |            7 |     1.05 |
+|------------------------------------+--------+--------------+----------|
+| *Global*                           |        |              |     8.35 |
+#+TBLFM: @<<$4..@>>$4=$2*$3::$4=vsum(@<<..@>>);f-2
+
+** Comentarios
+
+- El contenido de la aplicación es bueno, de nivel bastante profundo.
+  - Si acaso, puedo apuntar a que falta el componente práctico: no
+    presentan ningún ejemplo de código, ni de uso, de un sistema de
+    archivos basado en FUSE
+- El tono de voz es un tanto monótono, no “mantiene atento” al espectador,
+  casi no subrayan con la voz los puntos más importantes
+  - Aunado a que se acompañana con una presentación muy “tradicional”, se
+    vuelve pesado de seguir

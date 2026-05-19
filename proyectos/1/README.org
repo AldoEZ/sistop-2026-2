@@ -96,10 +96,10 @@ del /«disco»/?
     con el caracter =/= (=0x2f=, =47=).
   - 1--15 :: Nombre del archivo
   - 16--20 :: Tamaño del archivo, en bytes
-  - 20--23 :: Cluster inicial
-  - 24--44 :: Hora y fecha de creación del archivo, especificando AAAAMMDDHHMMSS
+  - 20--24 :: Cluster inicial
+  - 30--44 :: Hora y fecha de creación del archivo, especificando AAAAMMDDHHMMSS
     (p.ej. '20260108182600' para 2026-01-08 18:26:00)
-  - 40-64 :: Hora y fecha de última modificación del archivo, especificando
+  - 50--64 :: Hora y fecha de última modificación del archivo, especificando
     AAAAMMDDHHMMSS (p.ej. '20221109182600')
 - Las entradas no utilizadas del directorio se identifican porque en el campo de
   nombre llevan la cadena =###############=.
@@ -109,6 +109,13 @@ del /«disco»/?
 - Es un sistema de archivos plano — No maneja subdirectorios.
 - Después del directorio, todo el espacio restante es espacio de datos.
 
+**Ojo**: Un grupo de compañeros me llamó la atención sobre la superposición
+en los valores del directorio. Corregí algunos valores, pero notarán que
+sigue marcando ~16--20~ y ~20--24~. ¡No se preocupen! Aunque parezca
+/alrevesado/, es la manera correcta de indicarle a Python, C y otros
+lenguajes que utilice para un valor los valores 16, 17, 18 y 19, y para el
+otro, los valores 20, 21, 22, 23. (¡En serio, verifiqué los datos del
+sistema ejemplo 😉)
 
 ** Calificación del proyecto
 
