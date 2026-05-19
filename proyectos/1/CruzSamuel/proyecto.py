@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """
-Proyecto 1 — FiUnamFS.
-Etapa 10: modo interactivo con menu numerado.
+FiUnamFS — Micro-sistema de archivos sobre imagen de 1440 KB.
+
+Soporta listado, extracción, inserción y borrado lógico de archivos
+sobre el sistema de archivos FiUnamFS (versión 26-2). Cada operación
+del usuario corre en un hilo independiente; un Lock global serializa
+los accesos a la imagen para evitar condiciones de carrera sobre el
+directorio o el área de datos.
 """
 
 import argparse
@@ -12,16 +17,22 @@ import sys
 import threading
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Optional
 
 
-# Tamaños base
+# ---------------------------------------------------------------------------
+# Layout físico del disco
+# ---------------------------------------------------------------------------
 TAMANIO_SECTOR = 512
 SECTORES_POR_CLUSTER = 4
-TAMANIO_CLUSTER = TAMANIO_SECTOR * SECTORES_POR_CLUSTER  # 2048
+TAMANIO_CLUSTER = TAMANIO_SECTOR * SECTORES_POR_CLUSTER  # 2048 B
 TAMANIO_IMAGEN = 1440 * 1024
 TOTAL_CLUSTERS = TAMANIO_IMAGEN // TAMANIO_CLUSTER
 
-# Identificación del sistema de archivos
+
+# ---------------------------------------------------------------------------
+# Superbloque (clúster 0)
+# ---------------------------------------------------------------------------
 OFFSET_NOMBRE_FS = 5
 LONGITUD_NOMBRE_FS = 8
 NOMBRE_FS_ESPERADO = b'FiUnamFS'
@@ -30,18 +41,21 @@ OFFSET_VERSION_FS = 14
 LONGITUD_VERSION_FS = 4
 VERSION_FS_ESPERADA = b'26-2'
 
+
+# ---------------------------------------------------------------------------
 # Directorio plano: clústeres 1 a 8, entradas de 64 bytes
+# ---------------------------------------------------------------------------
 CLUSTER_INICIO_DIRECTORIO = 1
 NUM_CLUSTERS_DIRECTORIO = 8
 TAMANIO_ENTRADA = 64
 
-# Layout de una entrada (verificado contra la imagen de muestra):
-#   byte  0      : tipo ('-' archivo, '/' entrada libre)
-#   bytes 1-14   : nombre (14 chars ASCII)
-#   bytes 16-19  : tamaño (uint32 LE)
-#   bytes 20-23  : clúster inicial (uint32 LE)
-#   bytes 30-43  : fecha de creación 'AAAAMMDDHHmmss'
-#   bytes 50-63  : fecha de modificación 'AAAAMMDDHHmmss'
+# Layout de una entrada de 64 bytes (verificado contra la imagen de muestra):
+#   byte  0       : tipo ('-' archivo, '/' entrada libre)
+#   bytes 1-14    : nombre (14 chars ASCII, rellenado con espacios o NUL)
+#   bytes 16-19   : tamaño en bytes (uint32 LE)
+#   bytes 20-23   : clúster inicial (uint32 LE)
+#   bytes 30-43   : fecha de creación      'AAAAMMDDHHmmss'
+#   bytes 50-63   : fecha de modificación  'AAAAMMDDHHmmss'
 OFFSET_TIPO = 0
 OFFSET_NOMBRE = 1
 LONGITUD_NOMBRE = 14
@@ -51,13 +65,16 @@ OFFSET_FECHA_CREACION = 30
 OFFSET_FECHA_MODIFICACION = 50
 LONGITUD_FECHA = 14
 
-TIPO_ARCHIVO = b'-'
-TIPO_ENTRADA_LIBRE = b'/'
+TIPO_ARCHIVO = b'-'          # 0x2d
+TIPO_ENTRADA_LIBRE = b'/'    # 0x2f
 RELLENO_NOMBRE_LIBRE = 0x23  # '#'
 
 CLUSTER_INICIO_DATOS = CLUSTER_INICIO_DIRECTORIO + NUM_CLUSTERS_DIRECTORIO
 
 
+# ---------------------------------------------------------------------------
+# Exclusión mutua sobre la imagen
+# ---------------------------------------------------------------------------
 # Un único Lock global serializa todo acceso a la imagen. Cada operación
 # que toca el directorio o el área de datos lo hace dentro de un bloque
 # `with cerrojo:`, garantizando que la decisión de dónde escribir y la
@@ -70,21 +87,22 @@ class EntradaDirectorio:
     nombre: str
     tamanio: int
     cluster_inicial: int
-    fecha_creacion: datetime
-    fecha_modificacion: datetime
-    # Offset absoluto (en bytes) del inicio de la entrada de 64 bytes
-    # dentro de la imagen. Lo necesito para modificar la entrada en el
-    # borrado lógico sin volver a buscarla.
-    offset_en_disco: int
+    fecha_creacion: Optional[datetime]
+    fecha_modificacion: Optional[datetime]
+    offset_en_disco: int  # byte absoluto del inicio de la entrada
 
 
-def validar_imagen(ruta):
+# ---------------------------------------------------------------------------
+# Superbloque
+# ---------------------------------------------------------------------------
+def validar_imagen(ruta: str) -> None:
+    """Comprueba que la imagen tenga el tamaño, firma y versión correctos."""
     if not os.path.isfile(ruta):
         raise FileNotFoundError(f'No existe la imagen «{ruta}».')
     if os.path.getsize(ruta) != TAMANIO_IMAGEN:
         raise ValueError(
             f'La imagen mide {os.path.getsize(ruta)} bytes; se esperaban '
-            f'{TAMANIO_IMAGEN}.'
+            f'{TAMANIO_IMAGEN}. ¿Está truncada?'
         )
 
     with open(ruta, 'rb') as f:
@@ -109,32 +127,37 @@ def validar_imagen(ruta):
         )
 
 
-def _decodificar_fecha(crudo):
+# ---------------------------------------------------------------------------
+# Lectura del directorio
+# ---------------------------------------------------------------------------
+def _decodificar_fecha(crudo: bytes) -> Optional[datetime]:
     try:
         return datetime.strptime(crudo.decode('ascii'), '%Y%m%d%H%M%S')
     except (ValueError, UnicodeDecodeError):
         return None
 
 
-def _es_entrada_libre(bloque):
+def _es_entrada_libre(bloque: bytes) -> bool:
     if bloque[OFFSET_TIPO:OFFSET_TIPO + 1] == TIPO_ENTRADA_LIBRE:
         return True
     nombre = bloque[OFFSET_NOMBRE:OFFSET_NOMBRE + LONGITUD_NOMBRE]
     return all(b == RELLENO_NOMBRE_LIBRE for b in nombre)
 
 
-def _parsear_entrada(bloque, offset_en_disco):
-    nombre = (bloque[OFFSET_NOMBRE:OFFSET_NOMBRE + LONGITUD_NOMBRE]
-              .decode('ascii', errors='replace')
-              .rstrip(' \x00'))
+def _parsear_entrada(bloque: bytes, offset_en_disco: int) -> EntradaDirectorio:
+    nombre_crudo = bloque[OFFSET_NOMBRE:OFFSET_NOMBRE + LONGITUD_NOMBRE]
+    nombre = nombre_crudo.decode('ascii', errors='replace').rstrip(' \x00')
+
     (tamanio,) = struct.unpack_from('<I', bloque, OFFSET_TAMANIO)
     (cluster,) = struct.unpack_from('<I', bloque, OFFSET_CLUSTER_INICIAL)
+
     creacion = _decodificar_fecha(
         bloque[OFFSET_FECHA_CREACION:OFFSET_FECHA_CREACION + LONGITUD_FECHA]
     )
     modificacion = _decodificar_fecha(
         bloque[OFFSET_FECHA_MODIFICACION:OFFSET_FECHA_MODIFICACION + LONGITUD_FECHA]
     )
+
     return EntradaDirectorio(
         nombre=nombre,
         tamanio=tamanio,
@@ -145,13 +168,16 @@ def _parsear_entrada(bloque, offset_en_disco):
     )
 
 
-def leer_directorio(ruta):
-    """Devuelve las entradas activas (no libres) del directorio."""
-    base = CLUSTER_INICIO_DIRECTORIO * TAMANIO_CLUSTER
+def _leer_directorio_crudo(ruta: str) -> bytes:
     with open(ruta, 'rb') as f:
-        f.seek(base)
-        crudo = f.read(NUM_CLUSTERS_DIRECTORIO * TAMANIO_CLUSTER)
+        f.seek(CLUSTER_INICIO_DIRECTORIO * TAMANIO_CLUSTER)
+        return f.read(NUM_CLUSTERS_DIRECTORIO * TAMANIO_CLUSTER)
 
+
+def leer_directorio(ruta: str) -> list:
+    """Devuelve las entradas activas (no libres) del directorio."""
+    crudo = _leer_directorio_crudo(ruta)
+    base = CLUSTER_INICIO_DIRECTORIO * TAMANIO_CLUSTER
     entradas = []
     for i in range(len(crudo) // TAMANIO_ENTRADA):
         bloque = crudo[i * TAMANIO_ENTRADA:(i + 1) * TAMANIO_ENTRADA]
@@ -161,11 +187,21 @@ def leer_directorio(ruta):
     return entradas
 
 
-def _clusters_necesarios(tamanio):
+def _buscar_entrada(entradas: list, nombre: str) -> EntradaDirectorio:
+    for e in entradas:
+        if e.nombre == nombre:
+            return e
+    raise ValueError(f'No existe «{nombre}» en FiUnamFS.')
+
+
+# ---------------------------------------------------------------------------
+# Asignación de espacio
+# ---------------------------------------------------------------------------
+def _clusters_necesarios(tamanio: int) -> int:
     return math.ceil(tamanio / TAMANIO_CLUSTER)
 
 
-def _clusters_ocupados(entradas):
+def _clusters_ocupados(entradas: list) -> set:
     ocup = set()
     for e in entradas:
         for c in range(e.cluster_inicial,
@@ -174,29 +210,27 @@ def _clusters_ocupados(entradas):
     return ocup
 
 
-def _primer_hueco_contiguo(entradas, clusters):
+def _primer_hueco_contiguo(entradas: list, clusters: int) -> int:
     """First-fit sobre el área de datos."""
     ocup = _clusters_ocupados(entradas)
-    inicio = CLUSTER_INICIO_DATOS
-    libres = 0
+    inicio_candidato = CLUSTER_INICIO_DATOS
+    libres_consecutivos = 0
     for c in range(CLUSTER_INICIO_DATOS, TOTAL_CLUSTERS):
         if c in ocup:
-            inicio = c + 1
-            libres = 0
+            inicio_candidato = c + 1
+            libres_consecutivos = 0
         else:
-            libres += 1
-            if libres >= clusters:
-                return inicio
+            libres_consecutivos += 1
+            if libres_consecutivos >= clusters:
+                return inicio_candidato
     raise ValueError(
         f'No hay {clusters} clúster(es) contiguos libres en el área de datos.'
     )
 
 
-def _offset_primera_entrada_libre(ruta):
+def _offset_primera_entrada_libre(ruta: str) -> int:
+    crudo = _leer_directorio_crudo(ruta)
     base = CLUSTER_INICIO_DIRECTORIO * TAMANIO_CLUSTER
-    with open(ruta, 'rb') as f:
-        f.seek(base)
-        crudo = f.read(NUM_CLUSTERS_DIRECTORIO * TAMANIO_CLUSTER)
     for i in range(len(crudo) // TAMANIO_ENTRADA):
         bloque = crudo[i * TAMANIO_ENTRADA:(i + 1) * TAMANIO_ENTRADA]
         if _es_entrada_libre(bloque):
@@ -204,7 +238,46 @@ def _offset_primera_entrada_libre(ruta):
     raise ValueError('El directorio está lleno; no hay entradas libres.')
 
 
-def insertar(ruta, ruta_local):
+# ---------------------------------------------------------------------------
+# Operaciones del usuario (toda la I/O queda dentro de `cerrojo`)
+# ---------------------------------------------------------------------------
+def listar(ruta: str) -> None:
+    with cerrojo:
+        entradas = leer_directorio(ruta)
+
+    if not entradas:
+        print('(El directorio está vacío.)')
+        return
+
+    print(f'{"Nombre":<16} {"Tamaño":>10} {"Clúster":>8}  '
+          f'{"Creación":<19}  {"Modificación":<19}')
+    print('-' * 80)
+    for e in entradas:
+        crea = (e.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S')
+                if e.fecha_creacion else '—')
+        modif = (e.fecha_modificacion.strftime('%Y-%m-%d %H:%M:%S')
+                 if e.fecha_modificacion else '—')
+        print(f'{e.nombre:<16} {e.tamanio:>10,} {e.cluster_inicial:>8}  '
+              f'{crea:<19}  {modif:<19}')
+    print('-' * 80)
+    print(f'Total: {len(entradas)} archivo(s)')
+
+
+def extraer(ruta: str, nombre: str, destino: str) -> None:
+    with cerrojo:
+        entradas = leer_directorio(ruta)
+        entrada = _buscar_entrada(entradas, nombre)
+        with open(ruta, 'rb') as imagen:
+            imagen.seek(entrada.cluster_inicial * TAMANIO_CLUSTER)
+            contenido = imagen.read(entrada.tamanio)
+
+    with open(destino, 'wb') as salida:
+        salida.write(contenido)
+
+    print(f'Extraído «{nombre}» → «{destino}» ({entrada.tamanio:,} bytes).')
+
+
+def insertar(ruta: str, ruta_local: str) -> None:
     if not os.path.isfile(ruta_local):
         raise FileNotFoundError(f'No existe el archivo local «{ruta_local}».')
 
@@ -237,8 +310,8 @@ def insertar(ruta, ruta_local):
             imagen.seek(cluster_inicial * TAMANIO_CLUSTER)
             imagen.write(contenido)
 
-            # Rellenar el último clúster con ceros: evita exponer residuos
-            # de un archivo previo si el espacio se reutilizó tras un borrado.
+            # Rellenar el último clúster con ceros: evita exponer
+            # residuos de un archivo previamente borrado en el mismo lugar.
             residuo = tamanio % TAMANIO_CLUSTER
             if residuo:
                 imagen.write(b'\x00' * (TAMANIO_CLUSTER - residuo))
@@ -259,26 +332,7 @@ def insertar(ruta, ruta_local):
           f'({tamanio:,} bytes, {n_clusters} clúster(es)).')
 
 
-def _buscar_entrada(entradas, nombre):
-    for e in entradas:
-        if e.nombre == nombre:
-            return e
-    raise ValueError(f'No existe «{nombre}» en FiUnamFS.')
-
-
-def extraer(ruta, nombre, destino):
-    with cerrojo:
-        entradas = leer_directorio(ruta)
-        entrada = _buscar_entrada(entradas, nombre)
-        with open(ruta, 'rb') as imagen:
-            imagen.seek(entrada.cluster_inicial * TAMANIO_CLUSTER)
-            contenido = imagen.read(entrada.tamanio)
-    with open(destino, 'wb') as salida:
-        salida.write(contenido)
-    print(f'Extraído «{nombre}» → «{destino}» ({entrada.tamanio:,} bytes).')
-
-
-def eliminar(ruta, nombre):
+def eliminar(ruta: str, nombre: str) -> None:
     """Borrado lógico: invalida la entrada sin tocar el área de datos."""
     with cerrojo:
         entradas = leer_directorio(ruta)
@@ -292,30 +346,12 @@ def eliminar(ruta, nombre):
     print(f'Eliminado «{nombre}».')
 
 
-def listar(ruta):
-    with cerrojo:
-        entradas = leer_directorio(ruta)
-    if not entradas:
-        print('(El directorio está vacío.)')
-        return
-
-    print(f'{"Nombre":<16} {"Tamaño":>10} {"Clúster":>8}  '
-          f'{"Creación":<19}  {"Modificación":<19}')
-    print('-' * 80)
-    for e in entradas:
-        crea = (e.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S')
-                if e.fecha_creacion else '—')
-        modif = (e.fecha_modificacion.strftime('%Y-%m-%d %H:%M:%S')
-                 if e.fecha_modificacion else '—')
-        print(f'{e.nombre:<16} {e.tamanio:>10,} {e.cluster_inicial:>8}  '
-              f'{crea:<19}  {modif:<19}')
-    print('-' * 80)
-    print(f'Total: {len(entradas)} archivo(s)')
-
-
-def _ejecutar_en_hilo(funcion, *args):
+# ---------------------------------------------------------------------------
+# Ejecución concurrente
+# ---------------------------------------------------------------------------
+def _ejecutar_en_hilo(funcion, *args) -> None:
     """Lanza la operación en un hilo y propaga cualquier excepción al main."""
-    contenedor = {}
+    contenedor: dict = {}
 
     def envoltura():
         try:
@@ -330,6 +366,9 @@ def _ejecutar_en_hilo(funcion, *args):
         raise contenedor['error']
 
 
+# ---------------------------------------------------------------------------
+# Modo interactivo
+# ---------------------------------------------------------------------------
 _BANNER = """
 ======================================================
             FiUnamFS — modo interactivo
@@ -342,7 +381,7 @@ _BANNER = """
 """
 
 
-def _menu_interactivo(ruta):
+def _menu_interactivo(ruta: str) -> None:
     while True:
         print(_BANNER)
         try:
@@ -373,20 +412,23 @@ def _menu_interactivo(ruta):
             print(f'Error: {err}')
 
 
-def _construir_parser():
+# ---------------------------------------------------------------------------
+# CLI con argparse
+# ---------------------------------------------------------------------------
+def _construir_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog='proyecto.py',
         description='Herramienta para manipular imágenes FiUnamFS (versión 26-2).',
+        epilog='Sin subcomando se entra al modo interactivo.',
     )
     parser.add_argument('imagen', help='Ruta a la imagen FiUnamFS (1440 KB).')
     sub = parser.add_subparsers(dest='comando')
 
     sub.add_parser('listar', help='Lista el contenido del directorio.')
-    sub.add_parser('menu', help='Inicia el modo interactivo.')
 
     p_ext = sub.add_parser('extraer', help='Copia un archivo al equipo local.')
     p_ext.add_argument('nombre', help='Nombre del archivo dentro de FiUnamFS.')
-    p_ext.add_argument('destino', help='Ruta local destino.')
+    p_ext.add_argument('destino', help='Ruta local o directorio destino.')
 
     p_ins = sub.add_parser('insertar', help='Copia un archivo local a FiUnamFS.')
     p_ins.add_argument('ruta_local', help='Archivo local a insertar.')
@@ -394,14 +436,17 @@ def _construir_parser():
     p_del = sub.add_parser('eliminar', help='Borrado lógico de un archivo.')
     p_del.add_argument('nombre', help='Nombre del archivo a eliminar.')
 
+    sub.add_parser('menu', help='Inicia el modo interactivo.')
+
     return parser
 
 
-def main():
+def main() -> int:
     args = _construir_parser().parse_args()
 
     try:
         validar_imagen(args.imagen)
+
         if args.comando in (None, 'menu'):
             _menu_interactivo(args.imagen)
         elif args.comando == 'listar':
@@ -415,6 +460,7 @@ def main():
     except (FileNotFoundError, ValueError) as err:
         print(f'Error: {err}', file=sys.stderr)
         return 1
+
     return 0
 
 
