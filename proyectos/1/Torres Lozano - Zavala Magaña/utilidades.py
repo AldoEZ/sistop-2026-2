@@ -1,7 +1,9 @@
-#Interfaz del programa.
-
-#RECORDAR:
-
+# utilidades.py
+# Funciones de presentación para la interfaz del programa.
+#
+# Usamos secuencias de escape ANSI para los colores y para limpiar la
+# pantalla.
+# Las secuencias ANSI funcionan en Linux, macOS y Windows 10 o posterior.
 
 # Formato de los códigos ANSI: \033[ + número + m
 # \033 es el carácter ESC (código ASCII 27), que le indica a la terminal
@@ -20,7 +22,6 @@ class Color:
     FONDO_AZUL   = "\033[44m"
     FONDO_OSCURO = "\033[40m"
 
-#REVISAMOS DE NUEVO AL FINAL SI QUIERES
 def limpiar_pantalla() -> None:
     """
     Limpia la terminal usando secuencias ANSI, sin llamar a comandos externos.
@@ -29,7 +30,6 @@ def limpiar_pantalla() -> None:
     \033[H  → mueve el cursor al inicio (fila 1, columna 1)
     """
     print("\033[2J\033[H", end="")
-
 
 def imprimir_encabezado(titulo: str) -> None:
     """Muestra un encabezado con fondo azul y el título de la sección."""
@@ -44,16 +44,13 @@ def imprimir_exito(mensaje: str) -> None:
     """Mensaje de éxito en verde."""
     print(f"{Color.VERDE}{mensaje}{Color.RESET}")
 
-
 def imprimir_error(mensaje: str) -> None:
     """Mensaje de error en rojo."""
     print(f"{Color.ROJO}{mensaje}{Color.RESET}")
 
-
 def imprimir_info(mensaje: str) -> None:
     """Mensaje informativo en amarillo."""
     print(f"{Color.AMARILLO}{mensaje}{Color.RESET}")
-
 
 def formatear_tamano(bytes_totales: int) -> str:
     """

@@ -1,7 +1,7 @@
 # entrada_directorio.py
-# Módulo que representará una entrada del directorio de FiUnamFS.
-# Por ahora solo definimos la clase con sus atributos básicos.
-# Todavía falta implementar la copia y el cálculo de clusters.
+# Módulo que representa una entrada del directorio de FiUnamFS.
+# Ya implementamos la lectura de contenido desde el .img.
+# Todavía falta terminar la copia al sistema local.
 
 import os
 import math
@@ -16,6 +16,7 @@ class FileEntry:
     """
     Representa una entrada del directorio de FiUnamFS.
     Cada entrada ocupa 64 bytes y guarda los metadatos de un archivo.
+    Los datos reales del archivo viven en los clusters de datos, no aquí.
     """
 
     def __init__(
@@ -38,33 +39,40 @@ class FileEntry:
         return self.name
 
     def clusters_used(self) -> tuple[int, list[int]]:
-        """Calcula cuántos clusters ocupa el archivo y cuáles son."""
-        # Acuérdate que el sistema es de "asignación contigua". 
-        # Esta lógica ya asume que están pegados, está bien según la especificación.
-        # No lo muevas, esto ya sirve para calcular el espacio.
+        """
+        Devuelve cuántos clusters ocupa el archivo y cuáles son.
+        FiUnamFS usa asignación contigua, así que siempre son consecutivos.
+        """
+        # Nota: Esto ya está bin. Como el FS es de asignación contigua 
+        # no necesitamos FAT. Con esto ya sabemos dónde leer
         cantidad = math.ceil(self.size / TAMANO_CLUSTER)
         lista_clusters = list(range(self.initial_cluster, self.initial_cluster + cantidad))
         return cantidad, lista_clusters
 
     def _leer_contenido(self) -> bytes | None:
-        # implementar lectura desde el .img
-        # Tenemos que abrir self.img_path en modo "rb", movernos al offset
-        # (self.initial_cluster * TAMANO_CLUSTER) y leer exactamente self.size bytes
-        # para la función de copiar hacia la compu
-        return None
+        """Lee los bytes del archivo desde la imagen .img."""
+        # Quedó bien la lectura del archivo desde el .img. 
+        # nos evitamos cargar clusters vacíos, leyendo solo self.size
+        desplazamiento = self.initial_cluster * TAMANO_CLUSTER
+        try:
+            with open(self.img_path, "rb") as img:
+                img.seek(desplazamiento)
+                return img.read(self.size)
+        except OSError:
+            return None
 
     def copy_to_system(self, directorio_destino: str) -> bool:
-        # hacer copia al sistema local
-        # Aquí hay que llamar a self._leer_contenido() y guardar esos bytes
-        # en un archivo nuevo dentro de directoriodestino.
-        # manejar los hilos7semáforos aquí si lo hacemos concurrente.
+        # Zavala terminar de implementar la copia al sistema local
+        # Aquí literal solo tenemos que mandar llamar self._leer_contenido,
+        # armar la ruta con os.path.join (directorio_destino, self.name) 
         return False
 
     @staticmethod
     def _formatear_fecha(crudo: str) -> str:
-        #El profe dice que el formato viene como AAAAMMDDHHMMSS. 
-        # La limpieza que hiciste aquí ya está bien, solo hay que asegurar
-        # que cuando leamos del directorio le pasemos este string tal cual.
+        """
+        Convierte la fecha compacta del FS a formato legible.
+        Ejemplo: '20260108182600' → '2026-01-08 18:26:00'
+        """
         if len(crudo) < 14:
             return "Fecha inválida"
         return (
