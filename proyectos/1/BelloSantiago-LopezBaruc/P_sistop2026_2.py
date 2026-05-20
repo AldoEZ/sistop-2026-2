@@ -358,7 +358,7 @@ class FiUnamFS:
                 f"Clústers Totales: {self.clusters_unity}\n"
                 f"---------------------")
 
-
+"""
 # ==========================================
 # CASO DE PRUEBA
 # ==========================================
@@ -369,7 +369,7 @@ if __name__ == "__main__":
     ruta_disco = '/Users/santiagobello/Downloads/fiunamfs.img'
     ruta_imagen_local = '/Users/santiagobello/Downloads/IMG_1757.jpg' 
     ruta_destino_local = '/Users/santiagobello/Downloads' 
-    
+
     try:
         print("Montando el sistema de archivos...")
         disco = FiUnamFS(ruta_disco)
@@ -422,3 +422,4 @@ if __name__ == "__main__":
 
     except Exception as e:
         print(f"Hubo un error general durante la ejecución de las pruebas: {e}")
+        """
