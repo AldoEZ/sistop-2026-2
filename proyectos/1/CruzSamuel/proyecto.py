@@ -271,6 +271,11 @@ def extraer(ruta: str, nombre: str, destino: str) -> None:
             imagen.seek(entrada.cluster_inicial * TAMANIO_CLUSTER)
             contenido = imagen.read(entrada.tamanio)
 
+    # Si el destino es un directorio existente, conservar el nombre
+    # original dentro de él (comportamiento tipo `cp`).
+    if os.path.isdir(destino):
+        destino = os.path.join(destino, nombre)
+
     with open(destino, 'wb') as salida:
         salida.write(contenido)
 
