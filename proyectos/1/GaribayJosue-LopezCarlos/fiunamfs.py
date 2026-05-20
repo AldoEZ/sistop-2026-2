@@ -12,19 +12,76 @@ class PeticionFS:
         self.args = args
         self.resultado = None
         self.evento = threading.Event()
-   
-    pass
+
 
 class FS(threading.Thread):
+    def __init__(self, ruta_img, cola_peticiones):
+        super().__init__()
+        self.ruta_img = ruta_img
+        self.cola_peticiones = cola_peticiones
+        self.daemon = True  # Se cierra cuando el hilo principal termina
+        self.lock_archivo = threading.Lock() 
+        
+    def run(self):
+        while True:
+            peticion = self.cola_peticiones.get()
+            
+            # Operaciones sobre el disco
+            with self.lock_archivo:
+                try:
+                    self.validar_version()
+                    if peticion.accion == 'LISTAR':
+                        peticion.resultado = self.listar_archivos()
+                    elif peticion.accion == 'COPIAR_FUERA':
+                        peticion.resultado = self.copiar_fuera(peticion.args[0], peticion.args[1])
+                    elif peticion.accion == 'COPIAR_DENTRO':
+                        peticion.resultado = self.copiar_dentro(peticion.args[0], peticion.args[1])
+                    elif peticion.accion == 'ELIMINAR':
+                        peticion.resultado = self.eliminar_archivo(peticion.args[0])
+                except Exception as e:
+                    peticion.resultado = f"Error del sistema: {e}"
+            
+            peticion.evento.set() 
+            self.cola_peticiones.task_done()
+
+    def validar_version(self):
+        with open(self.ruta_img, 'rb') as f:
+            f.seek(5)
+            nombre = f.read(8)
+            if nombre != b'FiUnamFS':
+                raise ValueError("FiUnamFS no válido.")
+            f.seek(14)
+            version = f.read(4)
+            if version != (b'24-2' or b'26-2'):
+                raise ValueError("Versión de FiUnamFS no soportada.")
+        
+        
+    def listar_archivos(self):
+        
+        
+        pass
+        
+    
+    def copiar_fuera(self):
+        
+        
+        pass
+    
+    
+    def copiar_dentro(self):
+        
+        
+        pass
 
 
-    pass
-
-
+    def eliminar_archivo(self):
+        
+        
+        pass
 
 
 def main():
-    ruta_img = 'fiunamfs.img' 
+    ruta_img = 'fiunamfs.img'
     
     if not os.path.exists(ruta_img):
         print(f"No se encontró el archivo '{ruta_img}'.")
@@ -32,8 +89,10 @@ def main():
 
     # Inicialización de hilos y sincronización
     cola_peticiones = queue.Queue()
-    #hilo_fs = FS(ruta_img, cola_peticiones)
-    #hilo_fs.start()
+    hilo_fs = FS(ruta_img, cola_peticiones)
+    hilo_fs.start()
+    
+    print("---FiUnamFS---")
     
     while True:
         print("\nElija una opción:")
@@ -59,16 +118,17 @@ def main():
             nombre = input("Nombre del archivo a eliminar en FiUnamFS: ")
             peticion = PeticionFS('ELIMINAR', nombre)
         elif opcion == '5':
-            cola_peticiones.put(PeticionFS('SALIR'))
             print("Vuelva pronto!")
             break
         else:
             print("Opción inválida.")
             continue
             
-        # cola_peticiones.put(peticion)
-        # peticion.evento.wait() 
+        #   Se envía a la cola y espera a que el evento se active (sincronización)
+        cola_peticiones.put(peticion)
+        peticion.evento.wait() 
         
+        # Procesa los resultados devueltos por el hilo
         if opcion == '1':
             archivos = peticion.resultado
             if isinstance(archivos, list):
@@ -83,5 +143,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
 
 
