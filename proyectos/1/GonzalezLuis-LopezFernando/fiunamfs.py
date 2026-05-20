@@ -181,20 +181,18 @@ class FiUnamFS:
             return False
     
 
+        """
+        Punto 4: Eliminar archivo de la imagen
+        """
     def eliminar_archivo(self, nombre_fiunamfs):
-        """
-        Punto 4: Eliminar un archivo del FiUnamFS (Eliminación lógica).
-        """
         if not self.archivo:
-            raise ConnectionError("No hay un archivo abierto.")
+            raise ConnectionError("No hay una archivo abierto")
 
         inicio_directorio = self.TAMANO_CLUSTER * 1
         total_entradas = (self.CLUSTERS_DIRECTORIO * self.TAMANO_CLUSTER) // self.TAMANO_ENTRADA_DIR
         
         for i in range(total_entradas):
-            # Calculamos la posición exacta de esta entrada en el archivo
             posicion_entrada = inicio_directorio + (i * self.TAMANO_ENTRADA_DIR)
-            
             self.archivo.seek(posicion_entrada)
             entrada_bytes = self.archivo.read(self.TAMANO_ENTRADA_DIR)
             
@@ -208,24 +206,21 @@ class FiUnamFS:
                 nombre_actual = datos[1].decode('ascii', errors='ignore').strip('\x00 ').replace('#', '')
                 
                 if nombre_actual == nombre_fiunamfs:
-                    # ¡Lo encontramos! Regresamos el cursor al inicio de esta entrada
+                    # Ubicar el cursor en la posicion del archivo
                     self.archivo.seek(posicion_entrada)
                     
-                    # Sobrescribimos el primer byte (tipo) y los 15 bytes del nombre
-                    # b'/' es el byte 0x2f, y b'###############' son los 15 bytes de relleno
+                    #Se sobreescriben los bytes
                     nuevo_tipo = b'/'
                     nuevo_nombre = b'###############'
                     
-                    # Escribimos estos 16 bytes directamente en el disco
+                    #Se escribe en el disco
                     self.archivo.write(nuevo_tipo + nuevo_nombre)
                     
-                    print(f"[+] Archivo '{nombre_fiunamfs}' eliminado lógicamente del directorio.")
+                    print(f"Eliminando archivo {nombre_fiunamfs}")
                     return True
 
-        print(f"[-] Error: El archivo '{nombre_fiunamfs}' no se encontró para eliminar.")
+        print(f"No se encontró el archivo '{nombre_fiunamfs}' a eliminar")
         return False        
-
-
         
 
     def desconectar(self):
