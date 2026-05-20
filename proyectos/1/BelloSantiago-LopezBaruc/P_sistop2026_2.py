@@ -33,18 +33,44 @@ class File:
         new_date = f"{year}-{month}-{day} {hour}:{minute}:{second}"
         return new_date
     
-    def obtener_contenido(self):
-        """
-        Abre el archivo de imagen del sistema, se posiciona en el clúster
-        inicial correspondiente a este archivo y lee su tamaño exacto en bytes.
-        """
-        # Se calcula el byte exacto donde inicia el archivo
-        posicion_inicial = self.initial_cluster * self.tam_cluster
+    def obtener_contenido(self) -> bytes:
+        
+        if self.size < self.tam_cluster * 4:
+            posicion_inicial = self.initial_cluster * self.tam_cluster
+            with open(self.dir_path, 'rb') as file:
+                file.seek(posicion_inicial)
+                return file.read(self.size) 
 
-        with open(self.dir_path, 'rb') as file:
-            file.seek(posicion_inicial)
-            return file.read(self.size) # Se lee únicamente el tamaño del archivo, no todo el clúster
+ 
+        num_hilos = 4
+        chunk_size = math.ceil(self.size / num_hilos)
+        resultado = bytearray(self.size)
 
+        def leer_chunk(inicio_bytes: int, size_a_leer: int):
+            pos_fisica = (self.initial_cluster * self.tam_cluster) + inicio_bytes
+            with open(self.dir_path, 'rb') as file:
+                file.seek(pos_fisica)
+                datos = file.read(size_a_leer)
+      
+                resultado[inicio_bytes : inicio_bytes + size_a_leer] = datos
+
+        hilos = []
+        for i in range(num_hilos):
+            inicio_bytes = i * chunk_size
+            if inicio_bytes >= self.size:
+                break 
+            
+       
+            size_a_leer = min(chunk_size, self.size - inicio_bytes)
+            
+            hilo = threading.Thread(target=leer_chunk, args=(inicio_bytes, size_a_leer))
+            hilos.append(hilo)
+            hilo.start()
+            
+        for hilo in hilos:
+            hilo.join()
+            
+        return bytes(resultado)
 
     def mostrar_informacion(self) -> None:
         """Imprime los metadatos del archivo en consola."""
@@ -83,51 +109,61 @@ class FiUnamFS:
         """
         self.archivos_validos = {} 
         self.lista_archivos = [] 
-        # El directorio empieza después del Superbloque (que asume toma 1 clúster)
+        self.mapDirectorio = {}
         offset_dir = 1 * self.tam_cluster
+        
+        total_entradas = self.clusters_dir * (self.tam_cluster // 64)
+        print("\n--- ESCANEANDO DIRECTORIO (CON HILOS) ---")
+        
+        lock = threading.Lock()
+        
+        def escanear_seccion(inicio: int, fin: int):
+            with open(self.path, 'rb') as file:
+                for index_entrada in range(inicio, fin):
+                    file.seek(offset_dir + (index_entrada * 64))
+                    entrada = file.read(64)
+                    if not entrada: break
+                    
+                    if entrada[0] == 45: # Código ASCII para '-'
+                        nombre_bytes = entrada[1:16].split(b'\x00')[0] 
+                        nombre = nombre_bytes.decode('ascii').strip('#').strip()
+                        
+                        size = struct.unpack('<I', entrada[16:20])[0]
+                        cluster_ini = struct.unpack('<I', entrada[20:24])[0]
+                        c_date = entrada[30:44].decode('ascii').strip('\x00').strip()
+                        u_date = entrada[50:64].decode('ascii').strip('\x00').strip()
+                        
+                        nuevo_archivo = File(
+                            name=nombre, 
+                            size=size, 
+                            initial_cluster=cluster_ini, 
+                            creation_date=c_date, 
+                            update_date=u_date, 
+                            dir_path=self.path
+                        )
+                        
+                        with lock:
+                            self.mapDirectorio[nombre] = offset_dir + (index_entrada * 64)
+                            self.archivos_validos[nombre] = cluster_ini
+                            self.lista_archivos.append(nuevo_archivo)
+                            print(f"Archivo: {nombre:<15} | Cluster Inicial: {cluster_ini}")
+
+        num_hilos = 4
+        entradas_por_hilo = total_entradas // num_hilos
+        hilos = []
+
+        for i in range(num_hilos):
+            inicio = i * entradas_por_hilo
+            fin = total_entradas if i == num_hilos - 1 else (i + 1) * entradas_por_hilo
             
-        print("\n--- ESCANEANDO DIRECTORIO ---")
-        with open(self.path, 'rb') as file:
-            file.seek(offset_dir)
-                
-            # Calcula cuántas entradas caben en los clústers asignados al directorio (64 bytes por entrada)
-            total_entradas = self.clusters_dir * (self.tam_cluster // 64)
-                
-            for _ in range(total_entradas):
-                entrada = file.read(64)
-                if not entrada: break  # Fin del archivo prematuro
-                    
-                # El primer byte (45 en ASCII es '-') indica que la entrada está en uso
-                if entrada[0] == 45: 
-                    
-                    # Extraer el nombre (15 bytes), cortando en el primer byte nulo y decodificando
-                    nombre_bytes = entrada[1:16].split(b'\x00')[0] 
-                    nombre = nombre_bytes.decode('ascii').strip('#').strip()
-                        
-                    # Extraer metadatos usando struct (Little Endian, Unsigned Int)
-                    size = struct.unpack('<I', entrada[16:20])[0]
-                    cluster_ini = struct.unpack('<I', entrada[20:24])[0]
-                    
-                    # Extraer fechas y limpiar caracteres nulos
-                    c_date = entrada[30:44].decode('ascii').strip('\x00').strip()
-                    u_date = entrada[50:64].decode('ascii').strip('\x00').strip()
+            hilo = threading.Thread(target=escanear_seccion, args=(inicio, fin))
+            hilos.append(hilo)
+            hilo.start()
 
-                    self.archivos_validos[nombre] = cluster_ini
+        for hilo in hilos:
+            hilo.join()
 
-                    # Instanciar el objeto File con los datos obtenidos
-                    nuevo_archivo = File(
-                        name=nombre, 
-                        size=size, 
-                        initial_cluster=cluster_ini, 
-                        creation_date=c_date, 
-                        update_date=u_date, 
-                        dir_path=self.path
-                    )
-                    self.lista_archivos.append(nuevo_archivo)
-                        
-                    print(f"Archivo: {nombre:<15} | Cluster Inicial: {cluster_ini}")
-
-            print(f"-----------------------------\nDirectorio mapeado: {len(self.archivos_validos)} archivos encontrados.\n")
+        print(f"-----------------------------\nDirectorio mapeado: {len(self.archivos_validos)} archivos encontrados.\n")
 
 
     def copia_TO_MyPC(self, path:str , file: File ) -> bool: # El path debe de ser la dirección hacia donde se busca insertar el archivo.
@@ -141,12 +177,15 @@ class FiUnamFS:
             content = file.obtener_contenido()
 
             try:
-                # Escribe los bytes extraídos en un nuevo archivo en la PC
                 with open(path + f'/{file.name}', 'wb') as new_file:
                     new_file.write(content)
+                print(f"¡Éxito! '{file.name}' copiado a tu PC.")
                 return True
-            except:
+            except Exception as e:
+                print(f"Error al guardar en PC: {e}")
                 return False
+        print(f"Error: El archivo '{file.name}' ya existe en el destino.")
+        return False
     
     def _buscar_espacio_libre(self, file_size: int) -> int:
         clusters_necesarios = math.ceil(file_size / self.tam_cluster)
@@ -324,20 +363,62 @@ class FiUnamFS:
 # CASO DE PRUEBA
 # ==========================================
 
-ruta_disco = '/Users/santiagobello/Downloads/fiunamfs.img'
 
-ruta_imagen_local = '/Users/santiagobello/Downloads/IMG_1757.jpg' 
 
-try:
-    # 1. Montar el disco
-    disco = FiUnamFS(ruta_disco)
-    print(disco)
+if __name__ == "__main__":
+    ruta_disco = '/Users/santiagobello/Downloads/fiunamfs.img'
+    ruta_imagen_local = '/Users/santiagobello/Downloads/IMG_1757.jpg' 
+    ruta_destino_local = '/Users/santiagobello/Downloads' 
     
-    # 2. Mapear directorio actual
-    disco.mapear_directorio()
+    try:
+        print("Montando el sistema de archivos...")
+        disco = FiUnamFS(ruta_disco)
+        print(disco)
+        
+        # ----------------------------------------------------------------------
+        # REQUISITO 1 & 5: Listar los contenidos del directorio
+        # (Opera con 4 hilos concurrentes que comunican su estado con un Lock)
+        # ----------------------------------------------------------------------
+        print("\n[PASO 1] Listar los contenidos del directorio...")
+        disco.mapear_directorio() 
+        
+        # ----------------------------------------------------------------------
+        # REQUISITO 2: Copiar uno de los archivos de dentro del FiUnamFS hacia tu sistema
+        # ----------------------------------------------------------------------
+        print("\n[PASO 2] Copiando un archivo desde FiUnamFS hacia la PC...")
+        if disco.lista_archivos:
+            # Tomamos el primer archivo disponible en el cluster para extraerlo
+            archivo_prueba = disco.lista_archivos[0]
+            print(f"Archivo seleccionado para descargar: {archivo_prueba.name}")
+            disco.copia_TO_MyPC(ruta_destino_local, archivo_prueba)
+        else:
+            print("No se encontraron archivos en FiUnamFS para copiar al sistema.")
+            
+        # ----------------------------------------------------------------------
+        # REQUISITO 3: Copiar un archivo de tu computadora hacia tu FiUnamFS
+        # ----------------------------------------------------------------------
+        print("\n[PASO 3] Copiando archivo de la computadora (IMG_1757.jpg) hacia FiUnamFS...")
+        if os.path.exists(ruta_imagen_local):
+            disco.copia_TO_FiUnamFS(ruta_imagen_local)
+        else:
+            print(f"Error: No se encontró el archivo local en la ruta: {ruta_imagen_local}")
 
-    for key, values in disco.mapDirectorio.items():
-        print('llaves:', key ,'valores', values)
+        # ----------------------------------------------------------------------
+        # REQUISITO 4: Eliminar un archivo del FiUnamFS (README.org)
+        # ----------------------------------------------------------------------
+        print("\n[PASO 4] Eliminando archivo del FiUnamFS...")
+        archivo_a_borrar = "README.org"
+        disco._eliminarArchivo(archivo_a_borrar)
+        
+        # ----------------------------------------------------------------------
+        # VERIFICACIÓN FINAL
+        # ----------------------------------------------------------------------
+        print("\n--- VERIFICACIÓN DE ESTADO FINAL DEL DISCO ---")
+        disco.mapear_directorio()
 
-except Exception as e:
-    print(f"Hubo un error general: {e}")
+        print("Diccionario mapDirectorio actualizado:")
+        for key, values in disco.mapDirectorio.items():
+            print('llave:', key ,'| valor byte:', values)
+
+    except Exception as e:
+        print(f"Hubo un error general durante la ejecución de las pruebas: {e}")
