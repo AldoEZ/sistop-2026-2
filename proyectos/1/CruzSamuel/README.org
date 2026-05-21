@@ -25,6 +25,15 @@ El programa cubre las cinco metas planteadas por la asignatura:
 5. Ejecutar cada operación en un hilo independiente, coordinando los
    accesos a la imagen mediante un mecanismo de exclusión mutua.
 
+Adicionalmente, ofrece dos interfaces para invocar las operaciones:
+
+- *CLI con subcomandos* (=listar=, =extraer=, =insertar=, =eliminar=)
+  y un *menú interactivo* (=menu=) para usuarios que prefieren un flujo
+  guiado.
+- *Montaje FUSE* (=mount=): la imagen se monta como un directorio
+  ordinario del sistema y se manipula con =ls=, =cp=, =cat=, =rm= como
+  si fuera cualquier otro directorio.
+
 * Requisitos del entorno
 
 ** Lenguaje
@@ -32,10 +41,10 @@ El programa cubre las cinco metas planteadas por la asignatura:
 - *Python 3.10* o superior (se utiliza =typing.Optional= y =list[...]=
   con sintaxis moderna; la salida formateada usa f-strings).
 
-** Dependencias externas
+** Dependencias
 
-Ninguna. El programa utiliza únicamente módulos de la biblioteca
-estándar de CPython:
+*Para el CLI y el menú interactivo* no se requiere ninguna dependencia
+externa; el programa usa únicamente la biblioteca estándar de CPython:
 
 | Módulo        | Uso                                                                |
 |---------------+--------------------------------------------------------------------|
@@ -47,6 +56,19 @@ estándar de CPython:
 | =threading=   | =Thread= para las operaciones y =Lock= para la exclusión mutua     |
 | =dataclasses= | Definición concisa de =EntradaDirectorio=                          |
 | =datetime=    | Conversión de cadenas =AAAAMMDDHHmmss= y sello de tiempo actual    |
+
+*Para el modo =mount= (FUSE)* se necesita además:
+
+| Componente          | Versión sugerida | Instalación                              |
+|---------------------+------------------+------------------------------------------|
+| =libfuse=           | ≥ 2.9            | Debian/Ubuntu: =sudo apt-get install fuse=  |
+|                     |                  | Arch Linux: =sudo pacman -S fuse2=          |
+|                     |                  | macOS: macFUSE — https://osxfuse.github.io/ |
+| =fusepy= (Python)   | 3.0.1            | =pip install fusepy=                        |
+
+El modo =mount= está aislado: el =import fuse= se hace dentro de
+=_montar_fuse= y se atrapa el =ImportError=, así que la ausencia de
+estas dependencias no afecta a los demás subcomandos.
 
 ** Compilación
 
@@ -142,6 +164,49 @@ python3 proyecto.py ../fiunamfs.img
 Elige una opción [1-5]:
 #+end_example
 
+** Modo =mount= (FUSE): la imagen como un directorio del sistema
+
+Una vez instalados =libfuse= y =fusepy= (ver /Dependencias/), la
+imagen puede manipularse con cualquier herramienta del sistema:
+
+#+begin_src shell
+mkdir /tmp/fiunamfs
+python3 proyecto.py ../fiunamfs.img mount /tmp/fiunamfs &
+#+end_src
+
+A partir de ese momento, =/tmp/fiunamfs= se comporta como un
+directorio normal:
+
+#+begin_src shell
+# Listar
+ls -l /tmp/fiunamfs/
+
+# Extraer
+cp /tmp/fiunamfs/README.org ~/copia.org
+
+# Insertar
+cp ~/mi_archivo.txt /tmp/fiunamfs/
+
+# Eliminar
+rm /tmp/fiunamfs/mi_archivo.txt
+#+end_src
+
+Para desmontar:
+
+#+begin_src shell
+fusermount -u /tmp/fiunamfs   # Linux
+umount /tmp/fiunamfs          # macOS
+#+end_src
+
+*Notas del modelo FUSE.* La escritura se hace en dos fases: =write=
+acumula los bytes en un buffer en memoria asociado al archivo, y
+=release= persiste el buffer completo invocando =_escribir_en_fs=.
+Esto se debe a que FiUnamFS usa /asignación contigua/: no podemos
+elegir el clúster inicial hasta conocer el tamaño total del archivo.
+Por la misma razón, =truncate= solo se acepta sobre archivos en buffer
+(aún no persistidos); modificar el tamaño de un archivo ya escrito
+requeriría reubicarlo y queda fuera del alcance de la entrega.
+
 * Layout del sistema de archivos
 
 #+begin_example
@@ -212,6 +277,10 @@ un programa que compila, se ejecuta y produce salida útil:
    hilo trabajador.
 8. *Interfaz.* CLI con =argparse= + subcomandos y un modo interactivo
    por menú para usuarios que prefieren un flujo guiado.
+9. *Montaje FUSE.* Capa final que expone el FiUnamFS como un
+   directorio del sistema operativo. Reusa =leer_directorio=,
+   =_escribir_en_fs= y la lógica de borrado, así que cuando un proceso
+   ajeno escribe vía =cp= sigue dentro del mismo =cerrojo= que el CLI.
 
 * Sincronización entre hilos
 
