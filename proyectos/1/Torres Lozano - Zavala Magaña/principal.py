@@ -1,8 +1,31 @@
 """
 principal.py — Punto de entrada del programa FiUnamFS
 
-Ya tenemos el hilo _listar funcionando con semáforos.
-Las opciones de copiar y eliminar todavía están en desarrollo.
+Uso:
+    python principal.py <ruta_a_fiunamfs.img>
+
+Ejemplo:
+    python principal.py ./fiunamfs.img
+
+El programa tiene 5 hilos que se coordinan con semáforos:
+  _menu           → muestra el menú y le avisa al hilo correcto qué hacer
+  _listar         → lista los archivos del directorio
+  _copiar_a_local → copia un archivo de FiUnamFS a la computadora
+  _copiar_a_fs    → copia un archivo de la computadora a FiUnamFS
+  _eliminar       → elimina un archivo de FiUnamFS
+
+Cómo funciona la sincronización:
+  Cada hilo operativo tiene un semáforo inicializado en 0 (bloqueado).
+  El hilo _menu tiene su propio semáforo inicializado en 1 (activo).
+
+  1. _menu adquiere su semáforo y muestra las opciones.
+  2. El usuario elige una opción.
+  3. _menu libera el semáforo del hilo elegido (lo despierta).
+  4. Ese hilo ejecuta su tarea y al terminar libera el semáforo del menú.
+  5. El ciclo se repite.
+
+  Con esto garantizamos que nunca haya dos operaciones corriendo al mismo
+  tiempo y que el menú no aparezca mientras algo está en proceso.
 """
 
 import sys
@@ -11,15 +34,22 @@ import threading
 from sistema_archivos import FiUnamFS, validar_imagen
 from utilidades import (
     limpiar_pantalla, imprimir_encabezado,
-    imprimir_error, imprimir_info, formatear_tamano
+    imprimir_exito, imprimir_error, imprimir_info, formatear_tamano
 )
 
+# Guardamos la opción elegida como variable global para que todos los hilos
+# puedan leerla y saber si deben terminar cuando el usuario elige salir.
 opcion: str = ""
 fs: FiUnamFS | None = None
 
 
 def _menu(sem_menu, sem_listar, sem_local, sem_fs, sem_eliminar):
-    """Hilo del menú. Por ahora solo el listar está conectado."""
+    """
+    Hilo del menú. Muestra las opciones y despierta al hilo correspondiente.
+
+    sem_menu arranca en 1 para que el menú aparezca de inmediato al iniciar.
+    Los demás semáforos arrancan en 0 y se liberan según lo que elija el usuario.
+    """
     global opcion
 
     while True:
@@ -27,29 +57,31 @@ def _menu(sem_menu, sem_listar, sem_local, sem_fs, sem_eliminar):
         limpiar_pantalla()
         imprimir_encabezado("Menú Principal")
         print("  (1) Listar archivos del directorio")
-        print("  (2) Copiar archivo desde FiUnamFS a mi computadora  [en desarrollo]")
-        print("  (3) Copiar archivo desde mi computadora a FiUnamFS  [en desarrollo]")
-        print("  (4) Eliminar un archivo de FiUnamFS                 [en desarrollo]")
+        print("  (2) Copiar archivo desde FiUnamFS a mi computadora")
+        print("  (3) Copiar archivo desde mi computadora a FiUnamFS")
+        print("  (4) Eliminar un archivo de FiUnamFS")
         print("  (5) Salir\n")
         opcion = input("  Opción → ").strip()
-        # Luis tenemos el esqueleto de la concurrencia ya bien.
-        # Cuando implementemos las funciones de copiado/borrado en el sistema_archivos,
-        # solo agregar los elif aquí (opcion == "2": sem_local.release y así).
 
         if   opcion == "1": sem_listar.release()
+        elif opcion == "2": sem_local.release()
+        elif opcion == "3": sem_fs.release()
+        elif opcion == "4": sem_eliminar.release()
         elif opcion == "5":
+            # Al salir hay que despertar a todos los hilos para que
+            # puedan revisar la opción y terminar su bucle
             sem_listar.release()
             sem_local.release()
             sem_fs.release()
             sem_eliminar.release()
             break
         else:
-            imprimir_info("  Opción en desarrollo, intenta con (1) o (5).")
-            sem_menu.release()
+            imprimir_error("  Opción no válida.")
+            sem_menu.release()  # Volvemos a mostrar el menú
 
 
 def _listar(sem_menu, sem_listar):
-    """Hilo que lista los archivos del directorio."""
+    """Hilo que lista los archivos del directorio de FiUnamFS."""
     global opcion, fs
 
     while True:
@@ -64,8 +96,6 @@ def _listar(sem_menu, sem_listar):
         if not archivos:
             imprimir_info("  El directorio está vacío.")
         else:
-            # Quedó muy bien la tabla. Con la función de formatear_tamano 
-            # se ve muy pro. Ya tenemos cubierta una de las opciones principales.
             print(f"  {'#':<4} {'Nombre':<16} {'Tamaño':>10}   {'Creación'}")
             print(f"  {'─'*4} {'─'*16} {'─'*10}   {'─'*19}")
             for i, archivo in enumerate(archivos, 1):
@@ -75,16 +105,81 @@ def _listar(sem_menu, sem_listar):
         sem_menu.release()
 
 
-def _pendiente(sem_menu, sem):
-    """Hilo temporal para opciones aún no implementadas."""
-    global opcion
+def _copiar_a_local(sem_menu, sem_local):
+    """Hilo que copia un archivo de FiUnamFS hacia la computadora."""
+    global opcion, fs
+
     while True:
-        sem.acquire()
+        sem_local.acquire()
         if opcion == "5":
             break
-        # zavala estos hilos temporales los vamos a reemplazar en el sig commit
-        # por _copiar_a_local, _copiar_a_fs, y _eliminar. 
-        # Aquí vamos a pedir los inputs (nombres de archivos) y llamar a las funciones del archivo de fs.
+
+        limpiar_pantalla()
+        imprimir_encabezado("Copiar FiUnamFS → Mi Computadora")
+
+        nombre_archivo     = input("  Nombre del archivo en FiUnamFS: ").strip()
+        directorio_destino = input("  Directorio destino (ej. C:\\Users\\usuario\\Descargas): ").strip()
+
+        resultado = fs.copiar_a_local(nombre_archivo, directorio_destino)
+        if resultado.startswith("[OK]"):
+            imprimir_exito(f"\n  {resultado}")
+        else:
+            imprimir_error(f"\n  {resultado}")
+
+        input("\n  Presiona Enter para continuar...")
+        sem_menu.release()
+
+
+def _copiar_a_fs(sem_menu, sem_fs):
+    """Hilo que copia un archivo de la computadora hacia FiUnamFS."""
+    global opcion, fs
+
+    while True:
+        sem_fs.acquire()
+        if opcion == "5":
+            break
+
+        limpiar_pantalla()
+        imprimir_encabezado("Copiar Mi Computadora → FiUnamFS")
+        imprimir_info("  Incluye la extensión, por ejemplo: C:\\Users\\usuario\\foto.jpg\n")
+
+        ruta_origen = input("  Ruta del archivo a copiar: ").strip()
+
+        resultado = fs.copiar_desde_local(ruta_origen)
+        if resultado.startswith("[OK]"):
+            imprimir_exito(f"\n  {resultado}")
+        else:
+            imprimir_error(f"\n  {resultado}")
+
+        input("\n  Presiona Enter para continuar...")
+        sem_menu.release()
+
+
+def _eliminar(sem_menu, sem_eliminar):
+    """Hilo que elimina un archivo del directorio de FiUnamFS."""
+    global opcion, fs
+
+    while True:
+        sem_eliminar.acquire()
+        if opcion == "5":
+            break
+
+        limpiar_pantalla()
+        imprimir_encabezado("Eliminar Archivo de FiUnamFS")
+
+        nombre_archivo = input("  Nombre del archivo a eliminar: ").strip()
+        confirmacion   = input(f'  ¿Seguro que deseas eliminar "{nombre_archivo}"? (s/n): ').strip().lower()
+
+        if confirmacion == "s":
+            resultado = fs.eliminar_archivo(nombre_archivo)
+            if resultado.startswith("[OK]"):
+                imprimir_exito(f"\n  {resultado}")
+            else:
+                imprimir_error(f"\n  {resultado}")
+        else:
+            imprimir_info("\n  Operación cancelada.")
+
+        input("\n  Presiona Enter para continuar...")
         sem_menu.release()
 
 
@@ -97,14 +192,16 @@ def main():
 
     ruta_imagen = sys.argv[1]
 
+    # Validaos antes de hacer cualquier cosa para no tocar un archivo
+    # que no sea un FiUnamFS válido y terminar alterando datos que no debiamos
     if not validar_imagen(ruta_imagen):
         imprimir_error(f'El archivo "{ruta_imagen}" no es una imagen FiUnamFS válida.')
         sys.exit(1)
 
     fs = FiUnamFS(ruta_imagen)
-    # Bien inicializados en 0 para bloquear los hilos 
-    # de trabajo hasta que el menú los despierte"
 
+    # sem_menu arranca en 1 para que el menú aparezca de inmediato.
+    # Los demás arrancan en 0 y esperan a que el menú los despierte.
     sem_menu     = threading.Semaphore(1)
     sem_listar   = threading.Semaphore(0)
     sem_local    = threading.Semaphore(0)
@@ -112,16 +209,17 @@ def main():
     sem_eliminar = threading.Semaphore(0)
 
     hilos = [
-        threading.Thread(target=_menu,     args=(sem_menu, sem_listar, sem_local, sem_fs, sem_eliminar), daemon=True),
-        threading.Thread(target=_listar,   args=(sem_menu, sem_listar),   daemon=True),
-        threading.Thread(target=_pendiente,args=(sem_menu, sem_local),    daemon=True),
-        threading.Thread(target=_pendiente,args=(sem_menu, sem_fs),       daemon=True),
-        threading.Thread(target=_pendiente,args=(sem_menu, sem_eliminar), daemon=True),
+        threading.Thread(target=_menu,          args=(sem_menu, sem_listar, sem_local, sem_fs, sem_eliminar), daemon=True),
+        threading.Thread(target=_listar,        args=(sem_menu, sem_listar),   daemon=True),
+        threading.Thread(target=_copiar_a_local,args=(sem_menu, sem_local),    daemon=True),
+        threading.Thread(target=_copiar_a_fs,   args=(sem_menu, sem_fs),       daemon=True),
+        threading.Thread(target=_eliminar,      args=(sem_menu, sem_eliminar), daemon=True),
     ]
 
     for hilo in hilos:
         hilo.start()
 
+    # Esperamos a que el hilo del menú termine cuando el usuario elige salir.
     hilos[0].join()
     imprimir_info("\n  ¡Hasta luego!\n")
 

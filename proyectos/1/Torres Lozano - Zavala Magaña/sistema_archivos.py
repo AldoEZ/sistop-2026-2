@@ -1,11 +1,12 @@
 # sistema_archivos.py
-# Ya tenemos funcionando la lectura del directorio con 8 hilos en paralelo.
-# Todavía falta implementar copiar y eliminar archivos.
+# Ya tenemos funcionando el listado y la copia de archivos.
+# Todavía falta implementar la eliminación de archivos.
 
 import os
 import math
 import struct
 import threading
+from datetime import datetime
 
 from entrada_directorio import FileEntry, CLUSTER_SIZE
 
@@ -60,10 +61,6 @@ class FiUnamFS:
         Cada hilo lee su fragmento y agrega los resultados a la lista compartida.
         Una barrera manual espera a que todos terminen.
         """
-        # Luigi bien este pedazo, El uso del candado_resultados 
-        # y la barrera manual con semaforo ya está. 
-        # Solo no hay que olvidar usar self._candado (el del FS general) 
-        # en las operaciones de escritura que haremos después.
         resultados: list[FileEntry] = []
         candado_resultados = threading.Lock()
 
@@ -98,24 +95,56 @@ class FiUnamFS:
         return resultados
 
     def copiar_a_local(self, nombre_archivo: str, directorio_destino: str) -> str:
-        # Zavala falta
-        # Buscar el archivo iterando sobre self.listar_archivos
-        # Si lo encontramos, le damos .copy_to_system
-        # Acuérdate de meter todo el bloque en un with self._candado
-        return "[Error] Función aún no implementada."
+        """Copia un archivo desde FiUnamFS hacia un directorio en la computadora."""
+        archivos = self.listar_archivos()
+        for archivo in archivos:
+            if archivo.name == nombre_archivo:
+                if archivo.copy_to_system(directorio_destino):
+                    return f'[OK] "{nombre_archivo}" copiado en "{directorio_destino}".'
+                else:
+                    return f'[Error] No se pudo copiar "{nombre_archivo}". Revisa que la ruta exista y el archivo no esté ya ahí.'
+        return f'[Error] "{nombre_archivo}" no existe en FiUnamFS.'
 
     def copiar_desde_local(self, ruta_origen: str) -> str:
-        # Luis 
-        # Este es el monstruo final del proyecto. Necesitamos:
-        # Leer tamaño del archivo local.
-        # Buscar si hay suficientes clusters libres contiguos (hacer una funcioncita para eso).
-        # Buscar un espacio libre en el directorio (/).
-        # Escribir metadatos y datos (usar pack con <I de nuevo).
-        return "[Error] Función aún no implementada."
+        """Copia un archivo desde la computadora hacia FiUnamFS."""
+        if not os.path.exists(ruta_origen):
+            return "[Error] El archivo no existe en esa ruta."
+
+        nombre_archivo = os.path.basename(ruta_origen)
+
+        if len(nombre_archivo) > 14:
+            return f'[Error] El nombre "{nombre_archivo}" supera los 14 caracteres permitidos.'
+
+        if not nombre_archivo.isascii():
+            return f'[Error] El nombre "{nombre_archivo}" contiene caracteres no ASCII.'
+
+        for archivo in self.listar_archivos():
+            if archivo.name == nombre_archivo:
+                return f'[Error] Ya existe un archivo llamado "{nombre_archivo}" en FiUnamFS.'
+
+        tamano_archivo  = os.path.getsize(ruta_origen)
+        cluster_inicial = self._buscar_espacio_libre(tamano_archivo)
+        if cluster_inicial is None:
+            return "[Error] No hay espacio contiguo suficiente en FiUnamFS."
+
+        try:
+            with open(ruta_origen, "rb") as origen:
+                contenido = origen.read()
+            desplazamiento = cluster_inicial * CLUSTER_SIZE
+            with self._candado:
+                with open(self.ruta, "rb+") as img:
+                    img.seek(desplazamiento)
+                    img.write(contenido)
+        except OSError:
+            return "[Error] Error al escribir los datos del archivo en la imagen."
+
+        return self._escribir_entrada_directorio(ruta_origen, nombre_archivo, tamano_archivo, cluster_inicial)
 
     def eliminar_archivo(self, nombre_archivo: str) -> str:
-        # buscar el archivo, calcular su offset en el disco
-        return "[Error] Función aún no implementada."
+        # implementar eliminación de archivos
+        # Buscar la entrada del archivo en el directorio,
+        # y marcarla con / para indicar que está libre.
+        return "[Error] Eliminar archivos aún no está implementado."
 
     def _leer_cadena(self, offset: int, longitud: int) -> str:
         with open(self.ruta, "rb") as img:
@@ -128,9 +157,20 @@ class FiUnamFS:
             (valor,) = struct.unpack("<I", img.read(longitud))
             return valor
 
+    def _leer_nombre_crudo(self, indice: int) -> str | None:
+        desplazamiento = INICIO_DIR + (indice * TAMANO_ENTRADA)
+        try:
+            with open(self.ruta, "rb") as img:
+                img.seek(desplazamiento)
+                nombre_crudo = img.read(15).decode("ascii")
+            if nombre_crudo[0] == ENTRADA_ARCHIVO:
+                return nombre_crudo
+            return None
+        except (OSError, UnicodeDecodeError):
+            return None
+
     def _leer_entrada(self, indice: int) -> FileEntry | None:
         """Lee una entrada completa del directorio y construye un FileEntry."""
-        #
         desplazamiento = INICIO_DIR + (indice * TAMANO_ENTRADA)
         try:
             with open(self.ruta, "rb") as img:
@@ -156,3 +196,54 @@ class FiUnamFS:
             )
         except (OSError, UnicodeDecodeError, struct.error):
             return None
+
+    def _buscar_espacio_libre(self, tamano_archivo: int) -> int | None:
+        """Busca clusters contiguos libres donde quepa el archivo."""
+        clusters_necesarios = math.ceil(tamano_archivo / CLUSTER_SIZE)
+        reservados = set(range(self.clusters_dir + 1))
+        ocupados   = set()
+        for archivo in self.listar_archivos():
+            _, lista = archivo.clusters_used()
+            ocupados.update(lista)
+        libres = [
+            c for c in range(self.total_clusters)
+            if c not in reservados and c not in ocupados
+        ]
+        for i in range(len(libres) - clusters_necesarios + 1):
+            if all(libres[i + j] == libres[i] + j for j in range(clusters_necesarios)):
+                return libres[i]
+        return None
+
+    def _escribir_entrada_directorio(
+        self, ruta_origen: str, nombre_archivo: str, tamano_archivo: int, cluster: int
+    ) -> str:
+        """Escribe los metadatos del nuevo archivo en la primera entrada libre."""
+        for i in range(self.max_entradas):
+            desplazamiento = INICIO_DIR + (i * TAMANO_ENTRADA)
+            try:
+                with open(self.ruta, "rb") as img:
+                    img.seek(desplazamiento)
+                    marcador = img.read(1).decode("ascii")
+            except (OSError, UnicodeDecodeError):
+                continue
+            if marcador != ENTRADA_LIBRE:
+                continue
+            nombre_relleno      = ("-" + nombre_archivo).ljust(15).encode("ascii")
+            tamano_empaquetado  = struct.pack("<I", tamano_archivo)
+            cluster_empaquetado = struct.pack("<I", cluster)
+            fecha_creacion      = datetime.fromtimestamp(
+                os.path.getctime(ruta_origen)).strftime("%Y%m%d%H%M%S").encode("ascii")
+            fecha_modificacion  = datetime.fromtimestamp(
+                os.path.getmtime(ruta_origen)).strftime("%Y%m%d%H%M%S").encode("ascii")
+            with self._candado:
+                try:
+                    with open(self.ruta, "rb+") as img:
+                        img.seek(desplazamiento);      img.write(nombre_relleno)
+                        img.seek(desplazamiento + 16); img.write(tamano_empaquetado)
+                        img.seek(desplazamiento + 20); img.write(cluster_empaquetado)
+                        img.seek(desplazamiento + 30); img.write(fecha_creacion)
+                        img.seek(desplazamiento + 50); img.write(fecha_modificacion)
+                    return f'[OK] "{nombre_archivo}" copiado a FiUnamFS exitosamente.'
+                except OSError:
+                    return "[Error] Error al escribir la entrada en el directorio."
+        return "[Error] No hay entradas libres en el directorio de FiUnamFS."
