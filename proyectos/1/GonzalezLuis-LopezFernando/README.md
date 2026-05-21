@@ -1,4 +1,41 @@
 
+| Contenido                                                                               |
+| --------------------------------------------------------------------------------------- |
+|                                                                                         |
+| [Comandos útiles durante el desarrollo](#Comandos%20útiles%20durante%20el%20desarrollo) |
+|                                                                                         |
+
+---
+# Descripción
+
+# Autores
+
+# Requisitos
+
+# Estrategia principal seguida
+
+# Lógica principal
+
+# Implementación
+
+## Mecanismo de sincronización
+
+
+## Acerca del módulo de FUSE
+Para poder usar FUSE, se requiere un *punto de montaje*, para esto:
+1. Creamos una carpeta vacía que servirá como portal al disco `fiunamfs.img`:
+```bash
+mkdir mnt
+```
+2. Ejecutamos el script pasandole como argumento la carpeta anteriormente creada:
+```bash
+python fiunamfs_fuse.py mnt
+```
+
+Ahora podemos navegar esta carpeta como si fuera el disco, siendo que si ejecutamos por ejemplo `ls -l`, estaremos listando el contenido dentro de `fiunamfs.img`
+
+
+---
 # Constantes importantes de los requerimientos
 
 ```
@@ -46,4 +83,3 @@ El rango del contenido de un archivo es: $[C_{i_{v}}, C_{i_{v}} + s_v]$
 ```bash
 xxd -s <c_i_v> -l <s_v> fiunamfs.img | less
 ```
-
