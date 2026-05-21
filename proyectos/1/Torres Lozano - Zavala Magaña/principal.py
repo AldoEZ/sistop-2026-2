@@ -1,3 +1,9 @@
+# AUTORES:
+# Luis Arturo Zavala Magaña - 321045182
+# Luis Torres Lozano - 318209636
+# Facultad de Ingeniería
+# Uiversidad Nacional Autónoma de México
+
 """
 principal.py — Punto de entrada del programa FiUnamFS
 
@@ -20,7 +26,7 @@ Cómo funciona la sincronización:
 
   1. _menu adquiere su semáforo y muestra las opciones.
   2. El usuario elige una opción.
-  3. _menu libera el semáforo del hilo elegido (lo despierta).
+  3. _menu libera el semáforo del hilo elegido lo despierta.
   4. Ese hilo ejecuta su tarea y al terminar libera el semáforo del menú.
   5. El ciclo se repite.
 
@@ -192,7 +198,7 @@ def main():
 
     ruta_imagen = sys.argv[1]
 
-    # Validaos antes de hacer cualquier cosa para no tocar un archivo
+    # Validaos antes de hacer cualquier cosa — no queremos tocar un archivo
     # que no sea un FiUnamFS válido y terminar alterando datos que no debiamos
     if not validar_imagen(ruta_imagen):
         imprimir_error(f'El archivo "{ruta_imagen}" no es una imagen FiUnamFS válida.')
@@ -219,7 +225,7 @@ def main():
     for hilo in hilos:
         hilo.start()
 
-    # Esperamos a que el hilo del menú termine cuando el usuario elige salir.
+    # Esperamos a que el hilo del menú termine (cuando el usuario elige salir)
     hilos[0].join()
     imprimir_info("\n  ¡Hasta luego!\n")
 
