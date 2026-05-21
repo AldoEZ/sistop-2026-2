@@ -4,13 +4,14 @@
  Versión del sistema de archivos soportada: 26-2
 
  fiunamfs.c — Implementación FUSE del micro sistema de archivos FiUnamFS
- 
+
  ---- Autores ----
  - Monroy Tapia Jesús Alejandro
  - Ponce de León Reyes Bruno
- 
+
  Compilación: Uso del comando "make" para emplear el Makefile ubicado en el mismo directorio
  Para más información acerca del uso consultar la documentación: "README.md"
+
 */
 
 #define FUSE_USE_VERSION 31
@@ -202,6 +203,13 @@ static void raw_a_entrada(const uint8_t *raw, struct fiunamfs_entry *e)
 
 	memcpy(e->name, raw + DE_NAME_OFF, NAME_LEN);
 	e->name[NAME_LEN] = '\0';
+
+	for (int i = NAME_LEN - 1; i >= 0; i--) {
+		if (e->name[i] == ' ')
+			e->name[i] = '\0';
+		else
+			break;
+	}
 
 	e->size          = leer_le32(raw, DE_SIZE_OFF);
 	e->start_cluster = leer_le32(raw, DE_CLUSTER_OFF);
@@ -592,6 +600,98 @@ static int fiunamfs_write(const char *path, const char *buf, size_t size,
 }
 
 
+static int fiunamfs_unlink(const char *path)
+{
+	const char *name = path + 1;
+
+	pthread_mutex_lock(&fs_mutex);
+
+	int idx = find_entry(name);
+	if (idx < 0) {
+		pthread_mutex_unlock(&fs_mutex);
+		return -ENOENT;
+	}
+
+	// Marcar la entrada como libre
+	g_fs.dir[idx].type = ENTRY_EMPTY;
+	// Rellenar el nombre con '#' — convención visual del formato FiUnamFS
+	memset(g_fs.dir[idx].name, ENTRY_DELETED, NAME_LEN);
+	g_fs.dir[idx].name[NAME_LEN] = '\0';
+	g_fs.dir_count--;
+
+	pthread_mutex_unlock(&fs_mutex);
+	marcar_sucio(); // Señalar al hilo sync que el directorio cambió
+	return 0;
+}
+
+
+
+static int fiunamfs_rename(const char *from, const char *to,
+                            unsigned int flags)
+{
+	(void)flags;
+	const char *nombre_viejo = from + 1;
+	const char *nombre_nuevo = to   + 1;
+
+	if (strlen(nombre_nuevo) > NAME_LEN)
+		return -ENAMETOOLONG;
+
+	pthread_mutex_lock(&fs_mutex);
+
+	int idx = find_entry(nombre_viejo);
+	if (idx < 0) {
+		pthread_mutex_unlock(&fs_mutex);
+		return -ENOENT;
+	}
+
+	// Si el destino ya existe, marcarlo como eliminado (semántica POSIX)
+	int dst = find_entry(nombre_nuevo);
+	if (dst >= 0) {
+		g_fs.dir[dst].type = ENTRY_EMPTY;
+		memset(g_fs.dir[dst].name, ENTRY_DELETED, NAME_LEN);
+		g_fs.dir[dst].name[NAME_LEN] = '\0';
+		g_fs.dir_count--;
+	}
+
+	// Escribir el nuevo nombre sobre la entrada existente
+	memset(g_fs.dir[idx].name, 0, sizeof(g_fs.dir[idx].name));
+	strncpy(g_fs.dir[idx].name, nombre_nuevo, NAME_LEN);
+	now_timestamp(g_fs.dir[idx].mtime);
+
+	pthread_mutex_unlock(&fs_mutex);
+	marcar_sucio();
+	return 0;
+}
+
+
+
+static int fiunamfs_statfs(const char *path, struct statvfs *stbuf)
+{
+	(void)path;
+	memset(stbuf, 0, sizeof(struct statvfs));
+
+	pthread_mutex_lock(&fs_mutex);
+
+	uint32_t data_start    = DIR_START_CLUSTER + g_fs.dir_clusters;
+	uint32_t data_clusters = g_fs.total_clusters - data_start;
+	uint32_t usados        = 0;
+
+	for (int i = 0; i < MAX_DIR_ENTRIES; i++) {
+		if (g_fs.dir[i].type != ENTRY_FILE) continue;
+		usados += (g_fs.dir[i].size + CLUSTER_SIZE - 1) / CLUSTER_SIZE;
+	}
+
+	pthread_mutex_unlock(&fs_mutex);
+
+	stbuf->f_bsize   = CLUSTER_SIZE;          // Tamaño de bloque de E/S
+	stbuf->f_frsize  = CLUSTER_SIZE;          // Tamaño de bloque de fragmento
+	stbuf->f_blocks  = data_clusters;         // Total de bloques de datos
+	stbuf->f_bfree   = data_clusters - usados; // Bloques libres
+	stbuf->f_bavail  = data_clusters - usados; // Bloques disponibles al usuario
+	stbuf->f_namemax = NAME_LEN;              // Longitud máxima de nombre
+	return 0;
+}
+
 static void *fiunamfs_init(struct fuse_conn_info *conn,
                             struct fuse_config *cfg)
 {
@@ -632,7 +732,9 @@ static const struct fuse_operations fiunamfs_oper = {
 	.create   = fiunamfs_create,
 	.truncate = fiunamfs_truncate,
 	.write    = fiunamfs_write,
-	
+	.unlink   = fiunamfs_unlink,   /* NUEVO commit 5 — rm mnt/archivo      */
+	.rename   = fiunamfs_rename,   /* NUEVO commit 5 — mv mnt/a mnt/b      */
+	.statfs   = fiunamfs_statfs,   /* NUEVO commit 5 — df -h mnt/          */
 };
 
 
