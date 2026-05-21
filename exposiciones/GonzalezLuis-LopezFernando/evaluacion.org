@@ -1,0 +1,54 @@
+#+title: Evaluación de la exposición
+#+author: Gunnar Wolf
+
+*  Evolución del protocolo X11 al protocolo Wayland en sistemas UNIX 
+
+- Tema presentado por :: Luis Adrían González y Fernando Samuel López
+- Calificación global :: 9.37
+
+|------------------------+------+--------------------+------+---------|
+| Evaluación  compañeros | Peso | Evaluación docente | Peso | *Total* |
+|------------------------+------+--------------------+------+---------|
+|                     10 |  0.3 |                9.1 |  0.7 |    9.37 |
+|------------------------+------+--------------------+------+---------|
+#+TBLFM: @2$5=$1*$2+$3*$4;f-2
+
+* Evaluación grupal
+
+|              | 1 | 2 | 3 | 4 | 5 | Total |
+|--------------+---+---+---+---+---+-------|
+| Originalidad | 0 | 0 | 0 | 0 | 5 | 10.00 |
+| Nivel        | 0 | 0 | 0 | 0 | 5 | 10.00 |
+| Relevancia   | 0 | 0 | 0 | 0 | 5 | 10.00 |
+| Claridad     | 0 | 0 | 0 | 0 | 5 | 10.00 |
+| Presencia    | 0 | 0 | 0 | 0 | 5 | 10.00 |
+|--------------+---+---+---+---+---+-------|
+|              |   |   |   |   |   | 10.00 |
+#+TBLFM: @2$7..@6$7=10 * (0.2*$2 + 0.4*$3 + 0.6*$4 + 0.8*$5 + $6 ) / vsum($2..$6); f-2::@7$7=vmean(@2$7..@6$7); f-2
+
+** Comentarios de los compañeros
+- Excelente exposición
+- Muy buena exposición
+
+* Evaluación por parte del docente
+
+| *Aspecto*                          | *Peso* | *Evaluación* | *Puntos* |
+|------------------------------------+--------+--------------+----------|
+| Contenido técnico y profundidad    |    0.3 |           10 |       3. |
+| Fuentes bibliográficas             |   0.15 |            7 |     1.05 |
+| Organización                       |   0.15 |           10 |      1.5 |
+| Comunicación oral y uso del tiempo |   0.25 |           10 |      2.5 |
+| Uso de recursos visuales           |   0.15 |            7 |     1.05 |
+|------------------------------------+--------+--------------+----------|
+| *Global*                           |        |              |     9.10 |
+#+TBLFM: @<<$4..@>>$4=$2*$3::$4=vsum(@<<..@>>);f-2
+
+** Comentarios
+- Muy bonita manera de dar la introducción contando la historia. Muy
+  original 🙂
+- El ejemplo que dan de compartir la pantalla no corresponde con la
+  necesidad de Xwayland.
+  - Xwayland responde a la necesidad, que abordan al final del video, de
+    mantener compatibilidad con el software preexistente.
+- Buen ritmo / dicción en el transcurso de la presentación; fácil de seguir
+  y entender.
