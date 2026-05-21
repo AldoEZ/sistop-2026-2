@@ -282,23 +282,23 @@ def extraer(ruta: str, nombre: str, destino: str) -> None:
     print(f'Extraído «{nombre}» → «{destino}» ({entrada.tamanio:,} bytes).')
 
 
-def insertar(ruta: str, ruta_local: str) -> None:
-    if not os.path.isfile(ruta_local):
-        raise FileNotFoundError(f'No existe el archivo local «{ruta_local}».')
+def _escribir_en_fs(ruta: str, nombre: str, contenido: bytes) -> tuple:
+    """Escribe `contenido` como un archivo nuevo dentro de la imagen.
 
-    nombre = os.path.basename(ruta_local)
+    Devuelve `(cluster_inicial, n_clusters)`. Adquiere el cerrojo
+    internamente, así que sirve tanto para `insertar` (que lee de un
+    archivo local) como para el módulo FUSE (que recibe los bytes
+    desde un buffer en memoria).
+    """
+    tamanio = len(contenido)
+    if tamanio == 0:
+        raise ValueError('No se admite insertar un archivo vacío.')
     if len(nombre) > LONGITUD_NOMBRE:
         raise ValueError(
             f'El nombre «{nombre}» excede {LONGITUD_NOMBRE} caracteres.'
         )
     if not all(ord(c) < 128 for c in nombre):
         raise ValueError('El nombre contiene caracteres fuera de ASCII de 7 bits.')
-
-    with open(ruta_local, 'rb') as f:
-        contenido = f.read()
-    tamanio = len(contenido)
-    if tamanio == 0:
-        raise ValueError('No se admite insertar un archivo vacío.')
 
     with cerrojo:
         entradas = leer_directorio(ruta)
@@ -333,8 +333,20 @@ def insertar(ruta: str, ruta_local: str) -> None:
             imagen.seek(offset_entrada)
             imagen.write(registro)
 
+    return cluster_inicial, n_clusters
+
+
+def insertar(ruta: str, ruta_local: str) -> None:
+    if not os.path.isfile(ruta_local):
+        raise FileNotFoundError(f'No existe el archivo local «{ruta_local}».')
+
+    nombre = os.path.basename(ruta_local)
+    with open(ruta_local, 'rb') as f:
+        contenido = f.read()
+
+    cluster_inicial, n_clusters = _escribir_en_fs(ruta, nombre, contenido)
     print(f'Insertado «{nombre}» en clúster {cluster_inicial} '
-          f'({tamanio:,} bytes, {n_clusters} clúster(es)).')
+          f'({len(contenido):,} bytes, {n_clusters} clúster(es)).')
 
 
 def eliminar(ruta: str, nombre: str) -> None:
