@@ -9,5 +9,7 @@ const int ENTRADAS_POR_DIRECTORIO = (8 * TAMANO_CLUSTER) / 64; //256 entradas m√
 
 bool validar_superbloque();
 void listar_directorio(); 
+void copiar_desde_fs(const std::string& archivo_origen, const std::string& archivo_destino);
+void eliminar_archivo(const std::string& archivo_borrar);
 
 #endif

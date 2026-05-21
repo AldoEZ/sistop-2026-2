@@ -36,11 +36,29 @@ void motor_archivos(){
         cola_tareas.pop();
         lock.unlock(); 
 
-        //Enrutador de comandos
+        // Enrutador de comandos actualizado
         if(tarea.operacion == "ls"){
             listar_directorio();
-        }else if(tarea.operacion == "cp_in" || tarea.operacion == "cp_out" || tarea.operacion == "rm"){
+        } 
+        else if(tarea.operacion == "cp_out"){
+            if(tarea.arg1.empty() || tarea.arg2.empty()){
+                cout << "[Uso] cp_out <archivo_en_fs> <nombre_local>\n";
+            }else{
+                copiar_desde_fs(tarea.arg1, tarea.arg2);
+            }
+        }
+        else if(tarea.operacion == "rm"){
+            if(tarea.arg1.empty()){
+                cout << "[Uso] rm <archivo_en_fs>\n";
+            }else{
+                eliminar_archivo(tarea.arg1);
+            }
+        }
+        else if(tarea.operacion == "cp_in"){
             cout << "\n[Motor] Ejecutando: " << tarea.operacion << " (En construccion)\n";
+        }
+        else {
+            cout << "\n[Motor] Comando desconocido.\n";
         }
 
         cout << "FiUnamFS> ";
@@ -64,7 +82,6 @@ int main() {
         string comando;
         stream >> comando;
 
-        //Capturamos los argumentos (nombres de archivos) si los hay
         vector<string> args;
         string arg;
         while(stream >> arg){
