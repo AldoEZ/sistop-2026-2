@@ -31,7 +31,7 @@
 // ----------- Constantes del sistema de archivos -----------
 
 #define FS_NAME             "FiUnamFS"
-#define FS_VERSION          "26-2"
+#define FS_VERSION          "24-2"
 #define SECTOR_SIZE         512
 #define SECTORS_PER_CLUSTER 4
 #define CLUSTER_SIZE        (SECTOR_SIZE * SECTORS_PER_CLUSTER)  /* 2 048 bytes */
@@ -205,10 +205,11 @@ static void raw_a_entrada(const uint8_t *raw, struct fiunamfs_entry *e)
 	e->name[NAME_LEN] = '\0';
 
 	for (int i = NAME_LEN - 1; i >= 0; i--) {
-		if (e->name[i] == ' ')
+		if (e->name[i] == ' ' || e->name[i] == '\0') {
 			e->name[i] = '\0';
-		else
-			break;
+		} else {
+			break; 
+		}
 	}
 
 	e->size          = leer_le32(raw, DE_SIZE_OFF);
