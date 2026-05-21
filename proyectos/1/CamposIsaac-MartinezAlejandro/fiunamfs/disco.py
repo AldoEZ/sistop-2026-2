@@ -4,21 +4,32 @@
 #Autores: Isaac Campos, Alejandro Martinez
 #Fecha de realización: 18 Mayo 2026
 
-from superbloque import SuperBloque
-from entrada import EntradaDir
-import herramientas as h
+from .superbloque import SuperBloque
+from .entrada import EntradaDir
+from . import herramientas as h 
+import threading
 
 #Hay que investigar la manera de declarar las consrantes una vez para todos los archivos
 TAM_ENTRADA_DIR = 64
 ARCHIVO_VACIO = '/'
 
-#Falta documentar todoooo q flojera ya me quiero dormir
+
+#Se define la clase para el disco
 
 class Disco:
+
     def __init__(self,ruta_img):
         self.ruta_img = ruta_img
         self.superbloque = SuperBloque(self.ruta_img)
         self.cargarDirectorio()
+        self.lock = threading.RLock()
+        self.condicion = threading.Condition(self.lock)
+        self.operaciones = []
+        self.hilo = threading.Thread(
+        target=self.hiloEscritura,daemon=True)
+        self.hilo.start()
+
+    #Lee todos los datos después del superbloque, después itera por cada una y las agrega a una lista
     
     def cargarDirectorio(self):
         with open(self.ruta_img, 'rb') as img:
@@ -31,16 +42,24 @@ class Disco:
             entrada = EntradaDir(pedazo_entrada)
             self.entradas.append(entrada)
     
+    #Lista las entradas que no están vacías
+
     def listarEntradas(self):
+        no_vacias = []
         for entrada in self.entradas:
             if entrada.tipo_archivo != '/':
-                print(entrada)
+                no_vacias.append(entrada.nombre_archivo.strip())
+        return no_vacias
     
+    #Busca una entrada por su nombre, se modifica para no incluir los espacios en blanco de los bytes completos del nombre
+
     def encontrarEntrada(self,nombre):
         for entrada in self.entradas:
             if entrada.nombre_archivo.strip('\x00').strip() == nombre:
                 return entrada
         return None
+
+    #Busca la entrada y si la encuentra carga todos los datos en bruto
     
     def leerEntrada(self,nombre):
         entrada = self.encontrarEntrada(nombre)
@@ -51,40 +70,47 @@ class Disco:
                 datos = img.read(entrada.tam_archivo)
                 return datos
         else:
-            print(f"No se encontró la entrada")
             return None
+
+    #Se asegura que no haya una archivo con el mismo nombre, después busca si hay espacio suficiente seguido
+    #para escribir los datos solicitados, después intenta escribir una entrada al directorio. Finalmente actualiza el disco
     
     def escribirEntrada(self, nombre, datos):
 
-        if self.encontrarEntrada(nombre) is not None:
-            print(f"Ya existe un archivo con el nombre '{nombre}'")
-            return False
-        
-        clusters = (len(datos) + self.superbloque.tam_cluster - 1) // self.superbloque.tam_cluster
-        cluster_incio = self.encontrarEspacio(clusters)
-        if cluster_incio is None:
-            print(f"No se encontró suficiente espacio en disco")
-            return False
+        with self.lock:
 
-        else: 
-            with open(self.ruta_img, 'r+b') as img:
-                img.seek(cluster_incio * self.superbloque.tam_cluster)
-                img.write(datos)
+            if self.encontrarEntrada(nombre) is not None:
+                print(f"Ya existe un archivo con el nombre '{nombre}'")
+                return False
         
-        entrada_libre = None
-        for entrada in self.entradas:
-            if entrada.tipo_archivo == ARCHIVO_VACIO:
-                entrada_libre = entrada
-                break
+            clusters = (len(datos) + self.superbloque.tam_cluster - 1) // self.superbloque.tam_cluster
+            cluster_incio = self.encontrarEspacio(clusters)
+            if cluster_incio is None:
+                print(f"No se encontró suficiente espacio en disco")
+                return False
+
+            else: 
+                with open(self.ruta_img, 'r+b') as img:
+                    img.seek(cluster_incio * self.superbloque.tam_cluster)
+                    img.write(datos)
             
-        if entrada_libre is None:
-            print(f"No hay entradas libres en el directorio")
-            return False
-        
-        entrada_libre.crearNuevo(nombre, len(datos), cluster_incio)
-        self.actualizarDisco()
-        return True
+            entrada_libre = None
+            for entrada in self.entradas:
+                if entrada.tipo_archivo == ARCHIVO_VACIO:
+                    entrada_libre = entrada
+                    break
+                
+            if entrada_libre is None:
+                print(f"No hay entradas libres en el directorio")
+                return False
+            
+            entrada_libre.crearNuevo(nombre, len(datos), cluster_incio)
+            with self.condicion:
+                self.operaciones.append("sync")
+                self.condicion.notify()
+            return True
 
+    #Se encarga de encontrar el espacio seguido necesario para escribir el archivo
 
     def encontrarEspacio(self, clusters_necesarios):
         ocupados = []
@@ -103,58 +129,58 @@ class Disco:
         
         return siguiente
     
+    #Encuentra el archivo y llama a su eliminación, después actualiza el disco
+
     def eliminarEntrada(self,nombre):
-        entrada = self.encontrarEntrada(nombre)
-        if entrada != None:
-            entrada.eliminar()
-            self.actualizarDisco()
-        else:
-            print(f"No se encontró la entrada")
+        with self.lock:
+            entrada = self.encontrarEntrada(nombre)
+            if entrada != None:
+                entrada.eliminar()
+                with self.condicion:
+                    self.operaciones.append("sync")
+                    self.condicion.notify()
+            else:
+                print(f"No se encontró la entrada")
+
+    #Lee todo y lo reescribe
     
     def actualizarDisco(self):
-        with open(self.ruta_img, 'r+b') as img:
-            img.seek(self.superbloque.desp_dir)
-            salida = bytearray()
-            for entrada in self.entradas:
-                salida.extend(entrada.pasarBytes())
-            salida = salida[:self.superbloque.tam_dir].ljust(self.superbloque.tam_dir, b'\x00')
-            img.write(salida)
+        with self.lock:
+            with open(self.ruta_img, 'r+b') as img:
+                img.seek(self.superbloque.desp_dir)
+                salida = bytearray()
+                for entrada in self.entradas:
+                    salida.extend(entrada.pasarBytes())
+                salida = salida[:self.superbloque.tam_dir].ljust(self.superbloque.tam_dir, b'\x00')
+                img.write(salida)
+
+  
+    def sobrescribirEntrada(self, nombre, datos):
+        with self.lock:
+            entrada = self.encontrarEntrada(nombre)
+            if entrada is None:
+                return False
+            with open(self.ruta_img, 'r+b') as img:
+                offset = entrada.cluster_incial * self.superbloque.tam_cluster
+                img.seek(offset)
+                img.write(datos)
+            entrada.tam_archivo = len(datos)
+            with self.condicion:
+                self.operaciones.append("sync")
+                self.condicion.notify()
+            return True
 
 
-#Pruebas para comprobar que todo funciona
+    def hiloEscritura(self):
 
-if __name__ == '__main__':
-    disco = Disco('../fiunamfs.img')
+        while True:
 
-    # Prueba 1: listar
-    print("=== Archivos en el disco ===")
-    disco.listarEntradas()
+            with self.condicion:
 
-    # Prueba 2: buscar un archivo que exista (usa un nombre que viste en prueba 1)
-    nombre = "README.org"    # cambia esto por un nombre real que apareció arriba
-    print(f"\n=== Buscar '{nombre}' ===")
-    entrada = disco.encontrarEntrada(nombre)
-    if entrada:
-        print(f"Encontrado: {entrada.nombre_archivo}, tamaño: {entrada.tam_archivo}")
-    else:
-        print("No encontrado")
+                while not self.operaciones:
+                    self.condicion.wait()
 
-    # Prueba 3: leer ese archivo
-    print(f"\n=== Leer '{nombre}' ===")
-    datos = disco.leerEntrada(nombre)
-    if datos:
-        print(f"Leídos {len(datos)} bytes")
-        print(f"Primeros 50 bytes: {datos[:50]}")
+                operacion = self.operaciones.pop(0)
 
-    # Prueba 4: escribir un archivo nuevo
-    print("\n=== Escribir 'nuevo.txt' ===")
-    contenido = b"Hola FiUnamFS desde Python"
-    disco.escribirEntrada("nuevo.txt", contenido)
-    print("Escrito, verificando con listar:")
-    disco.listarEntradas()
-
-    # Prueba 5: eliminar el archivo recién creado
-    print("\n=== Eliminar 'nuevo.txt' ===")
-    disco.eliminarEntrada("nuevo.txt")
-    print("Eliminado, verificando con listar:")
-    disco.listarEntradas()
+            if operacion == "sync":
+                self.actualizarDisco()

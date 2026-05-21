@@ -4,7 +4,7 @@
 #Autores: Isaac Campos, Alejandro Martinez
 #Fecha de realización: 17 Mayo 2026
 
-import herramientas as h
+from . import herramientas as h 
 
 #Constantes para identificar el tipo de directorio conforme al planteamiento
 
@@ -37,7 +37,7 @@ class EntradaDir:
     def parsear(self,bytes_raw):
 
         self.tipo_archivo = chr(bytes_raw[0])
-        self.nombre_archivo = bytes_raw[1:15].decode('ascii').strip('\x00').strip()
+        self.nombre_archivo = bytes_raw[1:16].decode('ascii').strip('\x00').strip()
         self.tam_archivo = h.leerLe(bytes_raw[16:20])
         self.cluster_incial = h.leerLe(bytes_raw[20:24])
         self.hf_creado = bytes_raw[30:44].decode('ascii').strip('\x00').strip()
@@ -84,49 +84,4 @@ class EntradaDir:
                 f"Tamaño: {self.tam_archivo} bytes | "
                 f"Cluster: {self.cluster_incial} | "
                 f"Creado: {self.hf_creado}")
-
-
-#Pruebas para verificar que funciona adecuadamente - Se hizo uso de Claude -> Sonnet 4.6 adaptativo para agilizar la generación de estas pruebas
-
-if __name__ == '__main__':
-    # Prueba 1: leer una entrada real del disco
-    with open('../fiunamfs.img', 'rb') as f:
-        f.seek(1024)
-        for i in range(64):             # hay hasta 64 entradas en el directorio
-            raw = f.read(64)
-            entrada = EntradaDir(raw)
-            if entrada.tipo_archivo == ARCHIVO_VAL:   # '-' = entrada válida
-                print(f"Entrada {i} tiene archivo: {entrada.nombre_archivo}")
-                break
-
-    entrada = EntradaDir(raw)
-    print("=== Entrada leída del disco ===")
-    print(f"Tipo:     {entrada.tipo_archivo}")
-    print(f"Nombre:   {entrada.nombre_archivo}")
-    print(f"Tamaño:   {entrada.tam_archivo}")
-    print(f"Cluster:  {entrada.cluster_incial}")
-    print(f"Creado:   {entrada.hf_creado}")
-    print(f"Modificado: {entrada.hf_modificado}")
-
-    # Prueba 2: verificar que pasarBytes devuelve exactamente 64 bytes
-    resultado = entrada.pasarBytes()
-    print(f"\n=== pasarBytes ===")
-    print(f"Longitud: {len(resultado)} bytes (debe ser 64)")
-
-    # Prueba 3: crear una entrada nueva
-    nueva = EntradaDir(None)
-    nueva.crearNuevo("prueba.txt", 1234, 5)
-    print(f"\n=== Entrada nueva ===")
-    print(f"Tipo:     {nueva.tipo_archivo}")
-    print(f"Nombre:   {nueva.nombre_archivo}")
-    print(f"Tamaño:   {nueva.tam_archivo}")
-    print(f"Cluster:  {nueva.cluster_incial}")
-    print(f"Creado:   {nueva.hf_creado}")
-    print(f"Longitud en bytes: {len(nueva.pasarBytes())} (debe ser 64)")
-
-    # Prueba 4: eliminar la entrada y verificar que queda vacía
-    nueva.eliminar()
-    print(f"\n=== Después de eliminar ===")
-    print(f"Tipo:   {nueva.tipo_archivo} (debe ser '/')")
-    print(f"Nombre: {nueva.nombre_archivo} (debe ser '###############')")
 

@@ -4,7 +4,7 @@
 #Autores: Isaac Campos, Alejandro Martinez
 #Fecha de realización: 15 Mayo 2026
 
-import herramientas as h
+from . import herramientas as h 
 
 #Constantes del sistema de archivos mencionados en el planteamiento
 
@@ -17,8 +17,7 @@ TAM_CLUSTER = TAM_SECTOR * NUM_SECT_CLUSTER
 
 #Anoté esto de los requerimientos pero como se calcula la mayoría quizá no sea necesario...
 CLUSTER_INI_DIR = 1
-CLUSTER_FIN_DIR = 8
-NUM_CLUSTER_DIR = 7
+
 TAM_ENTRADA_DIR = 64
 
 #Se define la clase para el superbloque
@@ -27,8 +26,7 @@ class SuperBloque:
         self.ruta_img = ruta_img
         self.leerSuperbloque()
 
-#No tengo idea por qué lee 24-2 en lugar de 26-2? Enviar correo al profe y preguntar el martes, por ahora cambiar requerimiento a 24-2
-        
+    #No tengo idea por qué lee 24-2 en lugar de 26-2? Enviar correo al profe y preguntar el martes, por ahora cambiar requerimiento a 24-2 
     def leerSuperbloque(self):
         with open(self.ruta_img,'rb') as bin_img:
             #Aquí se lee el primer cluster, se va leyenfo campo por campo y después se calculan los valores para el directorio
@@ -52,17 +50,3 @@ class SuperBloque:
             if self.version != VER_FS:
                 raise RuntimeError(f"Verión incorrecta: encontré '{self.version}' esperaba '{VER_FS}'")
             
-
-#Main para probar que todo se lee bien
-"""
-if __name__ == '__main__':
-    sb = SuperBloque('../fiunamfs.img')
-    print(sb.nombre)
-    print(sb.version)
-    print(sb.etiqueta)
-    print(sb.tam_cluster)
-    print(sb.num_clusters_dir)
-    print(sb.num_clusters_tot)
-    print(sb.desp_dir)
-    print(sb.desp_datos)
-"""
