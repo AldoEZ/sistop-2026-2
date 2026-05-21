@@ -364,6 +364,198 @@ def eliminar(ruta: str, nombre: str) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Modo FUSE: montaje de la imagen como un directorio del sistema
+# ---------------------------------------------------------------------------
+# El módulo FUSE actúa como una segunda interfaz: en lugar de invocar
+# los subcomandos del CLI, el usuario monta el FiUnamFS bajo cualquier
+# directorio y opera con `ls`, `cp`, `cat` o `rm` como si fuera un
+# directorio normal. Cada llamada del sistema se traduce internamente
+# a las mismas funciones (`leer_directorio`, `_escribir_en_fs`,
+# `eliminar`) que el CLI, así que el `cerrojo` sigue cuidando la
+# imagen aunque varios procesos lean o escriban a la vez.
+def _montar_fuse(ruta_imagen: str, punto_montaje: str) -> None:
+    try:
+        from fuse import FUSE, Operations, FuseOSError
+    except (ImportError, OSError) as err:
+        raise RuntimeError(
+            'El modo «mount» requiere fusepy y libfuse instalados. '
+            'En Debian/Ubuntu: sudo apt-get install fuse && pip install fusepy. '
+            f'Detalle: {err}'
+        )
+
+    import errno
+    import stat
+    import time
+
+    class FiUnamFS(Operations):
+        """Adaptador entre la API de fusepy y nuestras funciones del FS."""
+
+        def __init__(self, ruta_imagen: str):
+            self.ruta = ruta_imagen
+            # Buffers para archivos en curso de escritura. La inserción
+            # real (escribir clústeres + entrada) se hace en `release`,
+            # cuando ya conocemos el tamaño total del archivo.
+            self._buffers: dict = {}
+            self._cerrojo_buffers = threading.Lock()
+            self._t_montaje = time.time()
+
+        def _entrada_por_nombre(self, nombre: str):
+            for e in leer_directorio(self.ruta):
+                if e.nombre == nombre:
+                    return e
+            return None
+
+        # -------- Lectura --------
+
+        def getattr(self, path, fh=None):
+            if path == '/':
+                return {
+                    'st_mode': stat.S_IFDIR | 0o755, 'st_nlink': 2,
+                    'st_ctime': self._t_montaje,
+                    'st_mtime': self._t_montaje,
+                    'st_atime': self._t_montaje,
+                }
+            nombre = path.lstrip('/')
+            with cerrojo:
+                entrada = self._entrada_por_nombre(nombre)
+            if entrada is not None:
+                ct = (entrada.fecha_creacion.timestamp()
+                      if entrada.fecha_creacion else self._t_montaje)
+                mt = (entrada.fecha_modificacion.timestamp()
+                      if entrada.fecha_modificacion else self._t_montaje)
+                return {
+                    'st_mode': stat.S_IFREG | 0o644, 'st_nlink': 1,
+                    'st_size': entrada.tamanio,
+                    'st_ctime': ct, 'st_mtime': mt, 'st_atime': mt,
+                }
+            with self._cerrojo_buffers:
+                if path in self._buffers:
+                    return {
+                        'st_mode': stat.S_IFREG | 0o644, 'st_nlink': 1,
+                        'st_size': len(self._buffers[path]),
+                        'st_ctime': time.time(),
+                        'st_mtime': time.time(),
+                        'st_atime': time.time(),
+                    }
+            raise FuseOSError(errno.ENOENT)
+
+        def readdir(self, path, fh):
+            with cerrojo:
+                entradas = leer_directorio(self.ruta)
+            return ['.', '..'] + [e.nombre for e in entradas]
+
+        def open(self, path, flags):
+            nombre = path.lstrip('/')
+            with cerrojo:
+                existe = self._entrada_por_nombre(nombre) is not None
+            with self._cerrojo_buffers:
+                en_buffer = path in self._buffers
+            if not existe and not en_buffer:
+                raise FuseOSError(errno.ENOENT)
+            return 0
+
+        def read(self, path, size, offset, fh):
+            nombre = path.lstrip('/')
+            with cerrojo:
+                entrada = self._entrada_por_nombre(nombre)
+                if entrada is not None:
+                    with open(self.ruta, 'rb') as imagen:
+                        imagen.seek(entrada.cluster_inicial * TAMANIO_CLUSTER + offset)
+                        disponibles = max(0, entrada.tamanio - offset)
+                        return imagen.read(min(size, disponibles))
+            with self._cerrojo_buffers:
+                if path in self._buffers:
+                    return bytes(self._buffers[path][offset:offset + size])
+            raise FuseOSError(errno.ENOENT)
+
+        # -------- Escritura (cp, > archivo, etc.) --------
+
+        def create(self, path, mode, fi=None):
+            nombre = path.lstrip('/')
+            if len(nombre) > LONGITUD_NOMBRE:
+                raise FuseOSError(errno.ENAMETOOLONG)
+            with self._cerrojo_buffers:
+                self._buffers[path] = bytearray()
+            return 0
+
+        def write(self, path, data, offset, fh):
+            with self._cerrojo_buffers:
+                buf = self._buffers.setdefault(path, bytearray())
+                fin = offset + len(data)
+                if fin > len(buf):
+                    buf.extend(b'\x00' * (fin - len(buf)))
+                buf[offset:fin] = data
+            return len(data)
+
+        def truncate(self, path, length, fh=None):
+            with self._cerrojo_buffers:
+                if path in self._buffers:
+                    buf = self._buffers[path]
+                    if length < len(buf):
+                        del buf[length:]
+                    else:
+                        buf.extend(b'\x00' * (length - len(buf)))
+                    return 0
+            # No soportamos truncar archivos ya persistidos en el FS;
+            # el modelo de asignación contigua no lo permite sin reubicar.
+            raise FuseOSError(errno.EACCES)
+
+        def release(self, path, fh):
+            with self._cerrojo_buffers:
+                contenido = self._buffers.pop(path, None)
+            if contenido is None or len(contenido) == 0:
+                return 0
+            nombre = path.lstrip('/')
+            try:
+                _escribir_en_fs(self.ruta, nombre, bytes(contenido))
+            except ValueError as err:
+                # En este punto FUSE ya devolvió éxito al write(),
+                # así que solo podemos avisar al log del sistema.
+                print(f'Aviso: no pude persistir «{nombre}»: {err}',
+                      file=sys.stderr)
+                raise FuseOSError(errno.EIO)
+            return 0
+
+        # -------- Borrado --------
+
+        def unlink(self, path):
+            nombre = path.lstrip('/')
+            try:
+                with cerrojo:
+                    entradas = leer_directorio(self.ruta)
+                    entrada = _buscar_entrada(entradas, nombre)
+                    nombre_invalido = bytes([RELLENO_NOMBRE_LIBRE] * LONGITUD_NOMBRE)
+                    with open(self.ruta, 'r+b') as imagen:
+                        imagen.seek(entrada.offset_en_disco + OFFSET_TIPO)
+                        imagen.write(TIPO_ENTRADA_LIBRE)
+                        imagen.seek(entrada.offset_en_disco + OFFSET_NOMBRE)
+                        imagen.write(nombre_invalido)
+            except ValueError:
+                raise FuseOSError(errno.ENOENT)
+            return 0
+
+        # -------- No-ops para que cp, touch, etc. no se quejen --------
+
+        def chmod(self, path, mode):
+            return 0
+
+        def chown(self, path, uid, gid):
+            return 0
+
+        def utimens(self, path, times=None):
+            return 0
+
+    if not os.path.isdir(punto_montaje):
+        raise ValueError(
+            f'El punto de montaje «{punto_montaje}» no existe o no es un directorio.'
+        )
+
+    print(f'Montando «{ruta_imagen}» en «{punto_montaje}». '
+          'Usa Ctrl+C o «fusermount -u <ruta>» para desmontar.')
+    FUSE(FiUnamFS(ruta_imagen), punto_montaje, foreground=True, nothreads=False)
+
+
+# ---------------------------------------------------------------------------
 # Ejecución concurrente
 # ---------------------------------------------------------------------------
 def _ejecutar_en_hilo(funcion, *args) -> None:
@@ -455,6 +647,15 @@ def _construir_parser() -> argparse.ArgumentParser:
 
     sub.add_parser('menu', help='Inicia el modo interactivo.')
 
+    p_mnt = sub.add_parser(
+        'mount',
+        help='Monta la imagen como un directorio (requiere fusepy y libfuse).',
+    )
+    p_mnt.add_argument(
+        'punto_montaje',
+        help='Directorio donde montar el FiUnamFS (debe existir y estar vacío).',
+    )
+
     return parser
 
 
@@ -474,7 +675,9 @@ def main() -> int:
             _ejecutar_en_hilo(insertar, args.imagen, args.ruta_local)
         elif args.comando == 'eliminar':
             _ejecutar_en_hilo(eliminar, args.imagen, args.nombre)
-    except (FileNotFoundError, ValueError) as err:
+        elif args.comando == 'mount':
+            _montar_fuse(args.imagen, args.punto_montaje)
+    except (FileNotFoundError, ValueError, RuntimeError) as err:
         print(f'Error: {err}', file=sys.stderr)
         return 1
 
