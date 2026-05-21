@@ -5,6 +5,11 @@ import queue
 import time
 from datetime import datetime
 
+# Constantes del sistema de archivos FiUnamFS
+TAMANO_CLUSTER = 2048
+ENTRADAS_DIRECTORIO = 256
+TAMANO_ENTRADA = 64
+CLUSTER_DIRECTORIO_INICIO = 1
 
 class PeticionFS:
     def __init__(self, accion, *args):
@@ -25,6 +30,8 @@ class FS(threading.Thread):
     def run(self):
         while True:
             peticion = self.cola_peticiones.get()
+            if peticion.accion == 'SALIR':
+                break
             
             # Operaciones sobre el disco
             with self.lock_archivo:
@@ -52,20 +59,46 @@ class FS(threading.Thread):
                 raise ValueError("FiUnamFS no válido.")
             f.seek(14)
             version = f.read(4)
-            if version != (b'24-2' or b'26-2'):
+            if b'24-2' not in version and b'26-2' not in version:
                 raise ValueError("Versión de FiUnamFS no soportada.")
         
         
     def listar_archivos(self):
-        
-        
-        pass
+        archivos = []
+        with open(self.ruta_img, 'rb') as f:
+            f.seek(CLUSTER_DIRECTORIO_INICIO * TAMANO_CLUSTER)
+            for _ in range(ENTRADAS_DIRECTORIO):
+                entrada = f.read(TAMANO_ENTRADA)
+                tipo = entrada[0:1]
+                nombre = entrada[1:16].decode('ascii', errors='ignore').strip('\x00').strip()
+                
+                if tipo == b'-' and nombre != '###############':
+                    tamano = struct.unpack('<I', entrada[16:20])[0]
+                    cluster = struct.unpack('<I', entrada[20:24])[0]
+                    fecha_creacion = entrada[30:44].decode('ascii')
+                    archivos.append({'nombre': nombre, 'tamano': tamano, 'cluster': cluster, 'creacion': fecha_creacion})
+        return archivos
         
     
-    def copiar_fuera(self):
-        
-        
-        pass
+    def copiar_fuera(self, nombre_fs, ruta_local):
+        with open(self.ruta_img, 'rb') as f:
+            f.seek(CLUSTER_DIRECTORIO_INICIO * TAMANO_CLUSTER)
+            for _ in range(ENTRADAS_DIRECTORIO):
+                entrada = f.read(TAMANO_ENTRADA)
+                nombre = entrada[1:16].decode('ascii', errors='ignore').strip('\x00').strip()
+                
+                if nombre == nombre_fs and entrada[0:1] == b'-':
+                    tamano = struct.unpack('<I', entrada[16:20])[0]
+                    cluster_inicial = struct.unpack('<I', entrada[20:24])[0]
+                    
+                    f.seek(cluster_inicial * TAMANO_CLUSTER)
+                    datos = f.read(tamano)
+                    
+                    with open(ruta_local, 'wb') as f_local:
+                        f_local.write(datos)
+                    return f"Completado: '{nombre_fs}' copiado a tu equipo."
+  
+        return f"Error: Archivo '{nombre_fs}' no encontrado en FiUnamFS."
     
     
     def copiar_dentro(self):
@@ -108,7 +141,7 @@ def main():
             peticion = PeticionFS('LISTAR')
         elif opcion == '2':
             nombre = input("Nombre del archivo en FiUnamFS: ")
-            ruta = input("Nombre que tendra del archivo en PC: ")
+            ruta = input("Nombre que tendra el archivo en PC: ")
             peticion = PeticionFS('COPIAR_FUERA', nombre, ruta)
         elif opcion == '3':
             ruta = input("Nombre del archivo en PC: ")
@@ -118,6 +151,7 @@ def main():
             nombre = input("Nombre del archivo a eliminar en FiUnamFS: ")
             peticion = PeticionFS('ELIMINAR', nombre)
         elif opcion == '5':
+            cola_peticiones.put(PeticionFS('SALIR'))
             print("Vuelva pronto!")
             break
         else:
