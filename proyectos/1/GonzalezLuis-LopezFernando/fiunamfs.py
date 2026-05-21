@@ -378,7 +378,7 @@ if __name__ == "__main__":
         fs.listar_directorio()
 
         print("\n Eliminando archivo")
-        fs.eliminar_archivo('script_final.py')
+        #fs.eliminar_archivo('script_final.py')
 
         print("\n Listar_directorio DESPUÉS de borrar:")
         fs.listar_directorio()
