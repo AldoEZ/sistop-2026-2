@@ -3,7 +3,7 @@ Proyecto (Micro) sistema de archivos multihiloss
 Autores: 
     - Gonzalez Falcon Luis Adrían
     - Lopez Morales Fernando Samuel
-ENtrega 2026-05-21
+Entrega 2026-05-21
 """
 import struct
 import os
@@ -12,7 +12,7 @@ import datetime
 
 class FiUnamFS:
     
-    # #TODO Leer del superbloque!!
+    # TODO Leer del superbloque!!
     # Constantes importantes de los requerimientos
     TAMANO_CLUSTER = 2048
     TAMANO_ENTRADA_DIR = 64
@@ -374,7 +374,7 @@ if __name__ == "__main__":
         fs.conectar()
         fs.validar_superbloque()
         
-        print("\n Listar_directorio ANTES de borrar:")
+        print("\n Listar_directorio")
         fs.listar_directorio()
 
         print("\n Eliminando archivo")
@@ -388,14 +388,20 @@ if __name__ == "__main__":
 
         #print("\n Listar_directorio DESPUÉS de borrar:")
         #fs.listar_directorio()
+        
+        print("\nPruebita copiando imagen pro")
+        fs.copiar_al_exterior("logo.png", "logo_extraido.png")
+
+        print("\n Listar_directorio DESPUÉS")
+        fs.listar_directorio()
 
         # (Después de hacer listar_directorio o de eliminar algo)
         
-        #print("\n Intentando inserar archivo")
-        #fs.copiar_al_interior("fiunamfs.py", "script_final.py")
+        print("\n Intentando insertar archivo")
+        fs.copiar_al_interior("fiunamfs.py", "script_final.py")
         
-        #rint("\n Listar_directorio DESPUÉS de insertar:")
-        #fs.listar_directorio()
+        print("\n Listar_directorio DESPUÉS de insertar:")
+        fs.listar_directorio()
         
         
         fs.desconectar()
