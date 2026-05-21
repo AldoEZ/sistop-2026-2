@@ -63,6 +63,11 @@ def hilo_trabajador(motor_fs):
                     orden_actual["resultado"] = 0 # 0 en Unix significa "éxito"
                 except FileNotFoundError:
                     orden_actual["resultado"] = -errno.ENOENT
+            elif comando == "leer_fuse":
+                try:
+                    orden_actual["resultado"] = motor_fs.leer_bytes_archivo(args[0], args[1], args[2])
+                except FileNotFoundError:
+                    orden_actual["resultado"] = -errno.ENOENT
         except Exception as e:
             sys.stderr.write(f"[Trabajador] Error: {e}\n")
         finally:
@@ -138,6 +143,23 @@ class FiUnamFS_FUSE(Fuse):
         sem_orden_terminada.acquire()
         
         # 0: exitoso || -errno si fallo
+        return orden_actual["resultado"]
+        
+    def read(self, path: str, size: int, offset: int):
+        """
+        Lee 'size' bytes del archivo indicado, empezando en 'offset'.
+        """
+        nombre_archivo = path[1:]
+        
+        global orden_actual
+        orden_actual["comando"] = "leer_fuse"
+        orden_actual["argumentos"] = [nombre_archivo, size, offset]
+        
+        # Sincronización con el trabajador
+        sem_orden_pendiente.release()
+        sem_orden_terminada.acquire()
+        
+        # El trabajador nos devuelve la cadena de bytes leída, o un error de -errno
         return orden_actual["resultado"]
 
 #Hilo principal que va a contener la funcionalidad de la interfaz

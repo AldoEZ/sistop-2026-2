@@ -55,6 +55,7 @@ class FiUnamFS:
         inicio_directorio = self.__TAMANO_CLUSTER * 1
         total_entradas = (self.__CLUSTERS_DIRECTORIO * self.__TAMANO_CLUSTER) // self.__TAMANO_ENTRADA_DIR
         
+        nombres_existentes = []
         
         posicion_entrada_libre = -1
         self.archivo.seek(inicio_directorio)
@@ -73,6 +74,7 @@ class FiUnamFS:
             
             if tipo_archivo == '-':
                 nombre = datos[1].decode('ascii', errors='ignore').strip('\x00 ').replace('#', '')
+                nombres_existentes.append(nombre)
                 
                 #Se calculan cuantos clusters ocupa para marcarlos
                 tamano = datos[2]
@@ -87,7 +89,7 @@ class FiUnamFS:
                 # Guardamos la ubicación de la primera entrada vacía que veamos
                 posicion_entrada_libre = posicion_actual
                 
-        return mapa_clusters, posicion_entrada_libre
+        return mapa_clusters, posicion_entrada_libre, nombres_existentes
 
     def _buscar_espacio_contiguo(self, mapa_clusters, clusters_necesarios):
         """
@@ -203,7 +205,7 @@ class FiUnamFS:
                 try:
                     str_creacion = datos[4].decode('ascii', errors='ignore').strip('\x00 ')
                     dt_creacion = datetime.datetime.strptime(str_creacion, '%Y%m%d%H%M%S')
-
+                    
                     epoch_creacion = int(dt_creacion.timestamp())
                 except ValueError:
                     epoch_creacion = 0
@@ -283,7 +285,38 @@ class FiUnamFS:
         except IOError as e:
             print(f"Error al guardar el archivo en local: {e}")
             return False
-    
+
+
+    def leer_bytes_archivo(self, nombre_fiunamfs, size, offset):
+        """
+        Lee una porción específica de un archivo directamente desde la imagen.
+        Diseñado para responder a las peticiones 'read' del sistema operativo (FUSE)
+        """
+        if not self.archivo:
+            raise ConnectionError("No hay un archivo abierto")
+
+        archivos_existentes = self.listar_directorio()
+        
+        if nombre_fiunamfs not in archivos_existentes:
+            raise FileNotFoundError(f"El archivo '{nombre_fiunamfs}' no existe")
+
+        meta = archivos_existentes[nombre_fiunamfs]
+        tamano_real = meta['tamano']
+        cluster_inicial = meta['cluster']
+
+        # no debe dejar más allá del EOF
+        if offset >= tamano_real:
+            return b''
+
+        if offset + size > tamano_real:
+            size = tamano_real - offset
+        posicion_fisica = (cluster_inicial * self.__TAMANO_CLUSTER) + offset
+
+        self.archivo.seek(posicion_fisica)
+        datos_crudos = self.archivo.read(size)
+
+        return datos_crudos
+
     def copiar_al_interior(self, ruta_origen_local, nombre_fiunamfs):
         """
         3. Copiar un archivo de local a FIUnamFS
@@ -300,7 +333,10 @@ class FiUnamFS:
         clusters_necesarios = math.ceil(tamano_archivo / self.__TAMANO_CLUSTER) # Es importante ceil() para que de 'un cluster más' si es que no es exacto
         
         # Obtener mapa de la memoria (clusters)
-        mapa_clusters, posicion_entrada_libre = self._obtener_mapa_clusters()
+        mapa_clusters, posicion_entrada_libre, nombres_existentes = self._obtener_mapa_clusters()
+        if nombre_fiunamfs in nombres_existentes:
+            print(f"Error. Ya existe un archivo llamado {nombre_fiunamfs}")
+            return False
         if posicion_entrada_libre == -1:
             print("Error: El directorio está lleno\n-- No caben más archivos")
             return False
