@@ -39,25 +39,25 @@ void motor_archivos(){
         // Enrutador de comandos actualizado
         if(tarea.operacion == "ls"){
             listar_directorio();
-        } 
-        else if(tarea.operacion == "cp_out"){
+        }else if(tarea.operacion == "cp_out"){
             if(tarea.arg1.empty() || tarea.arg2.empty()){
                 cout << "[Uso] cp_out <archivo_en_fs> <nombre_local>\n";
             }else{
                 copiar_desde_fs(tarea.arg1, tarea.arg2);
             }
-        }
-        else if(tarea.operacion == "rm"){
+        }else if(tarea.operacion == "rm"){
             if(tarea.arg1.empty()){
                 cout << "[Uso] rm <archivo_en_fs>\n";
             }else{
                 eliminar_archivo(tarea.arg1);
             }
-        }
-        else if(tarea.operacion == "cp_in"){
-            cout << "\n[Motor] Ejecutando: " << tarea.operacion << " (En construccion)\n";
-        }
-        else {
+        }else if(tarea.operacion == "cp_in"){
+            if(tarea.arg1.empty() || tarea.arg2.empty()){
+                cout << "[Uso] cp_in <archivo_local> <nombre_en_fs>\n";
+            }else{
+                copiar_hacia_fs(tarea.arg1, tarea.arg2);
+            }
+        }else{
             cout << "\n[Motor] Comando desconocido.\n";
         }
 
@@ -66,7 +66,7 @@ void motor_archivos(){
     }
 }
 
-int main() {
+int main(){
     thread hilo_fs(motor_archivos);
     cout << "Iniciando FiUnamFS...\n";
     this_thread::sleep_for(chrono::milliseconds(100));
