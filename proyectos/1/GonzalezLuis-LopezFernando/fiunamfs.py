@@ -3,7 +3,7 @@ Proyecto (Micro) sistema de archivos multihiloss
 Autores: 
     - Gonzalez Falcon Luis Adrían
     - Lopez Morales Fernando Samuel
-Entrega 2026-05-21
+ENtrega 2026-05-21
 """
 import struct
 import os
@@ -12,13 +12,13 @@ import datetime
 
 class FiUnamFS:
     
-    # TODO Leer del superbloque!!
+    # #TODO Leer del superbloque!!
     # Constantes importantes de los requerimientos
-    TAMANO_CLUSTER = 2048
-    TAMANO_ENTRADA_DIR = 64
-    CLUSTERS_DIRECTORIO = 8
+    #TAMANO_CLUSTER = 2048
+    #TAMANO_ENTRADA_DIR = 64
+    #CLUSTERS_DIRECTORIO = 8
     # Ver documentación para enteder de donde salen los valores
-
+    __TAMANO_ENTRADA_DIR = 64
     #Formato como printf en C, o el formateo en print(f'')
     FORMATO_ENTRADA = "<c15sII6x14s6x14s"
     # Ver documentación para entender el valor y razon de cada símbolo
@@ -29,33 +29,42 @@ class FiUnamFS:
         self.archivo = None
         self.lock = None
 
+        # Variables privadas (se llenarán al conectar)
+        self.__NOMBRE_DISCO = None
+        self.__VERSION_SISTEMA_ARCHIVOS = None
+        self.__ETIQUETA_DISCO = None
+        self.__TAMANO_CLUSTER = None
+        self.__CLUSTERS_DIRECTORIO = None
+        self.__CLUSTERS_UNIDAD = None
+        
+
     def _obtener_mapa_clusters(self):
         """
         Recorre el directorio y crea una lista booleana representando los 720 clusters para ver cuales están disponibles
         true = ocupado, false = libre
         Devuelve adeḿas la posición (en bytes) de la primera entrada libre en el directorio
         """
-
         # Inicializamos los 720 clusters como libres (False)
-        TOTAL_CLUSTERS = 720 # #TODO Cambiar!
-        mapa_clusters = [False] * TOTAL_CLUSTERS
+        mapa_clusters = [False] * self.__CLUSTERS_UNIDAD
         
         # El Superbloque (Cluster 0) y el Directorio (1 al 8) se marcan ocupados
-        for i in range(9):
+        clusters_superbloque = 1 + self.__CLUSTERS_DIRECTORIO
+        for i in range(clusters_superbloque):
             mapa_clusters[i] = True
             
-        inicio_directorio = self.TAMANO_CLUSTER * 1
-        total_entradas = (self.CLUSTERS_DIRECTORIO * self.TAMANO_CLUSTER) // self.TAMANO_ENTRADA_DIR
+        inicio_directorio = self.__TAMANO_CLUSTER * 1
+        total_entradas = (self.__CLUSTERS_DIRECTORIO * self.__TAMANO_CLUSTER) // self.__TAMANO_ENTRADA_DIR
+        
         
         posicion_entrada_libre = -1
         self.archivo.seek(inicio_directorio)
         
         for i in range(total_entradas):
-            posicion_actual = inicio_directorio + (i * self.TAMANO_ENTRADA_DIR)
+            posicion_actual = inicio_directorio + (i * self.__TAMANO_ENTRADA_DIR)
             self.archivo.seek(posicion_actual)
-            entrada_bytes = self.archivo.read(self.TAMANO_ENTRADA_DIR)
+            entrada_bytes = self.archivo.read(self.__TAMANO_ENTRADA_DIR)
             
-            if len(entrada_bytes) < self.TAMANO_ENTRADA_DIR:
+            if len(entrada_bytes) < self.__TAMANO_ENTRADA_DIR:
                 break
                 
             datos = struct.unpack(self.FORMATO_ENTRADA, entrada_bytes)
@@ -63,13 +72,15 @@ class FiUnamFS:
             tipo_archivo = datos[0].decode('ascii', errors='ignore')
             
             if tipo_archivo == '-':
-                # El archivo existe, calculamos qué clusters ocupa para marcarlos
+                nombre = datos[1].decode('ascii', errors='ignore').strip('\x00 ').replace('#', '')
+                
+                #Se calculan cuantos clusters ocupa para marcarlos
                 tamano = datos[2]
                 cluster_inicial = datos[3]
-                clusters_ocupados = math.ceil(tamano / self.TAMANO_CLUSTER)  #debe ser mayor para caber sin problemas
+                clusters_ocupados = math.ceil(tamano / self.__TAMANO_CLUSTER)  #debe ser mayor para caber sin problemas
                 
                 for c in range(cluster_inicial, cluster_inicial + clusters_ocupados):
-                    if c < TOTAL_CLUSTERS:
+                    if c < self.__CLUSTERS_UNIDAD:
                         mapa_clusters[c] = True
                         
             elif tipo_archivo == '/' and posicion_entrada_libre == -1:
@@ -110,25 +121,25 @@ class FiUnamFS:
             raise FileNotFoundError(f"El archivo de imagen '{self.ruta_imagen}' no existe en esta ruta.")
         
         self.archivo = open(self.ruta_imagen, 'r+b')
-        print(f"[+] Conectado exitosamente a la imagen: {self.ruta_imagen}")
+        #print(f"[+] Conectado exitosamente a la imagen: {self.ruta_imagen}")
+        self.validar_superbloque()
 
 
     def validar_superbloque(self):
+
         if not self.archivo:
             raise ConnectionError("No hay un archivo abierto") # se teine que llamar primero a conectar()
             
         self.archivo.seek(0)
         superbloque = self.archivo.read(64)
         
-        # Extracción de bytes :ooo
+        # Extracción de bytes
         
-        #identificacion = superbloque[5:14]
         identificacion = superbloque[5:14].strip(b'\x00')
-        # version = superbloque[14:19]
         version = superbloque[14:19].strip(b'\x00')
-        # se quita debe quitar el nulo?
-        
-        print(f"Verificando info del SUperbloque: Iden: {identificacion}, v.: {version}")
+        etiqueta = superbloque[20:36].strip(b'\x00')
+    
+        #print(f"Verificando info del SUperbloque: Iden: {identificacion}, v.: {version}")
         
         if identificacion != b'FiUnamFS':
             self.desconectar()
@@ -138,8 +149,14 @@ class FiUnamFS:
         if version not in (b'24-2', b'26-2'):
             self.desconectar()
             raise ValueError(f"Error: Versión {version} no soportada :(")
-            
-        print("OK")
+        
+        self.__NOMBRE_DISCO = identificacion
+        self.__VERSION_SISTEMA_ARCHIVOS = version
+        self.__ETIQUETA_DISCO = etiqueta
+        self.__TAMANO_CLUSTER = struct.unpack("<I", superbloque[40:44])[0]
+        self.__CLUSTERS_DIRECTORIO = struct.unpack("<I", superbloque[50:54])[0]
+        self.__CLUSTERS_UNIDAD = struct.unpack("<I", superbloque[60:64])[0]
+        #print("OK")
         return True
 
     """
@@ -156,18 +173,20 @@ class FiUnamFS:
         print("-----------------------------------------------------")
 
         #El directorio empieza en el byte 2048: CLuster 1
-        inicio_directorio = self.TAMANO_CLUSTER * 1
+        inicio_directorio = self.__TAMANO_CLUSTER * 1
         self.archivo.seek(inicio_directorio)
 
         # Calcula el total de entradas posibles (256)
-        total_entradas = (self.CLUSTERS_DIRECTORIO * self.TAMANO_CLUSTER) // self.TAMANO_ENTRADA_DIR
+        total_entradas = (self.__CLUSTERS_DIRECTORIO * self.__TAMANO_CLUSTER) // self.__TAMANO_ENTRADA_DIR
         archivos_encontrados = 0
 
+        archivos_encontrados = {}
+
         for _ in range(total_entradas):
-            entrada_bytes = self.archivo.read(self.TAMANO_ENTRADA_DIR)
+            entrada_bytes = self.archivo.read(self.__TAMANO_ENTRADA_DIR)
             
             #Por seguridad, si leemos menos de 64 bytes salimos del bucle
-            if len(entrada_bytes) < self.TAMANO_ENTRADA_DIR:
+            if len(entrada_bytes) < self.__TAMANO_ENTRADA_DIR:
                 break
 
             #USANDO FORMATO DECLARADO EN CONSTANTES IMPORTANTES
@@ -178,25 +197,35 @@ class FiUnamFS:
 
             # '-': con contenido, '/': vacío
             if tipo_archivo == '-':
-            
-                #nombre = datos[1].decode('ascii', errors='ignore') #decodifca correctamente
-                #nombre = nombre.strip('\x00 ') # se quita nulo
-                #nombre = nombre.replace('#', '') # se reemplazan los # extra
                 nombre = datos[1].decode('ascii', errors='ignore').strip('\x00 ').replace('#', '')
-                tamano = datos[2]
-                cluster_inicial = datos[3]
                 
-                # fecha de creación
-                fecha_creacion = datos[4].decode('ascii', errors='ignore').strip('\x00 ') # Se quitan los nulos
+                # Conversión de formato FiUnamFS a UNIX Epoch Timestamp
+                try:
+                    str_creacion = datos[4].decode('ascii', errors='ignore').strip('\x00 ')
+                    dt_creacion = datetime.datetime.strptime(str_creacion, '%Y%m%d%H%M%S')
 
-                # Imprimimos la fila con formato alineado
-                print(f"{nombre:<15} | {tamano:<14} | {cluster_inicial:<15} | {fecha_creacion}")
-                archivos_encontrados += 1
+                    epoch_creacion = int(dt_creacion.timestamp())
+                except ValueError:
+                    epoch_creacion = 0
+                    
+                try:
+                    str_modif = datos[5].decode('ascii', errors='ignore').strip('\x00 ')
+                    dt_modif = datetime.datetime.strptime(str_modif, '%Y%m%d%H%M%S')
+                    epoch_modif = int(dt_modif.timestamp())
 
-        if archivos_encontrados == 0:
-            print("El directorio está vacio")
-        print("-----")
-        print(f"Total de archivos con contenido: {archivos_encontrados}\n")
+
+
+                except ValueError:
+                    epoch_modif = 0
+
+                archivos_encontrados[nombre] = {
+                    'tamano': datos[2],
+                    'cluster': datos[3],
+                    'c_time': epoch_creacion,
+                    'm_time': epoch_modif
+                }
+
+        return archivos_encontrados
 
 
 
@@ -208,17 +237,17 @@ class FiUnamFS:
             raise ConnectionError("No hay un archivo abierto")
 
         # Buscar el archivo en el directorio
-        inicio_directorio = self.TAMANO_CLUSTER * 1
+        inicio_directorio = self.__TAMANO_CLUSTER * 1
         self.archivo.seek(inicio_directorio)
-        total_entradas = (self.CLUSTERS_DIRECTORIO * self.TAMANO_CLUSTER) // self.TAMANO_ENTRADA_DIR
+        total_entradas = (self.__CLUSTERS_DIRECTORIO * self.__TAMANO_CLUSTER) // self.__TAMANO_ENTRADA_DIR
         
         encontrado = False
         tamano_archivo = 0
         cluster_inicial = 0
 
         for _ in range(total_entradas):
-            entrada_bytes = self.archivo.read(self.TAMANO_ENTRADA_DIR)
-            if len(entrada_bytes) < self.TAMANO_ENTRADA_DIR:
+            entrada_bytes = self.archivo.read(self.__TAMANO_ENTRADA_DIR)
+            if len(entrada_bytes) < self.__TAMANO_ENTRADA_DIR:
                 break
 
             datos = struct.unpack(self.FORMATO_ENTRADA, entrada_bytes)
@@ -239,7 +268,7 @@ class FiUnamFS:
             return False
 
         # Extrae los datos y los escribirlos en local
-        byte_inicio = cluster_inicial * self.TAMANO_CLUSTER
+        byte_inicio = cluster_inicial * self.__TAMANO_CLUSTER
         self.archivo.seek(byte_inicio)
         
         # Lee los bytes exactos que mide el archivo
@@ -268,11 +297,10 @@ class FiUnamFS:
 
         # Medir el archivo y calcular lo que se necesita
         tamano_archivo = os.path.getsize(ruta_origen_local)
-        clusters_necesarios = math.ceil(tamano_archivo / self.TAMANO_CLUSTER) # Es importante ceil() para que de 'un cluster más' si es que no es exacto
+        clusters_necesarios = math.ceil(tamano_archivo / self.__TAMANO_CLUSTER) # Es importante ceil() para que de 'un cluster más' si es que no es exacto
         
         # Obtener mapa de la memoria (clusters)
         mapa_clusters, posicion_entrada_libre = self._obtener_mapa_clusters()
-        
         if posicion_entrada_libre == -1:
             print("Error: El directorio está lleno\n-- No caben más archivos")
             return False
@@ -280,12 +308,12 @@ class FiUnamFS:
         # Buscar espacio contiguo
         cluster_inicial = self._buscar_espacio_contiguo(mapa_clusters, clusters_necesarios)
         
-        if cluster_inicial == -1:
+        if cluster_inicial == -1 or (cluster_inicial + clusters_necesarios > self.__CLUSTERS_UNIDAD):
             print("Error: No hay suficiente espacio contiguo en el disco")
             return False
             
         # Escribir los datos en la zona de datos
-        byte_inicio_datos = cluster_inicial * self.TAMANO_CLUSTER
+        byte_inicio_datos = cluster_inicial * self.__TAMANO_CLUSTER
         try:
             with open(ruta_origen_local, 'rb') as f_origen:
                 datos_a_escribir = f_origen.read()
@@ -325,15 +353,15 @@ class FiUnamFS:
         if not self.archivo:
             raise ConnectionError("No hay una archivo abierto")
 
-        inicio_directorio = self.TAMANO_CLUSTER * 1
-        total_entradas = (self.CLUSTERS_DIRECTORIO * self.TAMANO_CLUSTER) // self.TAMANO_ENTRADA_DIR
+        inicio_directorio = self.__TAMANO_CLUSTER * 1
+        total_entradas = (self.__CLUSTERS_DIRECTORIO * self.__TAMANO_CLUSTER) // self.__TAMANO_ENTRADA_DIR
         
         for i in range(total_entradas):
-            posicion_entrada = inicio_directorio + (i * self.TAMANO_ENTRADA_DIR)
+            posicion_entrada = inicio_directorio + (i * self.__TAMANO_ENTRADA_DIR)
             self.archivo.seek(posicion_entrada)
-            entrada_bytes = self.archivo.read(self.TAMANO_ENTRADA_DIR)
+            entrada_bytes = self.archivo.read(self.__TAMANO_ENTRADA_DIR)
             
-            if len(entrada_bytes) < self.TAMANO_ENTRADA_DIR:
+            if len(entrada_bytes) < self.__TAMANO_ENTRADA_DIR:
                 break
 
             datos = struct.unpack(self.FORMATO_ENTRADA, entrada_bytes)
@@ -356,8 +384,7 @@ class FiUnamFS:
                     print(f"Eliminando archivo {nombre_fiunamfs}")
                     return True
 
-        print(f"No se encontró el archivo '{nombre_fiunamfs}' a eliminar")
-        return False        
+        raise FileNotFoundError(f"El archivo '{nombre_fiunamfs}' no existe")
         
 
     def desconectar(self):
@@ -374,7 +401,7 @@ if __name__ == "__main__":
         fs.conectar()
         fs.validar_superbloque()
         
-        print("\n Listar_directorio")
+        print("\n Listar_directorio ANTES de borrar:")
         fs.listar_directorio()
 
         print("\n Eliminando archivo")
@@ -388,20 +415,14 @@ if __name__ == "__main__":
 
         #print("\n Listar_directorio DESPUÉS de borrar:")
         #fs.listar_directorio()
-        
-        print("\nPruebita copiando imagen pro")
-        fs.copiar_al_exterior("logo.png", "logo_extraido.png")
-
-        print("\n Listar_directorio DESPUÉS")
-        fs.listar_directorio()
 
         # (Después de hacer listar_directorio o de eliminar algo)
         
-        print("\n Intentando insertar archivo")
-        fs.copiar_al_interior("fiunamfs.py", "script_final.py")
+        #print("\n Intentando inserar archivo")
+        #fs.copiar_al_interior("fiunamfs.py", "script_final.py")
         
-        print("\n Listar_directorio DESPUÉS de insertar:")
-        fs.listar_directorio()
+        #rint("\n Listar_directorio DESPUÉS de insertar:")
+        #fs.listar_directorio()
         
         
         fs.desconectar()
