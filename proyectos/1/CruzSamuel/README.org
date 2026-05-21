@@ -303,6 +303,50 @@ El programa rechaza con un mensaje claro las siguientes situaciones:
   archivo solicitado.
 - El directorio está lleno.
 
+* Fuentes consultadas
+
+** Especificación y materiales del curso
+
+- Wolf, G. (2026). /Proyecto 1: micro sistema de archivos multihilos./
+  Facultad de Ingeniería, UNAM. Planteamiento, especificación binaria
+  del =FiUnamFS= e imagen de muestra =fiunamfs.img= publicada en el
+  repositorio del curso =sistop-2026-2=.
+- Silberschatz, A., Galvin, P. B., Gagne, G. (2018). /Operating System
+  Concepts/ (10ª ed.). Wiley. Capítulos sobre asignación contigua,
+  sincronización entre hilos y exclusión mutua.
+- Tanenbaum, A. S., Bos, H. (2014). /Modern Operating Systems/ (4ª ed.).
+  Pearson. Para la discusión de directorios planos y condiciones de
+  carrera en sistemas de archivos.
+
+** Documentación de Python (biblioteca estándar)
+
+- =struct= — Interpret bytes as packed binary data.
+  [[https://docs.python.org/3/library/struct.html]]
+  Consultado especialmente para entender el formato =<I= (little-endian
+  unsigned 32-bit) y las funciones =pack_into= / =unpack_from=.
+- =threading= — Thread-based parallelism.
+  [[https://docs.python.org/3/library/threading.html]]
+  Referencia de =Lock=, =Thread=, =Thread.join= y semántica de
+  =with lock:= como manejador de contexto.
+- =argparse= — Parser for command-line options.
+  [[https://docs.python.org/3/library/argparse.html]]
+  Patrón de subcomandos con =add_subparsers=.
+- =dataclasses= — Data classes.
+  [[https://docs.python.org/3/library/dataclasses.html]]
+- =datetime= — Basic date and time types.
+  [[https://docs.python.org/3/library/datetime.html]]
+  Formato =%Y%m%d%H%M%S= para =AAAAMMDDHHmmss=.
+
+** Conceptos teóricos verificados en línea
+
+- /First-fit/ allocation algorithm — descripción general en
+  [[https://en.wikipedia.org/wiki/Memory_management#First-fit]].
+- Mutex y locks en Python — discusión sobre el GIL y la verdadera
+  exclusión mutua que provee =threading.Lock=:
+  [[https://docs.python.org/3/library/threading.html#lock-objects]].
+- Endianness y representación little-endian — referencia rápida en
+  [[https://en.wikipedia.org/wiki/Endianness]].
+
 * Licencia
 
 Trabajo académico para la asignatura de Sistemas Operativos,
