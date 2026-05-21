@@ -507,3 +507,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+# Fin del módulo fiunamfs — Quiroz Salazar Sergio, 2026
