@@ -508,3 +508,4 @@ def main():
 if __name__ == "__main__":
     main()
 # Fin del módulo fiunamfs — Quiroz Salazar Sergio, 2026
+# Sincronización: threading.Lock + threading.Event entre hilo de control y worker
