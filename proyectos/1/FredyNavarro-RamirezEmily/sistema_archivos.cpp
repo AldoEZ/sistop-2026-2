@@ -1,3 +1,11 @@
+/*
+Implementación de Operaciones de FiUnamFS
+Autores: Navarro Carbajal Fredy Emiliano, Ramírez Terán Emily
+Descripción: Implementa las funciones para la manipulación
+del sistema de archivos virtual. Utiliza fstream para realizar
+operaciones de lectura y escritura binaria mediante desplazamientos 
+(seek) sobre la estructura del disco (.img).
+ */
 #include "sistema_archivos.h"
 #include "estructuras.h"
 #include <iostream>
@@ -8,6 +16,10 @@
 
 using namespace std;
 
+/*
+ Valida la integridad del disco leyendo el superbloque en el cluster 0.
+ Utiliza limpieza de buffers para manejar caracteres de padding/nulos.
+*/
 bool validar_superbloque(){
     ifstream disco(RUTA_DISCO, ios::binary);
     if(!disco.is_open()){
@@ -18,7 +30,7 @@ bool validar_superbloque(){
     Superbloque sb;
     disco.read(reinterpret_cast<char*>(&sb), sizeof(Superbloque));
     disco.close();
-
+    //Limpieza de metadatos 
     string nombre(sb.nombre_fs, 9);
     string version(sb.version, 5);
     
@@ -31,7 +43,7 @@ bool validar_superbloque(){
     if(fin_ver != string::npos) version.erase(fin_ver + 1);
     else version.clear();
 
-
+    //Validación mediante búsqueda de subcadena usando find
     if(nombre.find("FiUnamFS") == string::npos || version.find("24-2")){
         cerr << "[Fatal] Archivo corrupto o versión incorrecta.\n";
         return false;
@@ -41,6 +53,9 @@ bool validar_superbloque(){
     return true;
 }
 
+/*
+ Itera sobre la tabla de directorios (cluster 1) y filtra entradas activas.
+*/
 void listar_directorio(){
     ifstream disco(RUTA_DISCO, ios::binary);
     if(!disco.is_open()){
@@ -57,7 +72,7 @@ void listar_directorio(){
     for(int i = 0; i < ENTRADAS_POR_DIRECTORIO; ++i){
         EntradaDirectorio entrada;
         disco.read(reinterpret_cast<char*>(&entrada), sizeof(EntradaDirectorio));
-
+        //Solo archivos activos (tipo '-')
         if(entrada.tipo == '-'){
             string nombre(entrada.nombre, 15);
             string fecha(entrada.fecha_creacion, 14);
@@ -79,10 +94,14 @@ void listar_directorio(){
     cout << "--------------------------------------------------------------\n";
 }
 
+/*
+ Lee los bytes del cluster de datos y los escribe en un archivo local.
+*/
 void copiar_desde_fs(const string& archivo_origen, const string& archivo_destino){
     ifstream disco(RUTA_DISCO, ios::binary);
     if(!disco.is_open()) return;
-
+    
+    //Búsqueda del archivo en la tabla de directorio
     disco.seekg(1 * TAMANO_CLUSTER);
     bool encontrado = false;
     EntradaDirectorio archivo_info;
@@ -96,7 +115,7 @@ void copiar_desde_fs(const string& archivo_origen, const string& archivo_destino
             if (fin_nombre != string::npos) nombre.erase(fin_nombre + 1);
             else nombre.clear();
 
-            if(nombre == archivo_origen){
+            if(nombre.find(archivo_origen) != string::npos){
                 encontrado = true;
                 break;
             }
@@ -108,14 +127,15 @@ void copiar_desde_fs(const string& archivo_origen, const string& archivo_destino
         disco.close();
         return;
     }
-
-    cout << "[FS] Extrayendo '" << archivo_origen << "' (" << archivo_info.tamano << " bytes)...\n";
     
+    cout << "[FS] Extrayendo '" << archivo_origen << "' (" << archivo_info.tamano << " bytes)...\n";
+    //Lectura de datos desde la posición de cluster inicial
     disco.seekg(archivo_info.cluster_inicial * TAMANO_CLUSTER);
     vector<char> buffer(archivo_info.tamano);
     disco.read(buffer.data(), archivo_info.tamano);
     disco.close();
 
+    //Persistencia local
     ofstream salida(archivo_destino, ios::binary);
     if(!salida.is_open()){
         cerr << "[Error] No se pudo crear el archivo local '" << archivo_destino << "'\n";
@@ -127,6 +147,9 @@ void copiar_desde_fs(const string& archivo_origen, const string& archivo_destino
     cout << "[FS] Archivo guardado exitosamente como '" << archivo_destino << "'\n";
 }
 
+/*
+ Borrado lógico, modifica el metadato en la tabla sin necesidad de sobreescribir los datos.
+*/
 void eliminar_archivo(const string& archivo_borrar){
     fstream disco(RUTA_DISCO, ios::in | ios::out | ios::binary);
     if(!disco.is_open()){
@@ -148,7 +171,7 @@ void eliminar_archivo(const string& archivo_borrar){
             if(fin_nombre != string::npos) nombre.erase(fin_nombre + 1);
             else nombre.clear();
 
-            if(nombre == archivo_borrar){
+            if(nombre.find(archivo_borrar) != string::npos){
                 encontrado = true;
                 
                 disco.seekp(posicion_actual);
@@ -180,7 +203,11 @@ string obtener_fecha_actual(){
     return string(buffer);
 }
 
+/*
+Inserción, algoritmo de asignación contigua para gestión de espacio libre.
+*/
 void copiar_hacia_fs(const string& archivo_local, const string& nombre_en_fs){
+    //Lectura del archivo local para calcular requisitos de espacio
     ifstream entrada(archivo_local, ios::binary | ios::ate);
     if(!entrada.is_open()){
         cout << "[Error] No se encuentra el archivo local '" << archivo_local << "'\n";
@@ -194,17 +221,18 @@ void copiar_hacia_fs(const string& archivo_local, const string& nombre_en_fs){
 
     Superbloque sb;
     disco.read(reinterpret_cast<char*>(&sb), sizeof(Superbloque));
-
+    //Calculo de clusters requeridos para el archivo
     uint32_t clusters_necesarios = (tamano_archivo + sb.tamano_cluster - 1) / sb.tamano_cluster;
     if(clusters_necesarios == 0) clusters_necesarios = 1;
 
     disco.seekg(1 * TAMANO_CLUSTER);
+    //Mapa de bits para identificar clusters ocupados 
     vector<bool> mapa_clusters(sb.clusters_totales, false);
     for(uint32_t i = 0; i < 1 + sb.clusters_directorio; i++) mapa_clusters[i] = true;
 
     int indice_entrada_libre = -1;
     long pos_entrada_libre = -1;
-
+    //Asignación contigua, busca el primer segmento contiguo
     for(int i = 0; i < ENTRADAS_POR_DIRECTORIO; ++i){
         long pos_actual = disco.tellg();
         EntradaDirectorio dir;
