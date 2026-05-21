@@ -101,10 +101,73 @@ class FS(threading.Thread):
         return f"Error: Archivo '{nombre_fs}' no encontrado en FiUnamFS."
     
     
-    def copiar_dentro(self):
+    def copiar_dentro(self, ruta_local, nombre_fs):
+        if not os.path.exists(ruta_local):
+            return "Error: El archivo local no existe."
+            
+        with open(ruta_local, 'rb') as f_local:
+            datos = f_local.read()
+            
+        tamano = len(datos)
+        clusters_requeridos = (tamano + TAMANO_CLUSTER - 1) // TAMANO_CLUSTER
         
-        
-        pass
+        with open(self.ruta_img, 'r+b') as f:
+            # 1. Buscar entrada libre y calcular espacio ocupado
+            f.seek(CLUSTER_DIRECTORIO_INICIO * TAMANO_CLUSTER)
+            offset_libre = -1
+            intervalos_ocupados = []
+            
+            for i in range(ENTRADAS_DIRECTORIO):
+                offset_actual = (CLUSTER_DIRECTORIO_INICIO * TAMANO_CLUSTER) + (i * TAMANO_ENTRADA)
+                entrada = f.read(TAMANO_ENTRADA)
+                nombre = entrada[1:16].decode('ascii', errors='ignore').strip('\x00').strip()
+                
+                if offset_libre == -1 and (nombre == '###############' or entrada[0:1] == b'/'):
+                    offset_libre = offset_actual
+                elif entrada[0:1] == b'-' and nombre != '###############':
+                    f_tamano = struct.unpack('<I', entrada[16:20])[0]
+                    f_cluster = struct.unpack('<I', entrada[20:24])[0]
+                    f_req = (f_tamano + TAMANO_CLUSTER - 1) // TAMANO_CLUSTER
+                    intervalos_ocupados.append((f_cluster, f_cluster + f_req - 1))
+            
+            if offset_libre == -1:
+                return "Error: Directorio lleno."
+                
+            # 2. Encontrar espacio contiguo libre (First Fit)
+            intervalos_ocupados.sort()
+            cluster_actual = 9
+            cluster_destino = -1
+            
+            for inicio, fin in intervalos_ocupados:
+                if cluster_actual + clusters_requeridos - 1 < inicio:
+                    cluster_destino = cluster_actual
+                    break
+                cluster_actual = max(cluster_actual, fin + 1)
+                
+            if cluster_destino == -1:
+                if cluster_actual + clusters_requeridos <= 720:
+                    cluster_destino = cluster_actual
+                else:
+                    return "Error: No hay espacio contiguo suficiente."
+            
+            # 3. Escribir datos
+            f.seek(cluster_destino * TAMANO_CLUSTER)
+            f.write(datos)
+            
+            # 4. Escribir entrada de directorio
+            ahora = datetime.now().strftime('%Y%m%d%H%M%S').encode('ascii')
+            nueva_entrada = bytearray(TAMANO_ENTRADA)
+            nueva_entrada[0:1] = b'-'
+            nueva_entrada[1:16] = nombre_fs.ljust(15, '\x00').encode('ascii')[:15]
+            nueva_entrada[16:20] = struct.pack('<I', tamano)
+            nueva_entrada[20:24] = struct.pack('<I', cluster_destino)
+            nueva_entrada[30:44] = ahora
+            nueva_entrada[50:64] = ahora
+            
+            f.seek(offset_libre)
+            f.write(nueva_entrada)
+            
+        return f"Éxito: Archivo copiado a FiUnamFS ocupando {clusters_requeridos} clusters."
 
 
     def eliminar_archivo(self):
