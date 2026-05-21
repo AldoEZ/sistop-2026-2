@@ -1,7 +1,7 @@
 /*
 
  Proyecto Sistemas Operativos, Facultad de Ingeniería UNAM
- Versión del sistema de archivos soportada: 26-2
+ Versiones del sistema de archivos soportadas: 24-2, 26-2
 
  fiunamfs.c — Implementación FUSE del micro sistema de archivos FiUnamFS
 
@@ -31,7 +31,10 @@
 // ----------- Constantes del sistema de archivos -----------
 
 #define FS_NAME             "FiUnamFS"
-#define FS_VERSION          "24-2"
+static const char *FS_VERSIONES_VALIDAS[] = { "24-2", "26-2", NULL };
+
+/* Prefijo fijo del nombre del FS en el superbloque */
+#define FS_VERSION_PREFIJO "  -2"   /* las versiones comparten sufijo */
 #define SECTOR_SIZE         512
 #define SECTORS_PER_CLUSTER 4
 #define CLUSTER_SIZE        (SECTOR_SIZE * SECTORS_PER_CLUSTER)  /* 2 048 bytes */
@@ -542,17 +545,21 @@ static int fiunamfs_truncate(const char *path, off_t newsize,
 	uint32_t clusters_asignados =
 	    (e->size > 0)
 	        ? (e->size + CLUSTER_SIZE - 1) / CLUSTER_SIZE
-	        : 1;  // create() siempre reserva 1 cluster
+	        : 1;  // create() siempre reserva al menos 1 cluster
 
 	uint32_t clusters_necesarios =
 	    (newsize > 0)
 	        ? (uint32_t)((newsize + CLUSTER_SIZE - 1) / CLUSTER_SIZE)
 	        : 1;
 
+	// Si el nuevo tamaño requiere más clusters, reubicar el archivo.
 	if (clusters_necesarios > clusters_asignados) {
-		
-		pthread_mutex_unlock(&fs_mutex);
-		return -EFBIG;
+		uint32_t nuevo_cl = alloc_clusters(clusters_necesarios);
+		if (nuevo_cl == 0) {
+			pthread_mutex_unlock(&fs_mutex);
+			return -ENOSPC;
+		}
+		e->start_cluster = nuevo_cl;
 	}
 
 	e->size = (uint32_t)newsize;
@@ -579,23 +586,25 @@ static int fiunamfs_write(const char *path, const char *buf, size_t size,
 
 	struct fiunamfs_entry *e = &g_fs.dir[idx];
 
-	// No permitir escritura fuera de los límites definidos por truncate
-	if (offset + (off_t)size > (off_t)e->size) {
+	// Verificar que la escritura no supera el espacio asignado por truncate.
+	uint32_t capacidad = e->start_cluster == 0 ? 0 :
+	    ((e->size + CLUSTER_SIZE - 1) / CLUSTER_SIZE) * CLUSTER_SIZE;
+	if (e->start_cluster != 0 && offset + (off_t)size > (off_t)capacidad) {
 		pthread_mutex_unlock(&fs_mutex);
-		return -EFBIG;
+		return -ENOSPC;
 	}
 
-	// Offset absoluto: inicio del cluster del archivo + desplazamiento
+	
 	off_t disk_off = cluster_offset(e->start_cluster) + offset;
 	int   ret      = escribir_disco(buf, size, disk_off);
 
 	if (ret == 0)
-		now_timestamp(e->mtime); // Actualizar fecha de modificación
+		now_timestamp(e->mtime); 
 
 	pthread_mutex_unlock(&fs_mutex);
 
 	if (ret == 0)
-		marcar_sucio(); // Señalar al hilo sync que el directorio cambió
+		marcar_sucio(); 
 
 	return (ret == 0) ? (int)size : ret;
 }
@@ -621,7 +630,7 @@ static int fiunamfs_unlink(const char *path)
 	g_fs.dir_count--;
 
 	pthread_mutex_unlock(&fs_mutex);
-	marcar_sucio(); // Señalar al hilo sync que el directorio cambió
+	marcar_sucio(); 
 	return 0;
 }
 
@@ -684,12 +693,12 @@ static int fiunamfs_statfs(const char *path, struct statvfs *stbuf)
 
 	pthread_mutex_unlock(&fs_mutex);
 
-	stbuf->f_bsize   = CLUSTER_SIZE;          // Tamaño de bloque de E/S
-	stbuf->f_frsize  = CLUSTER_SIZE;          // Tamaño de bloque de fragmento
-	stbuf->f_blocks  = data_clusters;         // Total de bloques de datos
-	stbuf->f_bfree   = data_clusters - usados; // Bloques libres
-	stbuf->f_bavail  = data_clusters - usados; // Bloques disponibles al usuario
-	stbuf->f_namemax = NAME_LEN;              // Longitud máxima de nombre
+	stbuf->f_bsize   = CLUSTER_SIZE;        
+	stbuf->f_frsize  = CLUSTER_SIZE;          
+	stbuf->f_blocks  = data_clusters;         
+	stbuf->f_bfree   = data_clusters - usados; 
+	stbuf->f_bavail  = data_clusters - usados; 
+	stbuf->f_namemax = NAME_LEN;              
 	return 0;
 }
 
@@ -697,7 +706,7 @@ static void *fiunamfs_init(struct fuse_conn_info *conn,
                             struct fuse_config *cfg)
 {
 	(void)conn;
-	cfg->kernel_cache = 0; // Sin caché del kernel: los datos siempre vienen de nosotros
+	cfg->kernel_cache = 0; 
 	return NULL;
 }
 
@@ -733,9 +742,9 @@ static const struct fuse_operations fiunamfs_oper = {
 	.create   = fiunamfs_create,
 	.truncate = fiunamfs_truncate,
 	.write    = fiunamfs_write,
-	.unlink   = fiunamfs_unlink,   /* NUEVO commit 5 — rm mnt/archivo      */
-	.rename   = fiunamfs_rename,   /* NUEVO commit 5 — mv mnt/a mnt/b      */
-	.statfs   = fiunamfs_statfs,   /* NUEVO commit 5 — df -h mnt/          */
+	.unlink   = fiunamfs_unlink,   
+	.rename   = fiunamfs_rename,   
+	.statfs   = fiunamfs_statfs,   
 };
 
 
@@ -794,13 +803,25 @@ int main(int argc, char *argv[])
 	char fs_ver[SB_VER_LEN + 1];
 	memcpy(fs_ver, sb + SB_VER_OFF, SB_VER_LEN);
 	fs_ver[SB_VER_LEN] = '\0';
-	if (strncmp(fs_ver, FS_VERSION, strlen(FS_VERSION)) != 0) {
-		fprintf(stderr,
-			"Error: Esta versión no es soportada '%s' (Se requiere: '%s')\n",
-			fs_ver, FS_VERSION);
-		close(g_fs.fd);
-		return 1;
+	{
+		int version_ok = 0;
+		for (int v = 0; FS_VERSIONES_VALIDAS[v] != NULL; v++) {
+			if (strncmp(fs_ver, FS_VERSIONES_VALIDAS[v],
+			            strlen(FS_VERSIONES_VALIDAS[v])) == 0) {
+				version_ok = 1;
+				break;
+			}
+		}
+		if (!version_ok) {
+			fprintf(stderr,
+				"Error: Version '%s' no soportada\n"
+				"       Versiones aceptadas: 24-2, 26-2\n",
+				fs_ver);
+			close(g_fs.fd);
+			return 1;
+		}
 	}
+	fprintf(stdout, " > Version detectada  : %s\n", fs_ver);
 
 	// Leer parámetros del superbloque (formato little-endian)
 	g_fs.cluster_size   = leer_le32(sb, SB_CLSIZE_OFF);
