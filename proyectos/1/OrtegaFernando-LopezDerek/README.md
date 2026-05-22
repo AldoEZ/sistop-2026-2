@@ -36,6 +36,7 @@ Sugerencia en Linux:
 - **Listar archivos**: Se valida el superbloque (nombre `FiUnamFS` y versión `26-2`). Se recorre el directorio (entradas de 64 bytes) y se imprimen los archivos existentes validando que el tipo de archivo sea `-`.
 - **Copiar desde FiUnamFS**: Se busca una entrada válida en el directorio por su nombre. Al encontrarla, se lee su tamaño y cluster inicial (`offset = cluster * 2048`). Se leen los bytes correspondientes de la sección de datos y se escriben en un archivo local en el sistema anfitrión.
 - **Copiar hacia FiUnamFS**: Se busca una entrada libre en el directorio (ranuras con nombre `###############`). Se calcula dinámicamente el siguiente cluster de datos disponible iterando sobre los archivos existentes para evitar sobreescritura. Se escriben los bytes de forma contigua y se empaquetan los metadatos (tamaño, cluster, fechas) en _little endian_.
+- **Eliminar archivo**: Implementa un borrado lógico buscando la entrada del archivo en el directorio y sobrescribiendo su tipo con `/` y su nombre con `###############`, lo que libera la ranura para futuras escrituras.
 
 ## Sincronización / Concurrencia
 

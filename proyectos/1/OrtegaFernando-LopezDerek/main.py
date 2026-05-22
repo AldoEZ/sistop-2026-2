@@ -12,7 +12,8 @@ while True:
     print('1. Listar archivos')
     print('2. Copiar desde FiUnamFS')
     print('3. Copiar hacia FiUnamFS')
-    print('4. Salir')
+    print('4. Eliminar archivo')
+    print('5. Salir')
 
     opcion = input('Selecciona una opcion: ')
 
@@ -30,7 +31,7 @@ while True:
         )
         hilo.start()
         hilo.join()
-    
+
     elif opcion == '3':
         ruta = input('Ruta del archivo local: ')
         hilo = threading.Thread(
@@ -41,6 +42,18 @@ while True:
         hilo.join()
 
     elif opcion == '4':
+
+        nombre = input('Archivo a eliminar: ')
+
+        hilo = threading.Thread(
+            target=fs.eliminar_archivo,
+            args=(nombre,)
+        )
+
+        hilo.start()
+        hilo.join()
+
+    elif opcion == '5':
         break
 
     else:

@@ -215,3 +215,32 @@ class FiUnamFS:
                         siguiente_cluster = cluster_final_archivo
 
         return siguiente_cluster
+
+    def eliminar_archivo(self, nombre_archivo):
+        """ 
+        Elimina un archivo del sistema de archivos FiUnamFS 
+        marcando su entrada como libre.
+        """
+        with self.lock:
+            with open(self.ruta, 'r+b') as archivo:
+                for i in range(TOTAL_ENTRIES):
+
+                    offset = DIRECTORY_START + (i * ENTRY_SIZE)
+
+                    archivo.seek(offset)
+                    entrada = archivo.read(ENTRY_SIZE)
+
+                    tipo = entrada[0:1].decode('ascii')
+
+                    nombre = entrada[1:16].decode('ascii')
+                    nombre = nombre.replace('\x00', '').strip()
+
+                    if tipo == '-' and nombre == nombre_archivo:
+                        archivo.seek(offset)
+                        archivo.write(b'/')
+                        archivo.write(b'###############')
+
+                        print('Archivo eliminado correctamente.')
+                        return
+
+        print('Archivo no encontrado.')
