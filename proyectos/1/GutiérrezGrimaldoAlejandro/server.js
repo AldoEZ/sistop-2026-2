@@ -3,6 +3,7 @@
 const http = require('http');
 const fs   = require('fs');
 const path = require('path');
+const os   = require('os');
 const { Worker } = require('worker_threads');
 
 const imagePath = process.argv[2];
@@ -27,12 +28,31 @@ function json(res, status, datos) {
   res.end(JSON.stringify(datos));
 }
 
+const MIMES = {
+  '.png': 'image/png', '.jpg': 'image/jpeg',
+  '.txt': 'text/plain', '.pdf': 'application/pdf',
+};
+
 const server = http.createServer(async (req, res) => {
-  const url = req.url.split('?')[0];
+  const url    = req.url.split('?')[0];
+  const params = new URL(req.url, 'http://localhost').searchParams;
 
   if (url === '/api/listar') {
     const r = await correrWorker({ op: 'listar', imagePath });
     return json(res, r.ok ? 200 : 500, r);
+  }
+
+  if (url === '/api/copiar') {
+    const nombre = params.get('nombre');
+    if (!nombre) return json(res, 400, { ok: false, error: 'falta nombre' });
+    const tmp = path.join(os.tmpdir(), 'fiunam_' + Date.now() + '_' + nombre);
+    const r   = await correrWorker({ op: 'copiarDesde', imagePath, nombre, destino: tmp });
+    if (!r.ok) return json(res, 404, r);
+    const datos = fs.readFileSync(tmp);
+    fs.unlinkSync(tmp);
+    const mime = MIMES[path.extname(nombre).toLowerCase()] || 'application/octet-stream';
+    res.writeHead(200, { 'Content-Type': mime, 'Content-Disposition': `attachment; filename="${nombre}"` });
+    return res.end(datos);
   }
 
   res.writeHead(404);
