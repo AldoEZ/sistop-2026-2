@@ -1,0 +1,66 @@
+Tarea: Ejercicios de sincronización
+EQUIPO: Torres Lozano Luis / Zavala Magaña Luis
+
+Problema elegido
+----------------
+Elegimos el Problema 7: Santa Claus. Lo escogimos porque al leer el planteamiento nos pareció que tenía una estructura clara de "quién puede despertar a quién y bajo qué condiciones", lo cual nos ayudó a pensar directamente en términos de semáforos sin tener que forzar la solución.
+
+Lenguaje y entorno
+------------------
+C estándar C89, compilado con Dev-C++ 5.11. Usamos la biblioteca pthreads de POSIX para los hilos y semáforos.
+
+NOTA*:
+El código originalmente lo escribimos con declaraciones de variables dentro de los for como: for (int i = 0; ...), pero Dev-C++ compila en C89 y por defecto lanzó un varios  errores. Tuvimos que mover todas las declaraciones al inicio de cada función para que compilara. Fue un detalle pequeño pero nos tomó un momento entender por qué fallaba al estructurar el programa.
+
+Para ejecutarlo
+----------------
+Solo se necesita un compilador de C con soporte a pthreads.
+
+En Linux o Mac:
+ 	gcc santa_claus.c -o santa_claus -lpthread
+ 	./santa_claus
+
+En Dev-C++:
+	Proyecto → Opciones del Proyecto → Parámetros → Linker
+	Agregar: -lpthread
+	Luego compilar y ejecutar normalmente.
+
+No requiere archivos externos ni argumentos.
+
+Estrategia utilizada de sincronización
+--------------------------------------
+Usamos un mutex y cuatro semáforos. La idea que nos guió fue pensar en Santa como un servidor que duerme hasta que alguien lo necesita, y los semáforos como la forma de "tocarle la puerta" sin que tenga que estar checando si lo llamaron.
+
+Los cuatro semforos hacen cosas distintas:
+
+	- sem_santa: es donde Santa duerme. Nadie lo puede despertar sin hacer sem_post aquí. Lo inicializamos en 0 para que Santa se bloquee inmediatamente al arrancar.
+
+	- sem_reno: los renos se quedan bloqueados aquí después de reportarse. No tiene caso que sigan corriendo si el trineo todavía no está listo. Santa los libera (x9) al terminar cada viaje.
+
+	- sem_elfo: igual que sem_reno pero para los elfos. Cada elfo que tiene un problema se queda bloqueado aquí hasta que Santa lo atienda.
+
+	- puerta_elfos: este fue el más interesante de pensar. El problema dice que los elfos solo molestan a Santa de 3 en 3, pero si simplemente contamos cuántos llegaron, ¿cómo evitamos que un cuarto elfo entre mientras los otros tres ya están esperando?.
+
+La solución fue inicializar este semáforo en 3: los primeros tres elfos pasan sin bloquearse, el cuarto se queda afuera esperando. Solo cuando Santa termina de atender al grupo anterior y hace sem_post (x3) en este semáforo, el siguiente grupo puede empezar a formarse. Funciona como una sala de espera con cupo "exacto".
+
+El mutex protege los contadores renos_listos y elfos_esperando. Sin él, dos hilos podrían incrementar el mismo contador simultáneamente y perder una actualización.
+
+Respecto a la prioridad de los renos sobre los elfos: cuando Santa despierta, revisa primero si hay 9 renos listos, y solo si no es el caso verifica si hay 3 elfos. El if está en ese orden a propósito.
+
+
+Refinamientos
+-------------
+No implementamos refinamientos adicionales.
+
+Dudas y observaciones
+----------------------
+Algo que notamos y que no estamos completamente seguros de que esté perfecto es la terminación del programa. Cuando Santa hace sus 3 viajes y sale del ciclo, hay elfos que podrían estar bloqueados esperando en puerta_elfos o en sem_elfo. Para desbloquearlos, Santa pone activo=0 y hace sem_post repetidamente antes de terminar.
+
+Funciona en nuestras pruebas, pero reconocemos que hay una pequeña inconsistencia entre que activo se vuelve 0 y el momento en que cada elfo
+lo revisa, donde en teoría un elfo podría seguir ejecutando una iteración más. No creemos que cause problemas visibles, pero es algo que con más tiempo habríamos manejado con una señal más limpia, quizás con otro semáforo dedicado a la terminación.
+
+También hay un detalle curioso en la salida: a veces un elfo llega a la sala de espera justo mientras Santa está atendiendo a los renos, y su mensaje aparece "mezclado" con los mensajes del viaje. Eso no es un error, es simplemente que los hilos corren de verdad en paralelo y el sistema operativo decide cuándo imprime cada uno. De hecho, eso podría en parte probar que la concurrencia está funcionando.
+
+Otro comportamiento que observamos en algunas ejecuciones es que el último grupo de 3 elfos puede formarse y despertar a Santa justo en el mismo momento en que llega el reno 9 para el tercer viaje. En ese caso, Santa atiende a los renos con prioridad (que es lo más correcto), completa el viaje final, y como ya llegó a NUM_VIAJES sale del ciclo sin haber atendido a ese último grupo de elfos. Ellos simplemente se desbloquean por la limpieza de terminación y el programa acaba.
+
+Queremos aclarar que creemos que esto no es un fallo de sincronización ni inanicion en el algoritmo: los elfos esperaron correctamente de 3 en 3, nunca hubo más de 3 en la sala de espera, y los renos tuvieron prioridad como debe ser. Es simplemente una consecuencia de que la simulación tiene un número fijo de viajes. En un servidor real que corriera indefinidamente, ese grupo de elfos eventualmente sería atendido en la siguiente iteración.

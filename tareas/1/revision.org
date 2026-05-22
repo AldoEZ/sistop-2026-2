@@ -299,24 +299,33 @@
 - Documentación :: [[./EstradaAldo-SanchezJazmin/README.md][README.md]]
 - Archivos :: [[./EstradaAldo-SanchezJazmin/minishell.c][minishell.c]]
 - Comentarios ::
-  - Hay varias estructuras y flujos lógicos que utilizaron en el desarrollo
-    de esta solución que me sorprenden — son válidas, sí, pero se alejan
-    bastante de lo visto en clase
-  - El manejo de varios encabezados me hace preguntarme hasta dónde llega
-    la ayuda de un LLM, y desde dónde es trabajo autónomo de ustedes
-  - Para proceder con la calificación, por favor contáctenme por correo y
-    detallen qué tanto de este código es obra de ustedes
-    - No está prohibido utilizar LLMs — pero sí hacerlo sin entender parte
-      del resultado.
+  - Escriben código en C, incluyendo instrucciones de compilación, y
+    acompañan con un ~.gitignore~. ¡Muy bien! 😃
+  - ¡Ojo! Declaran ~MAX_INPUT_SIZE~ a 100. Y ustedes han visto que a veces
+    escribo líneas de comando que sobrepasan los 100 caracteres... ¿Qué
+    pasa si le doy más de 100 caracteres a la línea de comando?
+    - Si son exactamente 100, todo bien:
+      #+begin_src text
+	minishell$ echo 1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234
+	1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234
+      #+end_src
+    - ...Pero un caracter más, y:
+      #+begin_src text
+	minishell$ echo 12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345
+	1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234
+	minishell$ Error al ejecutar el comando: No such file or directory
+      #+end_src
+    - Estamos cayendo en un /desbordamiento de buffer/ 😱 ¡Ojo!
+
 - Calificación ::
   | *Concepto*                       | *Peso* | *Evaluación* | *Valor* |
   |----------------------------------+--------+--------------+---------|
-  | Funcionamiento correcto          |    0.6 |              |      0. |
-  | Manejo de señales                |    0.2 |              |      0. |
-  | Claridad de código y comentarios |    0.1 |              |      0. |
-  | Documentación en README          |    0.1 |              |      0. |
+  | Funcionamiento correcto          |    0.6 |           10 |      6. |
+  | Manejo de señales                |    0.2 |           10 |      2. |
+  | Claridad de código y comentarios |    0.1 |           10 |      1. |
+  | Documentación en README          |    0.1 |           10 |      1. |
   |----------------------------------+--------+--------------+---------|
-  | *Total*                          |        |              |      0. |
+  | *Total*                          |        |              |     10. |
   #+tblfm: @2$4..@5$4=$2 * $3::@6$4=vsum(@2..@5)
 
 ** José Ferrer

@@ -1,0 +1,15 @@
+Planificadores
+# Otros posibles ejecutables
+*.out
+*.exe
+*.o
+
+# --- Archivos temporales de Linux/Editores ---
+*.swp
+*.swo
+# Archivos de respaldo de Gedit o Emacs
+*~
+
+# --- Carpetas de configuración (opcional) ---
+.vscode/
+.idea/

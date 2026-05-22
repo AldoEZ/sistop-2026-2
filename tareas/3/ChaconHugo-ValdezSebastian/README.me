@@ -1,0 +1,159 @@
+#  COMPARACIÓN DE PLANIFICADORES
+
+---
+
+##  DESCRIPCIÓN
+
+Este proyecto implementa un simulador de algoritmos de planificación de procesos, con el objetivo de analizar y comparar su comportamiento bajo diferentes cargas de trabajo.
+
+El programa genera procesos de forma aleatoria y ejecuta distintos algoritmos, evaluando su desempeño mediante métricas clave como tiempo de retorno, tiempo de espera y penalización.
+
+---
+
+##  ALGORITMOS IMPLEMENTADOS
+
+* 🔹 **FCFS (First Come First Serve)**
+* 🔹 **Round Robin (RR)**
+
+  * Quantum = 1
+  * Quantum = 4
+* 🔹 **SPN (Shortest Process Next)**
+* 🔹 **FB (Feedback Multinivel)** ⭐ *(Algoritmo avanzado)*
+
+---
+
+##  CONCEPTOS UTILIZADOS
+
+*  Planificación de procesos
+*  Simulación de CPU
+*  Manejo de colas
+*  Prioridades dinámicas
+*  Evaluación de rendimiento
+
+---
+
+## MÉTRICAS EVALUADAS
+
+*  **T (Tiempo de retorno)**
+  Tiempo total desde que el proceso llega hasta que termina
+*  **E (Tiempo de espera)**
+  Tiempo que el proceso permanece en cola
+* **P (Penalización)**
+  Relación entre el tiempo total y el tiempo de ejecución
+
+---
+
+## ESTRUCTURA DEL PROGRAMA
+
+El flujo general del programa es:
+
+1. 🔹 Generar procesos aleatorios
+2. 🔹 Ordenarlos por tiempo de llegada
+3. 🔹 Ejecutar cada algoritmo de planificación
+4. 🔹 Simular el uso del CPU paso a paso
+5. 🔹 Registrar el orden de ejecución (timeline)
+6. 🔹 Calcular métricas
+7. 🔹 Mostrar resultados
+
+---
+
+## ▶CÓMO EJECUTAR
+
+### 1. Abrir terminal
+
+### 2. Ir a la carpeta del proyecto
+
+```bash
+cd ruta/de/la/carpeta
+```
+
+### 3. Compilar
+
+```bash
+g++ compara_planif.cpp -o compara_planif
+```
+
+### 4. Ejecutar
+
+```bash
+./compara_planif
+```
+
+---
+
+## EJEMPLO DE SALIDA
+
+```text
+- Ronda 1:
+A: 0, t=3; B: 1, t=5; C: 3, t=2
+
+FCFS: T=6.2, E=2.2, P=1.74
+AAABBBBBCCDDDDDEEEEE
+
+RR1: T=7.6, E=3.6, P=1.98
+ABABCABCBDBDEDEDEDEE
+
+SPN: T=5.6, E=1.6, P=1.32
+AAACCBBBBBDDDDDEEEEE
+```
+
+---
+
+## ESTRATEGIA DE SIMULACIÓN
+
+* Se simula el CPU unidad por unidad de tiempo
+* Se selecciona el proceso según el algoritmo
+* Se actualiza su tiempo restante
+* Se registra cada ejecución en una cadena
+
+###  Diferencias clave:
+
+* **FCFS** → Orden de llegada
+* **RR** → Rotación con quantum
+* **SPN** → Proceso más corto
+* **FB** → Prioridades dinámicas
+
+---
+
+## REFINAMIENTO
+
+Se realizaron mejoras para facilitar el análisis:
+
+* ✔ Representación visual (timeline)
+* ✔ Múltiples rondas aleatorias
+* ✔ Cálculo automático de métricas
+* ✔ Implementación de algoritmo avanzado (FB)
+
+---
+
+##  DIFICULTADES
+
+* ❌ Manejo correcto de tiempos de llegada
+* ❌ Implementación de Round Robin (colas)
+* ❌ Control del tiempo en CPU ocioso
+* ❌ Lógica de múltiples colas en FB
+
+---
+
+##  POSIBLES MEJORAS
+
+* 🔹 Interfaz gráfica
+* 🔹 Más algoritmos (SRR, HRRN)
+* 🔹 Mejores distribuciones de procesos
+* 🔹 Exportar resultados a archivo
+
+---
+
+##  AUTORES
+
+* **Chacon Hugo**
+* **Valdez Sebastian**
+
+---
+
+##  MATERIA
+
+**Sistemas Operativos**
+Semestre: **2026-2**
+
+---

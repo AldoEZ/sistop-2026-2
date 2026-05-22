@@ -1,0 +1,80 @@
+#+title: Evaluación de la exposición
+#+author: Gunnar Wolf
+
+* Defensas preventivas de los sistemas operativos ante ataques informáticos
+
+- Tema presentado por :: Karina Lizeth Rosete Manzano y Sara Espinosa González
+- Calificación global :: 7.152
+
+|--------------------------+------+--------------------+------+---------|
+| Evaluación  compañeros   | Peso | Evaluación docente | Peso | *Total* |
+|--------------------------+------+--------------------+------+---------|
+| 9.6                      |  0.3 |               8.65 |  0.7 |    8.94 |
+| Por entrega extemporánea |  0.8 |                    |      |   7.152 |
+|--------------------------+------+--------------------+------+---------|
+#+TBLFM: @2$5=$1*$2+$3*$4;f-2::@3$5=@2$5 * @3$2
+
+* Evaluación grupal
+
+|              | 1 | 2 | 3 | 4 | 5 | Total |
+|--------------+---+---+---+---+---+-------|
+| Originalidad | 0 | 0 | 0 | 2 | 8 |  9.60 |
+| Nivel        | 0 | 0 | 0 | 1 | 9 |  9.80 |
+| Relevancia   | 0 | 0 | 0 | 1 | 9 |  9.80 |
+| Claridad     | 0 | 0 | 1 | 1 | 8 |  9.40 |
+| Presencia    | 0 | 0 | 0 | 3 | 7 |  9.40 |
+|--------------+---+---+---+---+---+-------|
+|              |   |   |   |   |   |  9.60 |
+#+TBLFM: @2$7..@6$7=10 * (0.2*$2 + 0.4*$3 + 0.6*$4 + 0.8*$5 + $6 ) / vsum($2..$6); f-2::@7$7=vmean(@2$7..@6$7); f-2
+
+** Comentarios de los compañeros
+
+- Interesante exposición
+- Buena elección del tema e interesante pero siento que faltó presentarlo
+  de mejor manera
+- Interesante
+- Los ejemplos con los que mostraron cada uno de los conceptos fueron muy
+  buenos, haciendo fácil de entender lo que explicaban, buen diseño y tema
+  que muchas veces suele pasar desapercibido, pero es muy importante
+
+* Evaluación por parte del docente
+
+| *Aspecto*                          | *Peso* | *Evaluación* | *Puntos* |
+|------------------------------------+--------+--------------+----------|
+| Contenido técnico y profundidad    |    0.3 |            7 |      2.1 |
+| Fuentes bibliográficas             |   0.15 |           10 |      1.5 |
+| Organización                       |   0.15 |            7 |     1.05 |
+| Comunicación oral y uso del tiempo |   0.25 |           10 |      2.5 |
+| Uso de recursos visuales           |   0.15 |           10 |      1.5 |
+|------------------------------------+--------+--------------+----------|
+| *Global*                           |        |              |     8.65 |
+#+TBLFM: @<<$4..@>>$4=$2*$3::$4=vsum(@<<..@>>);f-2
+
+** Comentarios
+- El ritmo de su voz da mucho la sensación de esstar leyendo el material,
+  ir siguiendo un guión.
+  - ¡Claro! es importante tener un guión sobre el cual desarrollar la
+    exposición.
+  - Pero para mantener el interés de su público, es importante intentar que
+    la exposición sea dinámica, en un tono más natural.
+- Presentación sencilla y dinámica, fácil de seguir, con animaciones
+  acorde. ¡Muy bien! 😃
+- Mencionan varias veces escenarios a partir de la palabra “imaginen”, pero
+  no entran en los detalles detrás de dicho símil
+  - Esto lleva a que el contenido resultante tenga poca “carnita” de
+    implementación, que es lo que nos interesa
+  - A los LLMs les “gusta” hacer símiles con el mundo real, pero estos
+    símiles nos /alejan/ de un nivel técnico como el esperado para el nivel
+    en el que estamos.
+  - ¡Ojo! No estoy exigiendo que /no usen/ LLMs, sólo que los usen
+    críticamente y como ayudantes en la investigación y, hasta cierto
+    punto, la redacción. Pero, en cualquier presentación que hagan, las
+    estrategias didácticas en el flujo del contenido debe ser _de ustedes_.
+- Pasan mucho tiempo desarrollando el modelo de ataque, con temas
+  interesantes (aunque abordados con muy poca profunidad)... ¡Pero ese no
+  es el tema central de la presentación!
+  - ¡Apenas hacia 07:30 comienzan propiamente a hablar de /mecanismos de
+    defensa/!
+- El ejemplo que presentan del intento de accesos de datos a partir de un
+  navegador contiene errores muy importantes, no me resulta claro que hayan
+  comprendido los pasos que presentan, o del punto en que entran en juego 🙁

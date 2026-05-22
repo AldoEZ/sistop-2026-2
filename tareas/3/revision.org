@@ -1,0 +1,276 @@
+** Arzate Adrian, Diaz David
+- Documentación :: [[./ArzateAdrian-DiazDavid/README.md][README.md]], [[./ArzateAdrian-DiazDavid/ejecucion.txt][ejecucion.txt]]
+- Archivos :: [[./ArzateAdrian-DiazDavid/tarea3.py][tarea3.py]]
+- Calificación :: 10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - Código limplio, empleando dataclasses
+    - Documentación completa
+    - Implementación correcta de FB.
+
+** Atilano Leonardo
+- Documentación :: [[./AtilanoLeonardo/README.md][README.md]]
+- Archivos :: [[./AtilanoLeonardo/compara_planif.py][compara_planif.py]]
+- Calificación :: 10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - Buen código, implementación sólida de FB.
+    - Los nombres de algoritmos en salida tienen espacios extra, pero no
+      afecta a la funcionalidad.
+
+** Basilio Andres, Cruz Samuel
+- Documentación :: [[./BasilioAndres-CruzSamuel/README.md][README.md]]
+- Archivos :: [[./BasilioAndres-CruzSamuel/tarea3.py][tarea3.py]]
+- Calificación :: 10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - Implementación muy profesional con argparse, dataclasses y typing.
+    - El esquema visual con regla de tiempo es un detalle excelente.
+
+** Bello Santiago, Lopez Baruc
+- Documentación :: [[./BelloSantiago-LopezBaruc/README.md][README.md]]
+- Archivos :: [[./BelloSantiago-LopezBaruc/compara_planif.py][compara_planif.py]]
+- Calificación :: 10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - Buena documentación, explica decisiones de diseño (resolución de
+      ambigüedad en RR).
+    - Implementación creativa de FB con múltiples niveles.
+
+** Blancas Isaias, Martinez Hans
+- Documentación :: [[./BlancasIsaias-MartinezHans/Doc.md][Doc.md]]
+- Archivos :: [[./BlancasIsaias-MartinezHans/programa.py][programa.py]]
+- Calificación  ::  10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - Código limpio y bien comentado.
+    - Implementación correcta de todos los algoritmos requeridos.
+
+** Brena Victor
+- Documentación :: [[./BrenaVictor/README.md][README.md]], [[./BrenaVictor/cap_1.png][cap_1.png]]
+- Archivos :: [[./BrenaVictor/algoritmos.cpp][algoritmos.cpp]]
+- Calificación :: 9
+  | Tabla de resultados |  ✅ |
+  | Esquema visual |  ✅ |
+  | Algoritmo de colas múltiples |  ❌ |
+  - Comentarios ::
+    - Implementación en C++ correcta, pero sin algoritmo de colas
+      múltiples.
+      - El README reconoce y documenta esta limitación.
+
+** Campos Isaac, Martinez Alejandro
+- Documentación :: [[./CamposIsaac-MartinezAlejandro/README.md][README.md]]
+- Archivos :: [[./CamposIsaac-MartinezAlejandro/MPDP.py][MPDP.py]]
+- Calificación :: 10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - Implementación completa con FB y SRR.
+    - Documentación clara.
+
+** Chacon Hugo, Valdez Sebastian
+- Documentación :: [[./ChaconHugo-ValdezSebastian/README.me][README.me]]
+- Archivos :: [[./ChaconHugo-ValdezSebastian/compara_planif.cpp][compara_planif.cpp]], [[./ChaconHugo-ValdezSebastian/compara_planif.exe][compara_planif.exe]]
+- Calificación :: 10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - *Ojo*: Un programa en C++ debe compilarse. Y claro, siguiendo sus
+      propias indicaciones, ustedes lo compilaron, generando
+      ~compara_planif.exe~. Y... lo incluyeron en la entrega 🙁
+      - No debemos incluir /código compilado/ en un árbol Git.
+      - Eché de menos un ~.gitignore~ que evitara que crear este archivo me
+        /ensuciara/ el árbol Git 🙁
+    - Implementación en C++ completa.
+    - FB implementado correctamente con degradación de prioridad.
+
+** Cruz Lizbeth
+- Documentación :: [[./CruzLizbeth/README.md][README.md]], [[./CruzLizbeth/Ronda1 FCFS.png][Ronda1 FCFS.png]]
+- Archivos :: [[./CruzLizbeth/ComparaPlanif.py][ComparaPlanif.py]]
+- Calificación :: 10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - Documentación excelente con verificación manual detallada (incluye
+      imagen y cálculos paso a paso).
+    - Código bien estructurado.
+
+** Espinosa Gonzalez, Rosete Manzano
+- Documentación :: [[./EspinosaGonzalez-RoseteManzano/readme.md][readme.md]]
+- Archivos :: [[./EspinosaGonzalez-RoseteManzano/comparador.c][comparador.c]]
+- Calificación :: 10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - Implementación muy completa en C
+    - incluye FB y SRR (Selfish Round Robin).
+    - Verificación manual incluida.
+
+** Estrada Aldo, Sanchez Jazmin
+- Documentación :: [[./EstradaAldo-SanchezJazmin/README.md][README.md]]
+- Archivos :: [[./EstradaAldo-SanchezJazmin/planificadores.cpp][planificadores.cpp]]
+- Calificación :: 10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - Implementación en C++ completa
+    - El programa se compila, y manejan =.gitignore=. ¡Bien! 😃
+
+** Ferrer José
+- Documentación :: [[./FerrerJosé/README.txt][README.txt]], [[./FerrerJosé/Salidas.txt][Salidas.txt]]
+- Archivos :: [[./FerrerJosé/compara_planif.py][compara_planif.py]]
+- Calificación :: 9
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ❌ |
+  - Comentarios ::
+    - Implementación correcta de FCFS, RR y SPN.
+    - Sin algoritmo de colas múltiples.
+    - Documentación básica pero clara.
+
+** Fredy Navarro, Ramirez Emily
+- Documentación :: [[./FredyNavarro-RamirezEmily/1.png][1.png]], [[./FredyNavarro-RamirezEmily/2.png][2.png]], [[./FredyNavarro-RamirezEmily/README.md][README.md]]
+- Archivos :: [[./FredyNavarro-RamirezEmily/Planificadores.cpp][Planificadores.cpp]]
+- Calificación :: 10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - Documentación muy completa con análisis de resultados e
+      interpretación.
+    - Implementación en C++
+    - El programa se compila, y manejan =.gitignore=. ¡Bien! 😃
+
+** Garibay Josue, Lopez Carlos
+- Documentación :: [[./GaribayJosue-LopezCarlos/README.md][README.md]], [[./GaribayJosue-LopezCarlos/img/T3img1.png][T3img1.png]]
+- Archivos :: [[./GaribayJosue-LopezCarlos/Tarea3_GL.py][Tarea3_GL.py]]
+- Calificación :: 10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - Implementación completa incluyendo FB.
+    - Verificación manual de FCFS incluida.
+    - FB con 5 colas.
+
+** Gonzalez Fernando, Quezada Emir
+- Documentación :: [[./GonzalezFernando-QuezadaEmir/README.md][README.md]]
+- Archivos :: [[./GonzalezFernando-QuezadaEmir/Codigo.py][Codigo.py]]
+- Calificación :: 10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - Implementación muy completa con FCFS, RR, SPN, FB y SRR.
+
+** Gonzalez Luis, Lopez Fernando
+- Documentación :: [[./GonzalezLuis-LopezFernando/README.md][README.md]]
+- Archivos :: [[./GonzalezLuis-LopezFernando/tarea3.py][tarea3.py]]
+- Calificación :: 10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - Código bien estructurado con comentarios.
+    - Implementación correcta de FB con prioridades.
+
+** Gutiérrez Grimaldo Alejandro
+- Documentación :: [[./GutiérrezGrimaldoAlejandro/README.md][README.md]]
+- Archivos :: [[./GutiérrezGrimaldoAlejandro/planificadores.py][planificadores.py]]
+- Calificación :: 10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - Implementación muy completa con FB (4 niveles) y SRR.
+    - Incluye nota honesta sobre reutilización de código anterior con
+      adaptaciones 😃
+
+** Merida Francisco, Quezada Leonardo
+- Documentación :: [[./MeridaFrancisco-QuezadaLeonardo/README.md][README.md]]
+- Archivos :: [[./MeridaFrancisco-QuezadaLeonardo/T03.py][T03.py]]
+- Calificación :: 9
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ❌ |
+  - Comentarios ::
+    - Implementación correcta de FCFS, RR y SPN.
+    - Sin algoritmo de colas múltiples.
+    - El código incluye el ejemplo del enunciado como primera ejecución.
+
+** Monroy Jesus, Poncede Leon Bruno
+- Documentación :: [[./MonroyJesus-PoncedeLeonBruno/README.md][README.md]], [[./MonroyJesus-PoncedeLeonBruno/img/imgT3.png][imgT3.png]], [[./MonroyJesus-PoncedeLeonBruno/img/imgT31.png][imgT31.png]], [[./MonroyJesus-PoncedeLeonBruno/img/imgT32.png][imgT32.png]]
+- Archivos :: [[./MonroyJesus-PoncedeLeonBruno/planificadores.c][planificadores.c]]
+- Calificación :: 10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - Implementación en C muy completa con FCFS, RR, SPN, FB y
+      SRR.
+    - El programa se compila, y manejan =.gitignore=. ¡Bien! 😃
+    - Verificación manual detallada con tablas.
+    - Documentación muy completa
+
+** Ortega Fernando, Lopez Derek
+- Documentación :: [[./OrtegaFernando-LopezDerek/README.md][README.md]]
+- Archivos :: [[./OrtegaFernando-LopezDerek/comparador_planificadores.py][comparador_planificadores.py]]
+- Calificación :: 10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - Implementación limpia y bien comentada.
+    - Incluye resumen final de métricas.
+
+** Quiroz Sergio
+- Documentación :: [[./QuirozSergio/README.md][README.md]]
+- Archivos :: [[./QuirozSergio/compara_planif.py][compara_planif.py]]
+- Calificación :: 10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - Código claro y bien organizado
+    - Implementación correcta de FB
+    - Documentación completa, incluyendo observaciones.
+
+** Sotomayor Edgar, Teran Jorge
+- Documentación :: [[./SotomayorEdgar-TeranJorge/README.md][README.md]], [[./SotomayorEdgar-TeranJorge/imagen_ejecucion_1.png][imagen_ejecucion_1.png]],
+  [[./SotomayorEdgar-TeranJorge/imagen_ejecucion_2.png][imagen_ejecucion_2.png]], [[./SotomayorEdgar-TeranJorge/imagen_ejecucion_3.png][imagen_ejecucion_3.png]]
+- Archivos :: [[./SotomayorEdgar-TeranJorge/Tarea_3_SO.py][Tarea_3_SO.py]]
+- Calificación :: 9
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ❌ |
+  - Comentarios ::
+    - Implementación correcta de FCFS, RR y SPN
+    - Sin algoritmo de colas múltiples
+
+** Torres Lozano, Zavala Magaña
+- Documentación :: [[./TorresLozano-ZavalaMagaña/README.md][README.md]], [[./TorresLozano-ZavalaMagaña/cap_evidencia1.png][cap_evidencia1.png]]
+- Archivos :: [[./TorresLozano-ZavalaMagaña/compara_planif.c][compara_planif.c]]
+- Calificación :: 10
+  | Tabla de resultados          | ✅ |
+  | Esquema visual               | ✅ |
+  | Algoritmo de colas múltiples | ✅ |
+  - Comentarios ::
+    - Implementación en C completa.
+    - El programa se compila, y manejan =.gitignore=. ¡Bien! 😃
+    - FB implementado con quantums dinámicos (2^k).
+    - Verificación manual incluida.

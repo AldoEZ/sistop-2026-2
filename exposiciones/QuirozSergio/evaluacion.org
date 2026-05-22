@@ -1,0 +1,57 @@
+#+title: Evaluación de la exposición
+#+author: Gunnar Wolf
+
+* Edge Computing
+
+- Tema presentado por :: Sergio Quiroz
+- Calificación global :: 
+
+|------------------------+------+--------------------+------+---------|
+| Evaluación  compañeros | Peso | Evaluación docente | Peso | *Total* |
+|------------------------+------+--------------------+------+---------|
+|                    9.6 |  0.3 |               7.75 |  0.7 |    8.31 |
+|------------------------+------+--------------------+------+---------|
+#+TBLFM: @2$5=$1*$2+$3*$4;f-2
+
+* Evaluación grupal
+
+|              | 1 | 2 | 3 | 4 | 5 | Total |
+|--------------+---+---+---+---+---+-------|
+| Originalidad | 0 | 0 | 0 | 1 | 5 |  9.67 |
+| Nivel        | 0 | 0 | 0 | 1 | 5 |  9.67 |
+| Relevancia   | 0 | 0 | 0 | 1 | 5 |  9.67 |
+| Claridad     | 0 | 0 | 0 | 1 | 5 |  9.67 |
+| Presencia    | 0 | 0 | 1 | 0 | 5 |  9.33 |
+|--------------+---+---+---+---+---+-------|
+|              |   |   |   |   |   |  9.60 |
+#+TBLFM: @2$7..@6$7=10 * (0.2*$2 + 0.4*$3 + 0.6*$4 + 0.8*$5 + $6 ) / vsum($2..$6); f-2::@7$7=vmean(@2$7..@6$7); f-2
+
+** Comentarios de los compañeros
+
+
+* Evaluación por parte del docente
+
+| *Aspecto*                          | *Peso* | *Evaluación* | *Puntos* |
+|------------------------------------+--------+--------------+----------|
+| Contenido técnico y profundidad    |    0.3 |            7 |      2.1 |
+| Fuentes bibliográficas             |   0.15 |            4 |      0.6 |
+| Organización                       |   0.15 |           10 |      1.5 |
+| Comunicación oral y uso del tiempo |   0.25 |           10 |      2.5 |
+| Uso de recursos visuales           |   0.15 |            7 |     1.05 |
+|------------------------------------+--------+--------------+----------|
+| *Global*                           |        |              |     7.75 |
+#+TBLFM: @<<$4..@>>$4=$2*$3::$4=vsum(@<<..@>>);f-2
+
+** Comentarios
+
+- Tu presentación tiene muy poco contenido técnico 🙁
+  - Está orientada a explicar /qué es/, no a explicar /cómo funciona/ (que
+    es el enfoque que les pedí desde un principio tener para las
+    exposiciones)
+  - Menciona varios /temas en boga/ (o, utilizando una palabra muy
+    utilizada en inglés, /buzzwords/ — “palabras que zumban”, que suenan
+    por todos lados), pero profundiza muy poco en cada uno de los temas.
+- Los ejemplos que presentas al final de la exposición no son relacionados
+  con el tema de /edge computing/, sino que son un par de pantallazos de
+  diversas herramientas del sistema operativo Linux; el vínculo de lo
+  presentado con tu tema es, si acaso, tenue.

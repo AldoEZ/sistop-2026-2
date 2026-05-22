@@ -1,0 +1,116 @@
+[  0.051s] ASESOR  (•◡•): inicia su horario. Hay 3 sillas disponibles en el cubículo.
+[  0.055s] ASESOR ( ◡́.◡̀): no hay dudas activas; se acuesta a dormir la siesta.
+[  0.268s] ALUMNO (^◡^ ) 6: llega al cubículo con 2 pregunta(s) en total.
+[  0.275s] ALUMNO ٩(˘◡˘)۶ 6: entra y ocupa una silla. Preguntas pendientes: 2.
+[  0.281s] ASESOR (◑_◑): despierta porque el alumno 6 va a presentar su duda.
+[  0.284s] ALUMNO (╥﹏╥) 6: presenta la pregunta 1/2.
+[  0.298s] ALUMNO (^◡^ ) 1: llega al cubículo con 3 pregunta(s) en total.
+[  0.309s] ALUMNO ٩(˘◡˘)۶ 1: entra y ocupa una silla. Preguntas pendientes: 3.
+[  0.363s] ALUMNO (^◡^ ) 5: llega al cubículo con 3 pregunta(s) en total.
+[  0.364s] ALUMNO ٩(˘◡˘)۶ 5: entra y ocupa una silla. Preguntas pendientes: 3.
+[  0.404s] ALUMNO (^◡^ ) 3: llega al cubículo con 1 pregunta(s) en total.
+[  0.645s] ALUMNO (^◡^ ) 2: llega al cubículo con 3 pregunta(s) en total.
+[  0.658s] ALUMNO (^◡^ ) 7: llega al cubículo con 1 pregunta(s) en total.
+[  0.981s] ASESOR (>‿◠): responde la pregunta 1/2 del alumno 6.
+[  0.982s] ALUMNO ヽ(`▭´)ﾉ 6: aún tiene dudas; piensa 0.70s antes de volver a formarse.
+[  0.982s] ASESOR ( ◡́.◡̀): no hay dudas activas; se acuesta a dormir la siesta.
+[  0.982s] ASESOR (◑_◑): despierta porque el alumno 1 va a presentar su duda.
+[  0.982s] ALUMNO (╥﹏╥) 1: presenta la pregunta 1/3.
+[  1.447s] ALUMNO (^◡^ ) 8: llega al cubículo con 3 pregunta(s) en total.
+[  1.509s] ALUMNO (^◡^ ) 4: llega al cubículo con 1 pregunta(s) en total.
+[  1.774s] ASESOR (>‿◠): responde la pregunta 1/3 del alumno 1.
+[  1.775s] ALUMNO ヽ(`▭´)ﾉ 1: aún tiene dudas; piensa 0.49s antes de volver a formarse.
+[  1.776s] ASESOR ( ◡́.◡̀): no hay dudas activas; se acuesta a dormir la siesta.
+[  1.776s] ASESOR (◑_◑): despierta porque el alumno 5 va a presentar su duda.
+[  1.776s] ALUMNO (╥﹏╥) 5: presenta la pregunta 1/3.
+[  2.392s] ASESOR (>‿◠): responde la pregunta 1/3 del alumno 5.
+[  2.392s] ALUMNO ヽ(`▭´)ﾉ 5: aún tiene dudas; piensa 0.39s antes de volver a formarse.
+[  2.393s] ASESOR ( ◡́.◡̀): no hay dudas activas; se acuesta a dormir la siesta.
+[  2.393s] ASESOR (◑_◑): despierta porque el alumno 6 va a presentar su duda.
+[  2.393s] ALUMNO (╥﹏╥) 6: presenta la pregunta 2/2.
+[  3.303s] ASESOR (>‿◠): responde la pregunta 2/2 del alumno 6.
+[  3.303s] ALUMNO (ˆ‿ˆԅ) 6: resolvió todas sus dudas y sale del cubículo.
+[  3.303s] ASESOR ( ◡́.◡̀): no hay dudas activas; se acuesta a dormir la siesta.
+[  3.304s] ASESOR (◑_◑): despierta porque el alumno 1 va a presentar su duda.
+[  3.304s] ALUMNO ٩(˘◡˘)۶ 3: entra y ocupa una silla. Preguntas pendientes: 1.
+[  3.306s] ALUMNO (╥﹏╥) 1: presenta la pregunta 2/3.
+[  4.138s] ASESOR (>‿◠): responde la pregunta 2/3 del alumno 1.
+[  4.139s] ALUMNO ヽ(`▭´)ﾉ 1: aún tiene dudas; piensa 0.31s antes de volver a formarse.
+[  4.139s] ASESOR ( ◡́.◡̀): no hay dudas activas; se acuesta a dormir la siesta.
+[  4.139s] ASESOR (◑_◑): despierta porque el alumno 5 va a presentar su duda.
+[  4.140s] ALUMNO (╥﹏╥) 5: presenta la pregunta 2/3.
+[  4.736s] ASESOR (>‿◠): responde la pregunta 2/3 del alumno 5.
+[  4.736s] ALUMNO ヽ(`▭´)ﾉ 5: aún tiene dudas; piensa 0.39s antes de volver a formarse.
+[  4.737s] ASESOR ( ◡́.◡̀): no hay dudas activas; se acuesta a dormir la siesta.
+[  4.737s] ASESOR (◑_◑): despierta porque el alumno 3 va a presentar su duda.
+[  4.737s] ALUMNO (╥﹏╥) 3: presenta la pregunta 1/1.
+[  5.188s] ASESOR (>‿◠): responde la pregunta 1/1 del alumno 3.
+[  5.189s] ALUMNO (ˆ‿ˆԅ) 3: resolvió todas sus dudas y sale del cubículo.
+[  5.189s] ASESOR ( ◡́.◡̀): no hay dudas activas; se acuesta a dormir la siesta.
+[  5.189s] ASESOR (◑_◑): despierta porque el alumno 1 va a presentar su duda.
+[  5.189s] ALUMNO ٩(˘◡˘)۶ 2: entra y ocupa una silla. Preguntas pendientes: 3.
+[  5.189s] ALUMNO (╥﹏╥) 1: presenta la pregunta 3/3.
+[  6.024s] ASESOR (>‿◠): responde la pregunta 3/3 del alumno 1.
+[  6.025s] ALUMNO (ˆ‿ˆԅ) 1: resolvió todas sus dudas y sale del cubículo.
+[  6.025s] ASESOR ( ◡́.◡̀): no hay dudas activas; se acuesta a dormir la siesta.
+[  6.025s] ASESOR (◑_◑): despierta porque el alumno 5 va a presentar su duda.
+[  6.026s] ALUMNO ٩(˘◡˘)۶ 7: entra y ocupa una silla. Preguntas pendientes: 1.
+[  6.026s] ALUMNO (╥﹏╥) 5: presenta la pregunta 3/3.
+[  6.398s] ASESOR (>‿◠): responde la pregunta 3/3 del alumno 5.
+[  6.398s] ALUMNO (ˆ‿ˆԅ) 5: resolvió todas sus dudas y sale del cubículo.
+[  6.399s] ALUMNO ٩(˘◡˘)۶ 8: entra y ocupa una silla. Preguntas pendientes: 3.
+[  6.399s] ASESOR ( ◡́.◡̀): no hay dudas activas; se acuesta a dormir la siesta.
+[  6.399s] ASESOR (◑_◑): despierta porque el alumno 2 va a presentar su duda.
+[  6.399s] ALUMNO (╥﹏╥) 2: presenta la pregunta 1/3.
+[  6.966s] ASESOR (>‿◠): responde la pregunta 1/3 del alumno 2.
+[  6.966s] ALUMNO ヽ(`▭´)ﾉ 2: aún tiene dudas; piensa 0.45s antes de volver a formarse.
+[  6.966s] ASESOR ( ◡́.◡̀): no hay dudas activas; se acuesta a dormir la siesta.
+[  6.967s] ASESOR (◑_◑): despierta porque el alumno 7 va a presentar su duda.
+[  6.967s] ALUMNO (╥﹏╥) 7: presenta la pregunta 1/1.
+[  7.508s] ASESOR (>‿◠): responde la pregunta 1/1 del alumno 7.
+[  7.508s] ALUMNO (ˆ‿ˆԅ) 7: resolvió todas sus dudas y sale del cubículo.
+[  7.509s] ASESOR ( ◡́.◡̀): no hay dudas activas; se acuesta a dormir la siesta.
+[  7.509s] ASESOR (◑_◑): despierta porque el alumno 8 va a presentar su duda.
+[  7.509s] ALUMNO (╥﹏╥) 8: presenta la pregunta 1/3.
+[  7.509s] ALUMNO ٩(˘◡˘)۶ 4: entra y ocupa una silla. Preguntas pendientes: 1.
+[  7.995s] ASESOR (>‿◠): responde la pregunta 1/3 del alumno 8.
+[  7.995s] ALUMNO ヽ(`▭´)ﾉ 8: aún tiene dudas; piensa 0.23s antes de volver a formarse.
+[  7.995s] ASESOR ( ◡́.◡̀): no hay dudas activas; se acuesta a dormir la siesta.
+[  7.995s] ASESOR (◑_◑): despierta porque el alumno 2 va a presentar su duda.
+[  7.995s] ALUMNO (╥﹏╥) 2: presenta la pregunta 2/3.
+[  8.618s] ASESOR (>‿◠): responde la pregunta 2/3 del alumno 2.
+[  8.618s] ALUMNO ヽ(`▭´)ﾉ 2: aún tiene dudas; piensa 0.29s antes de volver a formarse.
+[  8.618s] ASESOR ( ◡́.◡̀): no hay dudas activas; se acuesta a dormir la siesta.
+[  8.618s] ASESOR (◑_◑): despierta porque el alumno 4 va a presentar su duda.
+[  8.619s] ALUMNO (╥﹏╥) 4: presenta la pregunta 1/1.
+[  9.565s] ASESOR (>‿◠): responde la pregunta 1/1 del alumno 4.
+[  9.565s] ALUMNO (ˆ‿ˆԅ) 4: resolvió todas sus dudas y sale del cubículo.
+[  9.566s] ASESOR ( ◡́.◡̀): no hay dudas activas; se acuesta a dormir la siesta.
+[  9.566s] ASESOR (◑_◑): despierta porque el alumno 8 va a presentar su duda.
+[  9.567s] ALUMNO (╥﹏╥) 8: presenta la pregunta 2/3.
+[  9.922s] ASESOR (>‿◠): responde la pregunta 2/3 del alumno 8.
+[  9.923s] ALUMNO ヽ(`▭´)ﾉ 8: aún tiene dudas; piensa 0.41s antes de volver a formarse.
+[  9.923s] ASESOR ( ◡́.◡̀): no hay dudas activas; se acuesta a dormir la siesta.
+[  9.923s] ASESOR (◑_◑): despierta porque el alumno 2 va a presentar su duda.
+[  9.923s] ALUMNO (╥﹏╥) 2: presenta la pregunta 3/3.
+[ 10.664s] ASESOR (>‿◠): responde la pregunta 3/3 del alumno 2.
+[ 10.665s] ALUMNO (ˆ‿ˆԅ) 2: resolvió todas sus dudas y sale del cubículo.
+[ 10.665s] ASESOR ( ◡́.◡̀): no hay dudas activas; se acuesta a dormir la siesta.
+[ 10.665s] ASESOR (◑_◑): despierta porque el alumno 8 va a presentar su duda.
+[ 10.665s] ALUMNO (╥﹏╥) 8: presenta la pregunta 3/3.
+[ 11.585s] ASESOR (>‿◠): responde la pregunta 3/3 del alumno 8.
+[ 11.586s] ALUMNO (ˆ‿ˆԅ) 8: resolvió todas sus dudas y sale del cubículo.
+[ 11.587s] ASESOR ( ◡́.◡̀): no hay dudas activas; se acuesta a dormir la siesta.
+[ 11.587s] ASESOR  ٩(˘◡˘)۶: terminó el horario de atención. Todos los alumnos fueron atendidos.
+[ 11.587s] ========================================================================
+[ 11.587s] REPORTE FINAL
+[ 11.587s] Alumno 1: preguntas=3, tiempo dentro del cubículo=5.716s
+[ 11.587s] Alumno 2: preguntas=3, tiempo dentro del cubículo=5.476s
+[ 11.587s] Alumno 3: preguntas=1, tiempo dentro del cubículo=1.885s
+[ 11.587s] Alumno 4: preguntas=1, tiempo dentro del cubículo=2.057s
+[ 11.588s] Alumno 5: preguntas=3, tiempo dentro del cubículo=6.034s
+[ 11.588s] Alumno 6: preguntas=2, tiempo dentro del cubículo=3.028s
+[ 11.588s] Alumno 7: preguntas=1, tiempo dentro del cubículo=1.483s
+[ 11.588s] Alumno 8: preguntas=3, tiempo dentro del cubículo=5.188s
+[ 11.588s] Promedio de tiempo dentro del cubículo: 3.858s
+[ 11.589s] Ejecución terminada correctamente.
