@@ -68,7 +68,7 @@ Al ejecutar el Script se lanzarán en la terminal 5 opciones en forma de menú, 
 
 En la terminal, al ejecutar el programa, las opciones se muestran de la siguiente manera:
 
-![[opciones.png]]
+![[img/opciones.png]]
 
 
 ## 6.- Ejemplos de uso
@@ -78,34 +78,34 @@ Para verificar la correcta implementación del programa realizaremos los siguien
 - **Listar contenidos**
 Al elegír la opción 1 se mostraron en pantalla el nombre de los archivos del disco, el tamaño que ocupan, su fecha de creación y el cluster inicial.
 
-![[resOp1.png]]
+![[img/resOp1.png]]
 
 
 - **Extraer un archivo a la PC**
 Para extraer cualquier documento del disco se debe elegir la opción 2, que en este caso la utilizaremos para sacar del disco la imagen 'logo.png'.
 
-![[op2.png]]
-![[despuesOp2.png]]
+![[img/op2.png]]
+![[img/despuesOp2.png]]
 
 
 - **Insertar un archivo al disco**
 Con esta opción insertamos la imagen de nombre "imagen.png", la cual colocamos en la carpeta donde esta el disco para probar esta opción del menú.
 
-![[Op3.png]]
-![[despuesOp3.png]]
+![[img/Op3.png]]
+![[img/despuesOp3.png]]
 
 
 - **Eliminar un archivo del disco**
 Para eliminar cualquier documento del disco se debe elegir la opción 4, que en este caso eliminamos la imagen que habíamos puesto con la opción 3.
 
-![[op4.png]]
-![[resOp4.png]]
+![[img/op4.png]]
+![[img/resOp4.png]]
 
 
 - **Salir del programa**
 La opción 5 del menú cierra el programa y muestra el mensaje "Vuelva pronto"
 
-![[op5.png]]
+![[img/op5.png]]
 
 
 
@@ -113,7 +113,7 @@ La opción 5 del menú cierra el programa y muestra el mensaje "Vuelva pronto"
 
 Obtuvimos dos imágenes, una del logo de la facultad de ingeniería, otro de un gato defendiendo el software libre :D y el README de las indicaciones del proyecto.
 
-![[disco.png]]
+![[img/disco.png]]
 
 
 ## 8.- Dudas y comentarios 

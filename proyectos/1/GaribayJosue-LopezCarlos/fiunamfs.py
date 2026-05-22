@@ -189,7 +189,7 @@ class FS(threading.Thread):
                     return f"Éxito: Archivo '{nombre_fs}' eliminado."
                     
         return f"Error: Archivo '{nombre_fs}' no encontrado."
-
+ 
 
 def main():
     ruta_img = 'fiunamfs.img'
