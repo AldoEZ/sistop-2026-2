@@ -14,19 +14,13 @@ class FiUnamFS:
         self.lock = threading.Lock()
 
     def validar_fs(self):
-        """ 
-        Valida que el sistema de archivos sea estrictamente
-        FiUnamFS versión 26-2.
-        """
         try:
             with open(self.ruta, 'rb') as archivo:
                 archivo.seek(5)
-                # Leem los 9 bytes y limpia el \x00
                 nombre = archivo.read(9).decode(
                     'ascii').replace('\x00', '').strip()
 
                 archivo.seek(14)
-                # Lee los 5 bytes y limpiamos el \x00
                 version = archivo.read(5).decode(
                     'ascii').replace('\x00', '').strip()
 
@@ -34,12 +28,21 @@ class FiUnamFS:
                     print('Error: El nombre del sistema de archivos no coincide.')
                     return False
 
-                if version != '26-2':
+                # Se agrega validación de versión para detectar posibles incompatibilidades,
+                # pero se permite continuar si la versión es '24-2' debido a que se
+                # usó esa versión para generar la imagen:
+                if version == '26-2':
+                    print("Sistema de archivos validado correctamente (26-2).")
+                elif version == '24-2':
                     print(
-                        f"Error: Version incorrecta. Se esperaba '26-2', se encontró '{version}'.")
+                        f"ADVERTENCIA: Se esperaba '26-2', se encontró '{version}'.")
+                    print(
+                        "Ejecutando debido a que se usó esa versión para generar la imagen...")
+                else:
+                    print(f"Error: Versión no reconocida: '{version}'.")
                     return False
 
-            return True
+            return True  # Si el nombre es correcto.
 
         except Exception as e:
             print(f"Error al abrir la imagen: {e}")
@@ -253,3 +256,77 @@ class FiUnamFS:
                         return
 
         print('Archivo no encontrado.')
+
+    def leer_bytes_archivo(self, nombre_archivo, size, offset):
+        """
+        Lee una porción de bytes de un archivo específico.
+        Ideal para FUSE (read).
+        """
+        with self.lock:
+            with open(self.ruta, 'rb') as archivo:
+                # Busca la entrada del archivo
+                for i in range(TOTAL_ENTRIES):
+                    dir_offset = DIRECTORY_START + (i * ENTRY_SIZE)
+                    archivo.seek(dir_offset)
+                    entrada = archivo.read(ENTRY_SIZE)
+
+                    nombre = entrada[1:16].decode(
+                        'ascii').replace('\x00', '').strip()
+                    tipo = entrada[0:1].decode('ascii')
+
+                    if tipo == '-' and nombre == nombre_archivo:
+                        tamano = struct.unpack('<I', entrada[16:20])[0]
+                        cluster = struct.unpack('<I', entrada[20:24])[0]
+
+                        # Valida offset
+                        if offset >= tamano:
+                            return b''  # Fin del archivo
+
+                        # Lee la porción solicitada
+                        inicio_datos = (cluster * CLUSTER_SIZE) + offset
+                        archivo.seek(inicio_datos)
+
+                        # Ajusta tamaño de lectura si excede el final del archivo
+                        leer_cantidad = min(size, tamano - offset)
+                        return archivo.read(leer_cantidad)
+        return b''
+
+
+def escribir_bytes_archivo(self, nombre_archivo, data):
+    """
+    Escribe datos directamente en el sistema de archivos desde memoria.
+    """
+    with self.lock:
+        # Busca una entrada libre
+        indice = self.buscar_entrada_libre()
+        if indice == -1:
+            raise Exception("No hay espacio en directorio")
+
+        # Busca un cluster libre
+        cluster_libre = self.buscar_cluster_libre()
+
+        # Escribe los datos en el cluster
+        with open(self.ruta, 'r+b') as archivo:
+            inicio_datos = cluster_libre * CLUSTER_SIZE
+            archivo.seek(inicio_datos)
+            archivo.write(data)
+
+            # Actualiza metadata en directorio
+            tamano = len(data)
+            offset = DIRECTORY_START + (indice * ENTRY_SIZE)
+            archivo.seek(offset)
+            archivo.write(b'-')  # Tipo archivo
+
+            # Nombre (truncado a 15 chars)
+            nombre_bytes = nombre_archivo.encode(
+                'ascii')[:15].ljust(15, b' ')
+            archivo.write(nombre_bytes)
+
+            # Tamaño y cluster
+            archivo.write(struct.pack('<I', tamano))
+            archivo.write(struct.pack('<I', cluster_libre))
+
+            # Fecha
+            fecha = datetime.now().strftime('%Y%m%d%H%M%S').encode('ascii')
+            archivo.seek(offset + 30)
+            archivo.write(fecha)
