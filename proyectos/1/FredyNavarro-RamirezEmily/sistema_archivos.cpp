@@ -1,5 +1,5 @@
 /*
-Implementación de Operaciones de FiUnamFS
+Implementación de operaciones de FiUnamFS
 Autores: Navarro Carbajal Fredy Emiliano, Ramírez Terán Emily
 Descripción: Implementa las funciones para la manipulación
 del sistema de archivos virtual. Utiliza fstream para realizar
@@ -34,7 +34,7 @@ bool validar_superbloque(){
     string nombre(sb.nombre_fs, 9);
     string version(sb.version, 5);
     
-    //Limpieza mejorada: quita tanto nulos como espacios en blanco al final
+    //Limpieza quita tanto nulos como espacios en blanco al final
     size_t fin_nom = nombre.find_last_not_of(" \x00");
     if(fin_nom != string::npos) nombre.erase(fin_nom + 1);
     else nombre.clear();
@@ -112,7 +112,7 @@ void copiar_desde_fs(const string& archivo_origen, const string& archivo_destino
         if(archivo_info.tipo == '-'){
             string nombre(archivo_info.nombre, 15);
             size_t fin_nombre = nombre.find_last_not_of(" \x00");
-            if (fin_nombre != string::npos) nombre.erase(fin_nombre + 1);
+            if(fin_nombre != string::npos) nombre.erase(fin_nombre + 1);
             else nombre.clear();
 
             if(nombre.find(archivo_origen) != string::npos){
