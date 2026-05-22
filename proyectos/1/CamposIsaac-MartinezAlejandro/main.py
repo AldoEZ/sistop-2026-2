@@ -15,6 +15,10 @@ from fuse import Fuse
 
 fuse.fuse_python_api = (0, 2)
 
+#Clase principal del sistema de archivos montado con FUSE.
+#Cada método responde a una operación que el sistema operativo puede solicitar:
+#listar directorios, obtener atributos, leer, escribir, crear o eliminar archivos.
+
 class FiUnamFs(Fuse):
 
     ruta_img = None
@@ -23,17 +27,22 @@ class FiUnamFs(Fuse):
         super().__init__(**kwargs)
         self._disco = None
 
+    #Carga el objeto Disco cuando se necesita por primera vez.
+    #Esto evita abrir y procesar la imagen antes de que FUSE empiece a usar el sistema.
     @property
     def disco(self):
         if self._disco is None:
             self._disco = Disco(self.ruta_img)
         return self._disco
         
-    
+    #Lista el contenido del directorio raíz mostrado por FUSE.
+    #Además de los archivos de FiUnamFS, se incluyen las entradas especiales '.' y '..'.
     def readdir(self, path:str, offset:int):
         for r in [ '.', '..' ] + list(self.disco.listarEntradas()):
             yield fuse.Direntry(r)
 
+    #Devuelve los atributos de un archivo o directorio.
+    #FUSE usa esta información para saber si la ruta existe, su tamaño y sus permisos.
     def getattr(self, path:str):
         st = fuse.Stat()
 
@@ -66,6 +75,8 @@ class FiUnamFs(Fuse):
 
         return -errno.ENOENT
 
+    #Lee el contenido de un archivo desde FiUnamFS.
+    #El parámetro offset permite devolver solo la parte solicitada por el sistema operativo.
     def read(self, path: str, size: int, offset: int) -> bytes:
         contenido = self.disco.leerEntrada(path.lstrip('/'))
         if contenido != None:
@@ -83,10 +94,13 @@ class FiUnamFs(Fuse):
         else:
             return -errno.ENOENT
 
-
+    #FUSE puede llamar a truncate durante ciertas operaciones de escritura.
+    #En este proyecto se acepta la llamada para permitir el flujo normal de escritura.
     def truncate(self, path, length):
         return 0
 
+    #Elimina un archivo del sistema montado.
+    #Internamente se marca su entrada como libre dentro del directorio de FiUnamFS.
     def unlink(self, path: str):
         nombre = path.lstrip('/')
         if self.disco.encontrarEntrada(nombre) is not None:
@@ -95,19 +109,24 @@ class FiUnamFs(Fuse):
         else:
             return -errno.ENOENT
 
+    #Crea una nueva entrada vacía cuando el sistema operativo solicita crear un archivo.
+    #El contenido se escribirá posteriormente mediante el método write.
     def create(self, path:str, flags, mode):
         nombre = path.lstrip('/')
         if self.disco.encontrarEntrada(nombre):
             return -errno.EEXIST
         self.disco.escribirEntrada(nombre, b'')
         return 0
-    
+
+    #Valida que el archivo exista antes de permitir que sea abierto desde el punto de montaje.
     def open(self, path, flags):
         nombre = path.lstrip('/')
         if self.disco.encontrarEntrada(nombre) is None:
             return -errno.ENOENT
         return 0
 
+    #Escribe datos sobre un archivo existente.
+    #Se reconstruye el contenido considerando el offset para respetar la posición de escritura.
     def write(self, path, buf, offset):
         nombre = path.lstrip('/')
         entrada = self.disco.encontrarEntrada(nombre)
@@ -123,8 +142,8 @@ class FiUnamFs(Fuse):
         self.disco.sobrescribirEntrada(nombre, bytes(nuevo))
         return len(buf)
     
-
-
+#Configura FUSE, recibe la ruta de la imagen y monta el sistema de archivos.
+#La imagen se toma del primer argumento recibido al ejecutar el programa.
 def main():
     if len(sys.argv) < 3:
         sys.argv.append('--help')
@@ -132,7 +151,22 @@ def main():
     title = 'Proyecto - Mini Sistema de Archivos con FUSE'
     descr = ("Lee la imagen de un disco y permite montarlo al igual que realizar operaciones sobre el sistema")
 
-    FiUnamFs.ruta_img = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else None
+    ruta_img = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else None
+    FiUnamFs.ruta_img = ruta_img
+
+    if ruta_img and os.path.exists(ruta_img):
+        try:
+            from fiunamfs.disco import Disco
+            _temp_disco = Disco(ruta_img) 
+        except RuntimeError as e:
+            print(f"\nError: {e}\n", file=sys.stderr)
+            sys.exit(1)
+        except Exception as e:
+            print(f"\Error inesperado al leer la imagen: {e}\n", file=sys.stderr)
+            sys.exit(1)
+    else:
+        print(f"\nLa imagen '{ruta_img}' no existe.\n", file=sys.stderr)
+        sys.exit(1)
 
     usage = ("\n\nProyecto: Mini Sistema de Archivos con FUSE\n  %s: %s\n\n%s\n\n%s" %
              (sys.argv[0], title, descr, fuse.Fuse.fusage))

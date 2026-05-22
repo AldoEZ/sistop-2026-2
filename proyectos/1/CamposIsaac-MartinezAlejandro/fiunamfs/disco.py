@@ -9,12 +9,15 @@ from .entrada import EntradaDir
 from . import herramientas as h 
 import threading
 
-#Hay que investigar la manera de declarar las consrantes una vez para todos los archivos
+#Constantes usadas para recorrer las entradas del directorio.
+#Cada entrada ocupa 64 bytes y '/' indica una entrada disponible.
 TAM_ENTRADA_DIR = 64
 ARCHIVO_VACIO = '/'
 
 
-#Se define la clase para el disco
+#Se define la clase para el disco.
+#Esta clase concentra las operaciones principales sobre la imagen FiUnamFS:
+#cargar el directorio, leer archivos, escribir archivos, eliminar entradas y sincronizar cambios.
 
 class Disco:
 
@@ -29,8 +32,8 @@ class Disco:
         target=self.hiloEscritura,daemon=True)
         self.hilo.start()
 
-    #Lee todos los datos después del superbloque, después itera por cada una y las agrega a una lista
-    
+    #Carga todas las entradas del directorio desde la imagen.
+    #El directorio se lee como un bloque de bytes y después se divide en entradas de 64 bytes.
     def cargarDirectorio(self):
         with open(self.ruta_img, 'rb') as img:
             img.seek(self.superbloque.desp_dir)
@@ -42,7 +45,8 @@ class Disco:
             entrada = EntradaDir(pedazo_entrada)
             self.entradas.append(entrada)
     
-    #Lista las entradas que no están vacías
+    #Devuelve únicamente los nombres de las entradas que representan archivos válidos.
+    #Las entradas marcadas con '/' se consideran libres y no se muestran.
 
     def listarEntradas(self):
         no_vacias = []
@@ -51,7 +55,8 @@ class Disco:
                 no_vacias.append(entrada.nombre_archivo.strip())
         return no_vacias
     
-    #Busca una entrada por su nombre, se modifica para no incluir los espacios en blanco de los bytes completos del nombre
+    #Busca una entrada por nombre dentro del directorio cargado en memoria.
+    #Se eliminan bytes nulos y espacios para comparar contra el nombre recibido por FUSE.
 
     def encontrarEntrada(self,nombre):
         for entrada in self.entradas:
@@ -59,7 +64,8 @@ class Disco:
                 return entrada
         return None
 
-    #Busca la entrada y si la encuentra carga todos los datos en bruto
+    #Lee el contenido de un archivo guardado dentro de FiUnamFS.
+    #Primero localiza su entrada y después calcula el desplazamiento usando el cluster inicial.
     
     def leerEntrada(self,nombre):
         entrada = self.encontrarEntrada(nombre)
@@ -72,8 +78,9 @@ class Disco:
         else:
             return None
 
-    #Se asegura que no haya una archivo con el mismo nombre, después busca si hay espacio suficiente seguido
-    #para escribir los datos solicitados, después intenta escribir una entrada al directorio. Finalmente actualiza el disco
+    #Escribe un archivo nuevo en FiUnamFS.
+    #La operación valida duplicados, busca espacio contiguo, escribe los datos y registra la entrada.
+    #El lock evita que dos operaciones modifiquen la imagen al mismo tiempo.
     
     def escribirEntrada(self, nombre, datos):
 
@@ -110,7 +117,9 @@ class Disco:
                 self.condicion.notify()
             return True
 
-    #Se encarga de encontrar el espacio seguido necesario para escribir el archivo
+    #Busca el siguiente espacio disponible para guardar un archivo.
+    #El método trabaja con asignación contigua, por lo que regresa el cluster inicial disponible.
+
 
     def encontrarEspacio(self, clusters_necesarios):
         ocupados = []
@@ -129,7 +138,8 @@ class Disco:
         
         return siguiente
     
-    #Encuentra el archivo y llama a su eliminación, después actualiza el disco
+    #Elimina una entrada del directorio y solicita la sincronización del directorio en disco.
+    #La eliminación es lógica: la entrada se marca como libre para que pueda reutilizarse.
 
     def eliminarEntrada(self,nombre):
         with self.lock:
@@ -142,7 +152,8 @@ class Disco:
             else:
                 print(f"No se encontró la entrada")
 
-    #Lee todo y lo reescribe
+    #Reescribe el directorio completo en la imagen.
+    #Se usa después de crear, modificar o eliminar entradas para mantener persistentes los cambios.
     
     def actualizarDisco(self):
         with self.lock:
@@ -155,6 +166,9 @@ class Disco:
                 img.write(salida)
 
   
+    #Sobrescribe el contenido de un archivo existente.
+    #Esta función se usa cuando FUSE recibe una escritura sobre un archivo ya creado.
+
     def sobrescribirEntrada(self, nombre, datos):
         with self.lock:
             entrada = self.encontrarEntrada(nombre)
@@ -170,7 +184,8 @@ class Disco:
                 self.condicion.notify()
             return True
 
-
+    #Hilo encargado de esperar operaciones pendientes de sincronización.
+    #Cuando recibe una operación "sync", actualiza el directorio de la imagen en segundo plano.
     def hiloEscritura(self):
 
         while True:

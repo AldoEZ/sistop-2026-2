@@ -6,23 +6,25 @@
 
 from . import herramientas as h 
 
-#Constantes para identificar el tipo de directorio conforme al planteamiento
+#Constantes para identificar el tipo de entrada conforme al planteamiento.
+#Un archivo válido usa '-', mientras que una entrada libre usa '/'.
 
 ARCHIVO_VAL = '-'
 ARCHIVO_VACIO = '/'
 NOMBRE_VACIO = '###############'
 
-#Se define la clase para los archivos
+#Se define la clase para los archivos.
+#Cada objeto de esta clase representa una entrada de 64 bytes dentro del directorio.
 
-#Cabe aclarar que se utilizan archivo y entrada para referirse a lo mismo
-#Un archivo = entrada(de un directorio)
+#En este proyecto, una entrada del directorio representa la información de un archivo:
+#tipo, nombre, tamaño, cluster inicial y fechas de creación/modificación.
 
 class EntradaDir:
 
     def __init__(self, bytes_raw):
 
         if bytes_raw is None:
-            #caso en el que esta vacio
+            #Cuando no se reciben bytes, se crea una entrada vacía con los valores por defecto.
             self.tipo_archivo = ARCHIVO_VACIO
             self.nombre_archivo = NOMBRE_VACIO
             self.tam_archivo = 0
@@ -32,7 +34,8 @@ class EntradaDir:
         else:
             self.parsear(bytes_raw)
 
-    #Parseador, se encarga de leer cada segmento del archivo de acuerdo a los requerimientos
+    #Interpreta los bytes de una entrada del directorio según la estructura de FiUnamFS.
+    #Los campos numéricos se leen en little endian mediante las funciones auxiliares.
     
     def parsear(self,bytes_raw):
 
@@ -43,7 +46,8 @@ class EntradaDir:
         self.hf_creado = bytes_raw[30:44].decode('ascii').strip('\x00').strip()
         self.hf_modificado = bytes_raw[50:64].decode('ascii').strip('\x00').strip()
 
-    #Funcion para crear un nuevo archivo, toma el nombre, tamaño y el cluster de inicio de este nuevo archivo
+    #Crea una nueva entrada válida para un archivo que se agregará al sistema.
+    #El nombre se limita a 15 caracteres, como lo establece el formato de FiUnamFS.
     
     def crearNuevo(self, nombre, tam, inicio):
 
@@ -54,7 +58,8 @@ class EntradaDir:
         self.hf_creado = h.obtenerFechaHora()
         self.hf_modificado = h.obtenerFechaHora()
     
-    #Funcion para "eliminar" archivos, en realidad solo se definen como vacíos
+    #Elimina lógicamente una entrada del directorio.
+    #No borra necesariamente los datos físicos del archivo, solo marca la entrada como libre.
     
     def eliminar(self):
         self.tipo_archivo = ARCHIVO_VACIO
@@ -64,7 +69,8 @@ class EntradaDir:
         self.hf_creado = '00000000000000'
         self.hf_modificado = '00000000000000'
 
-    #Funcion para pasar la información de la instancia de vuelta a bytes, util para escribir a disco
+    #Convierte la información de la entrada nuevamente a bytes.
+    #Esto permite escribir el directorio actualizado dentro de la imagen del disco.
 
     def pasarBytes(self):
         datos = b''
@@ -78,10 +84,3 @@ class EntradaDir:
         datos += self.hf_modificado.encode('ascii')[0:14].ljust(14, b'\x00')
 
         return bytes(datos)
-
-    def __str__(self):
-        return (f"Nombre: {self.nombre_archivo.strip()} | "
-                f"Tamaño: {self.tam_archivo} bytes | "
-                f"Cluster: {self.cluster_incial} | "
-                f"Creado: {self.hf_creado}")
-
