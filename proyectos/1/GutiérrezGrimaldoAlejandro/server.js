@@ -6,11 +6,15 @@ const path = require('path');
 const os   = require('os');
 const { Worker } = require('worker_threads');
 
-const imagePath = process.argv[2];
+const imagePath = path.resolve(process.argv[2] || '');
 const PUERTO = parseInt(process.argv[3] || '8080', 10);
 
-if (!imagePath || !fs.existsSync(imagePath)) {
+if (!process.argv[2]) {
   console.error('uso: node server.js <imagen.img> [puerto]');
+  process.exit(1);
+}
+if (!fs.existsSync(imagePath)) {
+  console.error(`no se encuentra la imagen: ${imagePath}`);
   process.exit(1);
 }
 

@@ -24,7 +24,7 @@ function fmtTamano(b) {
 
 const args      = process.argv.slice(2);
 const comando   = args[0];
-const imagePath = args[1];
+const imagePath = args[1] ? path.resolve(args[1]) : null;
 
 if (!comando || !imagePath) {
   console.log('uso: node index.js <listar|copiar|agregar|eliminar> <imagen> [args]');
