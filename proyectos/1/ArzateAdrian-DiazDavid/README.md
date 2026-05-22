@@ -3,7 +3,7 @@
 ## Autores
 
 - Adrián Axel Arzate Ríos - **GitHub: @AxlBoy11th**
-- David Díaz - **GitHub: @Cuervy117**
+- David Díaz Antunez - **GitHub: @Cuervy117**
 
 ## Objetivos
 
@@ -347,3 +347,200 @@ Por ejemplo, se recomienda ignorar elementos como:
 ## Pruebas
 
 ## Conclusiones
+## Pruebas
+
+Para realizar las pruebas se montó la imagen `fiunamfs.img` en un directorio llamado `mnt`. De esta forma fue posible interactuar con el sistema de archivos usando comandos comunes de Linux.
+
+### Preparación del entorno de pruebas
+
+Para evitar modificar directamente la imagen original, se recomienda trabajar con una copia:
+
+```bash
+cp ../fiunamfs.img ./fiunamfs-prueba.img
+mkdir -p mnt
+python main.py mnt ./fiunamfs-prueba.img
+```
+
+Mientras el programa se encuentra en ejecución, se abre otra terminal en la misma carpeta del proyecto para probar las operaciones sobre el directorio `mnt`.
+
+### Operación 1: Listar archivos
+
+Comando utilizado:
+
+```bash
+ls -la mnt
+```
+
+Resultado obtenido:
+
+```text
+logo.png
+mensaje.jpg
+README.org
+```
+
+Con esta prueba se verificó que el sistema puede leer correctamente el directorio de `FiUnamFS` y mostrar los archivos almacenados dentro de la imagen.
+
+### Operación 2: Copiar un archivo desde FiUnamFS hacia Linux
+
+Comando utilizado:
+
+```bash
+cp mnt/README.org README_copiado.org
+ls -la README_copiado.org
+```
+
+Resultado esperado:
+
+El archivo `README_copiado.org` debe aparecer en la carpeta del proyecto como una copia del archivo almacenado dentro de `FiUnamFS`.
+
+Esta prueba verifica que el sistema puede leer el contenido de un archivo dentro de la imagen y copiarlo hacia el sistema operativo anfitrión.
+
+### Operación 3: Copiar un archivo desde Linux hacia FiUnamFS
+
+Comandos utilizados:
+
+```bash
+echo "hola desde arch" > prueba.txt
+cp prueba.txt mnt/prueba.txt
+ls -la mnt
+cat mnt/prueba.txt
+```
+
+Resultado esperado:
+
+El archivo `prueba.txt` debe aparecer dentro del directorio montado `mnt` y su contenido debe ser:
+
+```text
+hola desde arch
+```
+
+Esta prueba verifica que el sistema puede crear una nueva entrada en el directorio de `FiUnamFS`, asignar espacio dentro de la imagen y escribir el contenido del archivo.
+
+### Operación 4: Eliminar un archivo dentro de FiUnamFS
+
+Comandos utilizados:
+
+```bash
+rm mnt/prueba.txt
+ls -la mnt
+```
+
+Resultado esperado:
+
+El archivo `prueba.txt` ya no debe aparecer dentro de `mnt`.
+
+Esta prueba verifica que el sistema puede eliminar una entrada del directorio y liberar el espacio correspondiente dentro del sistema de archivos.
+
+### Casos extremos
+
+Además de las operaciones principales, se consideran los siguientes casos extremos para comprobar la estabilidad del sistema.
+
+#### Archivo inexistente
+
+Comando:
+
+```bash
+cat mnt/noexiste.txt
+```
+
+Resultado esperado:
+
+El sistema debe indicar que el archivo no existe y no debe terminar de forma inesperada.
+
+#### Nombre de archivo demasiado largo
+
+Comandos:
+
+```bash
+echo "prueba" > archivo_con_nombre_demasiado_largo.txt
+cp archivo_con_nombre_demasiado_largo.txt mnt/
+```
+
+Resultado esperado:
+
+El sistema debe rechazar el archivo o manejar el error correctamente, ya que `FiUnamFS` maneja nombres de archivo con longitud limitada.
+
+#### Copiar directorios
+
+Comandos:
+
+```bash
+mkdir carpeta_prueba
+cp -r carpeta_prueba mnt/
+```
+
+Resultado esperado:
+
+El sistema no debe permitir copiar directorios, ya que `FiUnamFS` maneja un directorio plano y no contempla subdirectorios.
+
+#### Archivo duplicado
+
+Comandos:
+
+```bash
+echo "primera version" > repetido.txt
+cp repetido.txt mnt/repetido.txt
+cp repetido.txt mnt/repetido.txt
+```
+
+Resultado esperado:
+
+El sistema debe evitar inconsistencias al intentar copiar un archivo con un nombre que ya existe dentro de `FiUnamFS`.
+
+#### Falta de espacio
+
+Prueba recomendada:
+
+Copiar archivos grandes hacia `mnt` hasta superar el espacio disponible dentro de la imagen.
+
+Resultado esperado:
+
+El sistema debe rechazar la escritura cuando no exista espacio suficiente y no debe corromper la imagen del sistema de archivos.
+
+### Limpieza después de pruebas
+
+Al terminar las pruebas se desmonta el sistema de archivos:
+
+```bash
+fusermount -u mnt
+```
+
+En caso de error:
+
+```bash
+sudo umount mnt
+```
+
+Después se eliminan los archivos temporales:
+
+```bash
+rm -f prueba.txt README_copiado.org fiunamfs-prueba.img
+rm -rf carpeta_prueba
+```
+
+Finalmente, se revisa el estado del repositorio:
+
+```bash
+git status
+```
+
+El resultado esperado es:
+
+```text
+nothing to commit, working tree clean
+```
+
+## Conclusiones
+
+El desarrollo de este proyecto permitió comprender de manera práctica cómo se organiza internamente un sistema de archivos. A diferencia del uso cotidiano de archivos y carpetas desde el sistema operativo, en este proyecto fue necesario trabajar directamente con una imagen binaria, interpretar su superbloque, recorrer su directorio y ubicar el contenido de los archivos dentro de la zona de datos.
+
+El uso de FUSE facilitó la interacción con `FiUnamFS`, ya que permitió montar la imagen como si fuera un directorio normal del sistema. Gracias a esto, operaciones comunes como `ls`, `cp`, `cat` y `rm` pudieron utilizarse para probar el funcionamiento del sistema de archivos.
+
+También se reforzó la importancia de la sincronización en operaciones concurrentes. Al trabajar con una imagen compartida, es necesario evitar que dos operaciones modifiquen al mismo tiempo la estructura del sistema de archivos, ya que esto podría provocar inconsistencias o corrupción de datos.
+
+Una parte interesante del desarrollo se relaciona con la exposición realizada sobre **GPU y sistemas operativos**. En ambos casos se observa que no todos los componentes de software funcionan de la misma forma en todos los sistemas operativos. Así como en el tema de GPU existen dependencias, controladores y capas de compatibilidad específicas para cada entorno, en este proyecto se observó que herramientas como FUSE están pensadas principalmente para sistemas tipo UNIX/Linux.
+
+Esto muestra la importancia de considerar la naturaleza del sistema operativo al desarrollar software de bajo nivel. La compatibilidad no depende únicamente del lenguaje de programación, sino también de las bibliotecas disponibles, el tipo de sistema de archivos, las llamadas al sistema y la forma en que cada sistema operativo maneja recursos como archivos, permisos y dispositivos.
+
+En conclusión, el proyecto permitió integrar temas de sistemas de archivos, procesos, concurrencia y compatibilidad entre sistemas operativos. Además, ayudó a comprender que el diseño de software cercano al sistema depende fuertemente del entorno donde se ejecuta.
