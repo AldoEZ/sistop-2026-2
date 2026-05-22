@@ -11,14 +11,15 @@ ENTRADAS_DIRECTORIO = 256
 TAMANO_ENTRADA = 64
 CLUSTER_DIRECTORIO_INICIO = 1
 
+# Clase para encapsular las peticiones entre hilos
 class PeticionFS:
     def __init__(self, accion, *args):
         self.accion = accion
         self.args = args
         self.resultado = None
-        self.evento = threading.Event()
+        self.evento = threading.Event() # Mecanismo de sincronización
 
-
+# Hilo trabajador que ejecuta las operaciones concurrentes
 class FS(threading.Thread):
     def __init__(self, ruta_img, cola_peticiones):
         super().__init__()
@@ -112,7 +113,7 @@ class FS(threading.Thread):
         clusters_requeridos = (tamano + TAMANO_CLUSTER - 1) // TAMANO_CLUSTER
         
         with open(self.ruta_img, 'r+b') as f:
-            # 1. Buscar entrada libre y calcular espacio ocupado
+            # Busca una entrada libre y calcula espacio ocupado
             f.seek(CLUSTER_DIRECTORIO_INICIO * TAMANO_CLUSTER)
             offset_libre = -1
             intervalos_ocupados = []
@@ -133,7 +134,7 @@ class FS(threading.Thread):
             if offset_libre == -1:
                 return "Error: Directorio lleno."
                 
-            # 2. Encontrar espacio contiguo libre (First Fit)
+            # Encontrar espacio contiguo libre
             intervalos_ocupados.sort()
             cluster_actual = 9
             cluster_destino = -1
@@ -150,11 +151,11 @@ class FS(threading.Thread):
                 else:
                     return "Error: No hay espacio contiguo suficiente."
             
-            # 3. Escribir datos
+            # Escribir datos
             f.seek(cluster_destino * TAMANO_CLUSTER)
             f.write(datos)
             
-            # 4. Escribir entrada de directorio
+            # Escribir entrada de directorio
             ahora = datetime.now().strftime('%Y%m%d%H%M%S').encode('ascii')
             nueva_entrada = bytearray(TAMANO_ENTRADA)
             nueva_entrada[0:1] = b'-'
@@ -170,10 +171,24 @@ class FS(threading.Thread):
         return f"Éxito: Archivo copiado a FiUnamFS ocupando {clusters_requeridos} clusters."
 
 
-    def eliminar_archivo(self):
-        
-        
-        pass
+    def eliminar_archivo(self, nombre_fs):
+        with open(self.ruta_img, 'r+b') as f:
+            f.seek(CLUSTER_DIRECTORIO_INICIO * TAMANO_CLUSTER)
+            for i in range(ENTRADAS_DIRECTORIO):
+                offset_actual = (CLUSTER_DIRECTORIO_INICIO * TAMANO_CLUSTER) + (i * TAMANO_ENTRADA)
+                entrada = f.read(TAMANO_ENTRADA)
+                nombre = entrada[1:16].decode('ascii', errors='ignore').strip('\x00').strip()
+                
+                if nombre == nombre_fs and entrada[0:1] == b'-':
+                    # Marcar como eliminado ('/' en tipo y '#####' en nombre)
+                    f.seek(offset_actual)
+                    entrada_borrada = bytearray(entrada)
+                    entrada_borrada[0:1] = b'/'
+                    entrada_borrada[1:16] = b'###############'
+                    f.write(entrada_borrada)
+                    return f"Éxito: Archivo '{nombre_fs}' eliminado."
+                    
+        return f"Error: Archivo '{nombre_fs}' no encontrado."
 
 
 def main():
