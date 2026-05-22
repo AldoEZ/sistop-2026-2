@@ -5,7 +5,7 @@ Inicio de proyecto FiUnamFS
 En este punto aun no se monta FUSE, por lo que no modificamos la imagen "fiunamfs.img",
 pero dejamos el ambiente preparado para montar FiUnamFS con FUSE.
 """
-from pathlib import Path # libreria para manejo de rutas de archivos
+from pathlib import Path
 import sys
 
 from argumentos import crear_parser, validar_rutas
