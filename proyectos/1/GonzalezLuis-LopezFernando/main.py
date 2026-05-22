@@ -257,7 +257,7 @@ def main():
     #print("========= INICIANDO PROYECTO 1 =========")
     
     if len(sys.argv) < 2 or sys.argv[1] == '--help':
-        print("Uso: python3 fiunamfs_fuse.py <punto_montaje>")
+        #print("Uso: python3 fiunamfs_fuse.py <punto_montaje>")
         sys.exit(1)
 
     sys.argv.insert(1, '-f')
@@ -267,7 +267,7 @@ def main():
         motor.conectar()
         #motor.validar_superbloque()
     except Exception as e:
-        print(f"Error al iniciar: {e}")
+        #print(f"Error al iniciar: {e}")
         return
 
     trabajador = threading.Thread(target=hilo_trabajador, args=(motor,))

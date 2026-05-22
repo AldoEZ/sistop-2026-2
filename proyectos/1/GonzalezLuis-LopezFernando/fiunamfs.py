@@ -171,8 +171,8 @@ class FiUnamFS:
             raise ConnectionError("No hay un archivo abierto")
 
         #print("\n------- Contenido:")
-        print(f"{'Nombre':<15} | {'Tamaño (Bytes)':<14} | {'Cluster Inicial':<15} | {'Fecha Creación'}")
-        print("-----------------------------------------------------")
+        #print(f"{'Nombre':<15} | {'Tamaño (Bytes)':<14} | {'Cluster Inicial':<15} | {'Fecha Creación'}")
+        #print("-----------------------------------------------------")
 
         #El directorio empieza en el byte 2048: CLuster 1
         inicio_directorio = self.__TAMANO_CLUSTER * 1
@@ -264,7 +264,7 @@ class FiUnamFS:
                     break
 
         if not encontrado:
-            print(f"Error: El archivo '{nombre_fiunamfs}' no existe dentro de FiUnamFS")
+            #print(f"Error: El archivo '{nombre_fiunamfs}' no existe dentro de FiUnamFS")
             return False
 
         # Extrae los datos y los escribirlos en local
@@ -278,10 +278,10 @@ class FiUnamFS:
         try:
             with open(ruta_destino_local, 'wb') as f_destino:
                 f_destino.write(datos_archivo)
-            print(f"Archivo: '{nombre_fiunamfs}' copiado con exito como '{ruta_destino_local}'")
+            #print(f"Archivo: '{nombre_fiunamfs}' copiado con exito como '{ruta_destino_local}'")
             return True
         except IOError as e:
-            print(f"Error al guardar el archivo en local: {e}")
+            #print(f"Error al guardar el archivo en local: {e}")
             return False
 
 
@@ -321,7 +321,7 @@ class FiUnamFS:
             raise ConnectionError("No hay un archivo abierto.")
 
         if not os.path.exists(ruta_origen_local):
-            print(f"Error: El archivo local '{ruta_origen_local}' no existe")
+            #print(f"Error: El archivo local '{ruta_origen_local}' no existe")
             return False
 
         # Medir el archivo y calcular lo que se necesita
@@ -331,17 +331,17 @@ class FiUnamFS:
         # Obtener mapa de la memoria
         mapa_clusters, posicion_entrada_libre, nombres_existentes = self._obtener_mapa_clusters()
         if nombre_fiunamfs in nombres_existentes:
-            print(f"Error. Ya existe un archivo llamado {nombre_fiunamfs}")
+            #print(f"Error. Ya existe un archivo llamado {nombre_fiunamfs}")
             return False
         if posicion_entrada_libre == -1:
-            print("Error: El directorio está lleno\n-- No caben más archivos")
+            #print("Error: El directorio está lleno\n-- No caben más archivos")
             return False
             
         # Buscar espacio contiguo
         cluster_inicial = self._buscar_espacio_contiguo(mapa_clusters, clusters_necesarios)
         
         if cluster_inicial == -1 or (cluster_inicial + clusters_necesarios > self.__CLUSTERS_UNIDAD):
-            print("Error: No hay suficiente espacio contiguo en el disco")
+            #print("Error: No hay suficiente espacio contiguo en el disco")
             return False
             
         # Escribir los datos en la zona de datos
@@ -353,7 +353,7 @@ class FiUnamFS:
             self.archivo.seek(byte_inicio_datos)
             self.archivo.write(datos_a_escribir)
         except IOError as e:
-            print(f"Error al leer el archivo local: {e}")
+            #print(f"Error al leer el archivo local: {e}")
             return False
 
         # Actualizar entrada en el directorio
@@ -374,8 +374,8 @@ class FiUnamFS:
         self.archivo.seek(posicion_entrada_libre)
         self.archivo.write(nueva_entrada)
         
-        print(f"Archivo '{ruta_origen_local}' insertado como '{nombre_fiunamfs}' exitosamente")
-        print(f"    -> Ocupa {clusters_necesarios} clusters, empezando en el cluster {cluster_inicial}")
+        #print(f"Archivo '{ruta_origen_local}' insertado como '{nombre_fiunamfs}' exitosamente")
+        #print(f"    -> Ocupa {clusters_necesarios} clusters, empezando en el cluster {cluster_inicial}")
         return True
 
     def escribir_desde_buffer(self, nombre_fiunamfs, datos_bytes):
@@ -465,7 +465,7 @@ class FiUnamFS:
                     #Se escribe en el disco
                     self.archivo.write(nuevo_tipo + nuevo_nombre)
                     
-                    print(f"Eliminando archivo {nombre_fiunamfs}")
+                    #print(f"Eliminando archivo {nombre_fiunamfs}")
                     return True
 
         raise FileNotFoundError(f"El archivo '{nombre_fiunamfs}' no existe")
@@ -474,41 +474,4 @@ class FiUnamFS:
     def desconectar(self):
         if self.archivo and not self.archivo.closed:
             self.archivo.close()
-            print("Archivo de imagen cerrado")
-
-
-if __name__ == "__main__":
-    ruta_prueba = "./fiunamfs.img" 
-    
-    try:
-        fs = FiUnamFS(ruta_prueba)
-        fs.conectar()
-        fs.validar_superbloque()
-        
-        print("\n Listar_directorio ANTES de borrar:")
-        fs.listar_directorio()
-
-        print("\n Eliminando archivo")
-        #fs.eliminar_archivo('script_final.py')
-
-        print("\n Listar_directorio DESPUÉS de borrar:")
-        fs.listar_directorio()
-        
-        #print("\nPruebita copiando imagen pro")
-        #fs.copiar_al_exterior("script_final.py", "codigo_extraido.py")
-
-        #print("\n Listar_directorio DESPUÉS de borrar:")
-        #fs.listar_directorio()
-
-        # (Después de hacer listar_directorio o de eliminar algo)
-        
-        #print("\n Intentando inserar archivo")
-        #fs.copiar_al_interior("fiunamfs.py", "script_final.py")
-        
-        #rint("\n Listar_directorio DESPUÉS de insertar:")
-        #fs.listar_directorio()
-        
-        
-        fs.desconectar()
-    except Exception as e:
-        print(f"Ocurrió un error inesperado :( :\n{e}")
+            #print("Archivo de imagen cerrado")
