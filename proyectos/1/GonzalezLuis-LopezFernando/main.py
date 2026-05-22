@@ -37,7 +37,7 @@ def hilo_trabajador(motor_fs):
     
     while sistema_corriendo:
         
-        #Hilo trabajador adquiere se queda en espera hasta que la interfaz suelte el mutex.
+        #Hilo trabajador se queda en espera hasta que la interfaz suelte el mutex
         sem_orden_pendiente.acquire()
         
         if not sistema_corriendo:
@@ -68,20 +68,29 @@ def hilo_trabajador(motor_fs):
                     orden_actual["resultado"] = motor_fs.leer_bytes_archivo(args[0], args[1], args[2])
                 except FileNotFoundError:
                     orden_actual["resultado"] = -errno.ENOENT
+            elif comando == "escribir_fuse":
+                try:
+                    motor_fs.escribir_desde_buffer(args[0], args[1])
+                    orden_actual["resultado"] = 0
+                except Exception as e:
+                    sys.stderr.write(f"\nError al guardar archivo {e}\n")
+                    orden_actual["resultado"] = -errno.ENOSPC
         except Exception as e:
-            sys.stderr.write(f"[Trabajador] Error: {e}\n")
+            sys.stderr.write(f"Error: {e}\n")
         finally:
             mutex_fs.release()
         
-        # Le avisamos a la interfaz que ya terminamos el trabajo
+        # liberamos el mutex
         sem_orden_terminada.release()
 class FiUnamFS_FUSE(Fuse):
     def __init__(self, *args, **kw):
         fuse.Fuse.__init__(self, *args, **kw)
         
-        # Obtiene los identificadores del usuario actual
+        #Identificadores del usuario
         self.uid = os.getuid()
         self.gid = os.getgid()
+
+        self.buffers_escritura = {}
 
     def getattr(self, path: str):
         st = fuse.Stat()
@@ -97,6 +106,16 @@ class FiUnamFS_FUSE(Fuse):
 
         nombre_archivo = path[1:]
         
+
+        if nombre_archivo in self.buffers_escritura:
+            st.st_mode = stat.S_IFREG | 0o666
+            st.st_nlink = 1
+            st.st_size = len(self.buffers_escritura[nombre_archivo])
+            st.st_ctime = int(time.time())
+            st.st_mtime = st.st_ctime
+            st.st_atime = st.st_ctime
+            return st
+
         global orden_actual
         orden_actual["comando"] = "listar_fuse"
         sem_orden_pendiente.release()
@@ -161,6 +180,75 @@ class FiUnamFS_FUSE(Fuse):
         
         # El trabajador nos devuelve la cadena de bytes leída, o un error de -errno
         return orden_actual["resultado"]
+
+    def truncate(self, path: str, length: int):
+        #Entra cuando se crea un archivo nuevo o se sobreescribe uno.
+        
+        nombre_archivo = path[1:]
+        self.buffers_escritura[nombre_archivo] = b''
+        return 0
+
+    def write(self, path: str, buf: bytes, offset: int):
+        #Maneja pedazos de archivos
+        nombre_archivo = path[1:]
+        
+        if nombre_archivo not in self.buffers_escritura:
+            self.buffers_escritura[nombre_archivo] = b''
+
+        contenido = self.buffers_escritura[nombre_archivo]
+        dest = b''
+        if offset > 0:
+            dest += contenido[0:offset]
+        dest += buf
+        if len(contenido) > offset + len(buf):
+            dest += contenido[(offset+len(buf)):]
+
+        self.buffers_escritura[nombre_archivo] = dest
+        return len(buf)
+
+    def release(self, path: str, flags: int):
+        #Liberar la memoria con datos
+        nombre_archivo = path[1:]
+        
+        if nombre_archivo in self.buffers_escritura:
+            datos_completos = self.buffers_escritura[nombre_archivo]
+            
+            global orden_actual
+            orden_actual["comando"] = "escribir_fuse"
+            orden_actual["argumentos"] = [nombre_archivo, datos_completos]
+            
+            # Mandamos los datos al hilo trabajador
+            sem_orden_pendiente.release()
+            sem_orden_terminada.acquire()
+            
+            # Limpiamos la memoria
+            del self.buffers_escritura[nombre_archivo]
+            
+            return orden_actual["resultado"]
+        return 0
+    def create(self, path: str, *args):
+        #Cuando se ejecuta el comando cp o touch para crear u arhi
+        nombre_archivo = path[1:]
+        self.buffers_escritura[nombre_archivo] = b''
+        return 0
+
+    def mknod(self, path: str, *args):
+        #Se requiere para realizar cp
+        nombre_archivo = path[1:]
+        self.buffers_escritura[nombre_archivo] = b''
+        return 0
+
+    def open(self, path: str, flags: int):
+        #Se invoca antes de leer o escribir, retornar 0 indica que todo está bien
+        return 0
+
+    def chmod(self, path: str, mode: int):
+        #Evitar copiar los permisos
+        return 0
+
+    def chown(self, path: str, uid: int, gid: int):
+        #Evitar copiar el owner
+        return 0
 
 #Hilo principal que va a contener la funcionalidad de la interfaz
 def main():

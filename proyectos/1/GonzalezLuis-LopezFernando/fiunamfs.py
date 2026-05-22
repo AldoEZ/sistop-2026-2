@@ -44,6 +44,7 @@ class FiUnamFS:
         true = ocupado, false = libre
         Devuelve adeḿas la posición (en bytes) de la primera entrada libre en el directorio
         """
+
         # Inicializamos los 720 clusters como libres (False)
         mapa_clusters = [False] * self.__CLUSTERS_UNIDAD
         
@@ -92,10 +93,9 @@ class FiUnamFS:
         return mapa_clusters, posicion_entrada_libre, nombres_existentes
 
     def _buscar_espacio_contiguo(self, mapa_clusters, clusters_necesarios):
-        """
-        Busca secuencialmente en el mapa de clusters un espacio con suficientes 
-        clusters libres (marcados en false) consecutivos. Retorna el cluster inicial o -1 si no hay espacio
-        """
+        
+        #Busca secuencialmente en el mapa de clusters un espacio con suficientes clusters libres consecutivos. Retorna el cluster inicial o -1 si no hay espacio
+        
         contador_consecutivos = 0
         cluster_inicio_candidato = -1
         
@@ -161,9 +161,9 @@ class FiUnamFS:
         #print("OK")
         return True
 
-    """
-    1: Listar los contenidos del directorio
-    """
+    
+    # Listar los contenidos del directorio
+
     def listar_directorio(self):
         # IMPLEMENTAR DIRECTAMENTE EN FUSE
 
@@ -232,9 +232,7 @@ class FiUnamFS:
 
 
     def copiar_al_exterior(self, nombre_fiunamfs, ruta_destino_local):
-        """
-        2: Copia un archivo desde FiUnamFS hacia local
-        """
+        # Copia un archivo desde FiUnamFS hacia local
         if not self.archivo:
             raise ConnectionError("No hay un archivo abierto")
 
@@ -288,10 +286,9 @@ class FiUnamFS:
 
 
     def leer_bytes_archivo(self, nombre_fiunamfs, size, offset):
-        """
-        Lee una porción específica de un archivo directamente desde la imagen.
-        Diseñado para responder a las peticiones 'read' del sistema operativo (FUSE)
-        """
+
+        #Lee una porción del rchivo desde la imagen, actúa en base a la petición "read" de FUSE
+
         if not self.archivo:
             raise ConnectionError("No hay un archivo abierto")
 
@@ -318,9 +315,8 @@ class FiUnamFS:
         return datos_crudos
 
     def copiar_al_interior(self, ruta_origen_local, nombre_fiunamfs):
-        """
-        3. Copiar un archivo de local a FIUnamFS
-        """
+        # Copiar un archivo de local a FIUnamFS
+
         if not self.archivo:
             raise ConnectionError("No hay un archivo abierto.")
 
@@ -332,7 +328,7 @@ class FiUnamFS:
         tamano_archivo = os.path.getsize(ruta_origen_local)
         clusters_necesarios = math.ceil(tamano_archivo / self.__TAMANO_CLUSTER) # Es importante ceil() para que de 'un cluster más' si es que no es exacto
         
-        # Obtener mapa de la memoria (clusters)
+        # Obtener mapa de la memoria
         mapa_clusters, posicion_entrada_libre, nombres_existentes = self._obtener_mapa_clusters()
         if nombre_fiunamfs in nombres_existentes:
             print(f"Error. Ya existe un archivo llamado {nombre_fiunamfs}")
@@ -382,9 +378,61 @@ class FiUnamFS:
         print(f"    -> Ocupa {clusters_necesarios} clusters, empezando en el cluster {cluster_inicial}")
         return True
 
-        """
-        Punto 4: Eliminar archivo de la imagen
-        """
+    def escribir_desde_buffer(self, nombre_fiunamfs, datos_bytes):
+
+        #Guarda bloque de bytes continuos, diseñado para trabajar con FUSE y release.
+        if not self.archivo:
+            raise ConnectionError("No hay un archivo abierto.")
+
+        tamano_archivo = len(datos_bytes)
+        clusters_necesarios = math.ceil(tamano_archivo / self.__TAMANO_CLUSTER)
+
+        if clusters_necesarios > self.__CLUSTERS_UNIDAD:
+            raise ValueError("El archivo excede la capacidad total del sistema.")
+
+        mapa_clusters, posicion_entrada_libre, nombres_existentes = self._obtener_mapa_clusters()
+        
+        # Si el archivo existe, se sobreescribe
+        if nombre_fiunamfs in nombres_existentes:
+            self.eliminar_archivo(nombre_fiunamfs)
+            #Se recalcula el mapa aprovechar el espacio
+            mapa_clusters, posicion_entrada_libre, nombres_existentes = self._obtener_mapa_clusters()
+
+        if posicion_entrada_libre == -1:
+            raise IOError("El directorio está lleno. No caben más archivos.")
+            
+        cluster_inicial = self._buscar_espacio_contiguo(mapa_clusters, clusters_necesarios)
+        
+        if cluster_inicial == -1 or (cluster_inicial + clusters_necesarios > self.__CLUSTERS_UNIDAD):
+            raise IOError("No hay suficiente espacio contiguo (Fragmentación).")
+            
+        # Escritura de los datos
+        byte_inicio_datos = cluster_inicial * self.__TAMANO_CLUSTER
+        self.archivo.seek(byte_inicio_datos)
+        self.archivo.write(datos_bytes)
+
+        # Creación de la entrada en el directorio
+        fecha_actual = datetime.datetime.now().strftime('%Y%m%d%H%M%S').encode('ascii')
+        nombre_bytes = nombre_fiunamfs.encode('ascii')
+        
+        nueva_entrada = struct.pack(
+            self.FORMATO_ENTRADA,
+            b'-',                  
+            nombre_bytes,          
+            tamano_archivo,        
+            cluster_inicial,       
+            fecha_actual,          
+            fecha_actual           
+        )
+
+        self.archivo.seek(posicion_entrada_libre)
+        self.archivo.write(nueva_entrada)
+        
+        return True
+
+    
+
+        # Eliminar archivo de la imagen
     def eliminar_archivo(self, nombre_fiunamfs):
         if not self.archivo:
             raise ConnectionError("No hay una archivo abierto")
