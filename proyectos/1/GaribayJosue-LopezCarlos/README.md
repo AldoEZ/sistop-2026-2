@@ -110,7 +110,6 @@ La opción 5 del menú cierra el programa y muestra el mensaje "Vuelva pronto"
 
 Obtuvimos dos imágenes, una del logo de la facultad de ingeniería, otro de un gato defendiendo el software libre :D y el README de las indicaciones del proyecto.
 
-![[img/disco.png]]
 ![discoContenido](/img/disco.png)
 
 
