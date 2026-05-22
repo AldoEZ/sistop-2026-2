@@ -1,6 +1,7 @@
 import struct
 import threading
 
+CLUSTER_SIZE = 2048
 DIRECTORY_START = 2048
 ENTRY_SIZE = 64
 TOTAL_ENTRIES = 256
@@ -83,3 +84,34 @@ class FiUnamFS:
             print(f"Tamano: {archivo['tamano']} bytes")
             print(f"Cluster inicial: {archivo['cluster']}")
             print('--------------------------')
+
+    def copiar_desde_fs(self, nombre_archivo, destino):
+        """
+        Copia un archivo desde FiUnamFS hacia
+        el destino especificado en el sistema host.
+        """
+        with self.lock:
+            with open(self.ruta, 'rb') as archivo:
+                for i in range(TOTAL_ENTRIES):
+                    offset = DIRECTORY_START + (i * ENTRY_SIZE)
+                    archivo.seek(offset)
+                    entrada = archivo.read(ENTRY_SIZE)
+                    tipo = entrada[0:1].decode('ascii')
+                    nombre = entrada[1:16].decode('ascii')
+                    nombre = nombre.replace('\x00', '').strip()
+
+                    if tipo == '-' and nombre == nombre_archivo:
+                        tamano = struct.unpack('<I', entrada[16:20])[0]
+                        cluster = struct.unpack('<I', entrada[20:24])[0]
+                        inicio = cluster * CLUSTER_SIZE
+                        archivo.seek(inicio)
+                        datos = archivo.read(tamano)
+                        
+                        with open(destino, 'wb') as salida:
+                            salida.write(datos)
+
+                        print('Archivo copiado correctamente.')
+                        
+                        return
+
+        print('Archivo no encontrado.')

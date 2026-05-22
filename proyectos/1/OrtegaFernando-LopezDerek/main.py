@@ -10,7 +10,8 @@ if not fs.validar_fs():
 while True:
     print('\n===== FiUnamFS =====')
     print('1. Listar archivos')
-    print('2. Salir')
+    print('2. Copiar desde FiUnamFS')
+    print('3. Salir')
 
     opcion = input('Selecciona una opcion: ')
 
@@ -20,6 +21,16 @@ while True:
         hilo.join()
 
     elif opcion == '2':
+        nombre = input('Archivo a copiar: ')
+        destino = input('Ruta destino: ')
+        hilo = threading.Thread(
+            target=fs.copiar_desde_fs,
+            args=(nombre, destino)
+        )
+        hilo.start()
+        hilo.join()
+
+    elif opcion == '3':
         break
 
     else:
