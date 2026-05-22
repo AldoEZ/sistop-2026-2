@@ -193,7 +193,7 @@ class FS(threading.Thread):
 
 def main():
     ruta_img = 'fiunamfs.img'
-    
+     
     if not os.path.exists(ruta_img):
         print(f"No se encontró el archivo '{ruta_img}'.")
         return
@@ -255,7 +255,5 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
 
 
