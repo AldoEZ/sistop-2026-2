@@ -2,6 +2,18 @@ import os
 import sys
 from P_sistop2026_2 import FiUnamFS
 
+"""
+Módulo FUSE (Filesystem in Userspace - Simulado)
+Autores: Bello Sánchez Santiago Arath y López Romero David Baruc
+
+Este script actúa como el controlador de interfaz de línea de comandos (CLI).
+Implementa un ciclo REPL (Read-Eval-Print Loop) continuo que captura la entrada
+estándar del usuario, la limpia y la segmenta en tokens. Actúa como una capa 
+de abstracción, traduciendo comandos POSIX estándar (ls, cp, rm) en llamadas 
+a los métodos internos del objeto FiUnamFS, aislando así la lógica del sistema 
+de archivos de la interacción con el usuario.
+"""
+
 def iniciar_consola(ruta_imagen):
     try:
         print(f"Montando sistema de archivos desde: {ruta_imagen}")
@@ -9,6 +21,7 @@ def iniciar_consola(ruta_imagen):
         print("\n¡Bienvenido a FiUnamFS!")
         print("Comandos disponibles: ls, cp, rm, exit\n")
         
+        # Ciclo principal de control de eventos
         while True:
       
             entrada = input("FiUnamFS $ ").strip().split()
@@ -18,16 +31,10 @@ def iniciar_consola(ruta_imagen):
                 
             comando = entrada[0].lower()
             
-    
-            # COMANDO: EXIT
-     
             if comando == 'exit' or comando == 'quit':
                 print("Desmontando sistema y saliendo... ¡Adiós!")
                 break
                 
-        
-            # COMANDO: LS 
-
             elif comando == 'ls':
                 fs.mapear_directorio()
                 print("\n--- Contenido del directorio ---")
@@ -38,9 +45,6 @@ def iniciar_consola(ruta_imagen):
                         print(f"- {archivo.name} ({archivo.size} bytes)")
                 print("--------------------------------\n")
                 
-         
-            # COMANDO: RM 
-         
             elif comando == 'rm':
                 if len(entrada) < 2:
                     print("Uso correcto: rm <nombre_del_archivo_en_FiUnamFS>")
@@ -48,8 +52,6 @@ def iniciar_consola(ruta_imagen):
                 nombre_archivo = entrada[1]
                 fs._eliminarArchivo(nombre_archivo)
                 
-            # COMANDO: CP 
-  
             elif comando == 'cp':
                 if len(entrada) < 3:
                     print("Uso correcto:")
@@ -63,7 +65,6 @@ def iniciar_consola(ruta_imagen):
                 archivo_interno = next((f for f in fs.lista_archivos if f.name == origen), None)
                 
                 if archivo_interno:
-                
                     if os.path.isdir(destino) or destino == '.':
                         if destino == '.': destino = os.getcwd()
                         print(f"Copiando '{origen}' hacia tu computadora en '{destino}'...")
@@ -71,7 +72,6 @@ def iniciar_consola(ruta_imagen):
                     else:
                         print("Error: El destino en tu equipo debe ser una carpeta válida.")
                 
-      
                 elif os.path.isfile(origen):
                     print(f"Copiando '{origen}' desde tu computadora hacia FiUnamFS...")
                     fs.copia_TO_FiUnamFS(origen)
@@ -79,7 +79,6 @@ def iniciar_consola(ruta_imagen):
                 else:
                     print(f"Error: No se encontró el archivo '{origen}' ni en FiUnamFS ni en tu computadora.")
                     
-
             else:
                 print(f"Comando no reconocido: {comando}")
                 print("Usa: ls, cp, rm, o exit")
@@ -88,6 +87,7 @@ def iniciar_consola(ruta_imagen):
         print(f"Error crítico: {e}")
 
 if __name__ == "__main__":
+    # Captura dinámica de parámetros desde el entorno de ejecución
     if len(sys.argv) != 2:
         print("Uso correcto: python FUSE.py <ruta_sistemaArchivos>")
     else:

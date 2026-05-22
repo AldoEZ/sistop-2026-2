@@ -3,7 +3,9 @@ import struct
 import threading
 import math
 from datetime import datetime
+##En este archivo se declaran las clases prinicipales para ekl funcionamiento del programa. 
 
+##Autores: Bello Sánchez Santiago Arath y López Romero David Baruc 
 class File:
     """
     Clase que representa un archivo individual dentro del sistema FiUnamFS.
@@ -42,6 +44,10 @@ class File:
                 return file.read(self.size) 
 
  
+        # División lógica del archivo en fragmentos (chunks) para aislar las operaciones 
+        # de entrada/salida (I/O). Permite paralelizar la lectura bloqueante en disco 
+        # utilizando múltiples hilos, los cuales escriben concurrentemente sobre un 
+        # arreglo de bytes pre-asignado en memoria sin solaparse.
         num_hilos = 4
         chunk_size = math.ceil(self.size / num_hilos)
         resultado = bytearray(self.size)
@@ -94,8 +100,9 @@ class FiUnamFS:
         self.tam_cluster = 0
         self.clusters_dir = 0
         self.clusters_unity = 0
-        self.archivos_validos = {}  # Diccionario: {nombre_archivo: cluster_inicial}
-        self.lista_archivos = []    # Lista de objetos File
+        self.archivos_validos = {} ##Diccionario con el nombre de los archivos existentes y su cluster inicial.
+        self.lista_archivos = [] ##Lista con loas archivos existentes en el sistema
+        self.mapDirectorio = {} ## Clave: Nombre del archivo , Valor: Ubicacion exacta(En que byte se encuentra la entrada del archivo en cuestión)
        
         # Al instanciar, se intenta montar (validar) el sistema. Si falla, lanza excepción.
         if not self.upload():
@@ -115,6 +122,9 @@ class FiUnamFS:
         total_entradas = self.clusters_dir * (self.tam_cluster // 64)
         print("\n--- ESCANEANDO DIRECTORIO (CON HILOS) ---")
         
+        # Exclusión mutua (Mutex) requerida para evitar condiciones de carrera (Race Conditions).
+        # Garantiza que múltiples hilos no corrompan los diccionarios compartidos al insertar 
+        # metadatos simultáneamente durante el mapeo paralelo.
         lock = threading.Lock()
         
         def escanear_seccion(inicio: int, fin: int):
@@ -170,12 +180,8 @@ class FiUnamFS:
         """
         Extrae un archivo del sistema FiUnamFS y lo guarda en el sistema de archivos local del usuario.
         """
-        a = self.lista_archivos[2] # Variable actualmente no utilizada
-
-        # Evita sobrescribir si el archivo ya existe en la ruta destino
         if not os.path.exists(path + f'/{file.name}'):
-            content = file.obtener_contenido()
-
+            content = file.obtener_contenido() 
             try:
                 with open(path + f'/{file.name}', 'wb') as new_file:
                     new_file.write(content)
@@ -188,6 +194,15 @@ class FiUnamFS:
         return False
     
     def _buscar_espacio_libre(self, file_size: int) -> int:
+        """
+        Implementa el algoritmo de asignación contigua para el sistema de archivos.
+        
+        Calcula la cantidad de clústeres necesarios para el archivo y escanea los rangos 
+        de clústeres actualmente ocupados (ordenados ascendentemente). Busca el primer hueco 
+        fragmentado entre archivos existentes que sea lo suficientemente grande para alojar 
+        el nuevo archivo. Si no hay huecos, verifica el espacio libre al final del volumen.
+        Retorna el clúster inicial disponible o -1 si hay desbordamiento de disco.
+        """
         clusters_necesarios = math.ceil(file_size / self.tam_cluster)
         
         rangos_ocupados = []
@@ -210,6 +225,14 @@ class FiUnamFS:
         return -1 
 
     def _buscar_entrada_directorio_libre(self) -> int:
+        """
+        Escanea físicamente el área del directorio (a partir del clúster 1) en bloques de 64 bytes 
+        buscando la primera entrada de metadatos disponible.
+        
+        Una entrada se considera libre si está completamente vacía (lectura nula) o si su primer 
+        byte indica un registro eliminado lógicamente (distinto del código ASCII 45 '-').
+        Retorna el offset exacto en bytes (dirección física) para sobreescribir la nueva entrada.
+        """
         offset_dir = 1 * self.tam_cluster
         total_entradas = self.clusters_dir * (self.tam_cluster // 64)
         
@@ -223,6 +246,15 @@ class FiUnamFS:
         return -1 
 
     def copia_TO_FiUnamFS(self, ruta_local: str) -> bool:
+        """
+        Orquesta la inserción de un archivo externo hacia el volumen FiUnamFS.
+        
+        Coordina las estructuras lógicas solicitando espacio contiguo (_buscar_espacio_libre) 
+        y una ranura en el directorio (_buscar_entrada_directorio_libre). Una vez asegurado 
+        el espacio, inyecta la carga útil binaria en los clústeres asignados y empaqueta los 
+        metadatos del archivo (nombre ajustado a 15 bytes, tamaños y fechas en timestamp) 
+        usando la estructura de 64 bytes en little-endian requerida por el estándar.
+        """
         if not os.path.exists(ruta_local):
             print(f"Error: El archivo local '{ruta_local}' no existe.")
             return False
@@ -275,6 +307,17 @@ class FiUnamFS:
             return False
 
     def upload(self) -> bool:
+        """
+        Valida la integridad del superbloque (clúster 0) asegurando que la imagen montada 
+        corresponde a un volumen FiUnamFS válido. 
+        
+        Realiza una verificación en tres capas:
+        1. Firma de bytes nulos iniciales.
+        2. Nombre del sistema de archivos ('FiUnamFS') codificado en ASCII.
+        3. Compatibilidad de versión ('24-2').
+        Si la validación es exitosa, extrae la geometría del disco (tamaño de clúster, 
+        clústeres de directorio y totales) desempaquetando los enteros en formato little-endian (<I).
+        """
         try:
             with open(self.path, 'rb') as file:
                 file.seek(0)
@@ -320,6 +363,15 @@ class FiUnamFS:
             return False
     
     def _eliminarArchivo(self, nameFile: str) -> bool:
+        """
+        Ejecuta un borrado lógico (soft-delete) sobre un archivo del sistema.
+        
+        Por eficiencia, el sistema no reescribe los clústeres de datos con ceros (borrado físico). 
+        En su lugar, localiza la dirección física (offset) de la entrada del directorio y aplica 
+        una máscara de invalidación (b'/' seguida de '#') sobre el nombre del archivo. 
+        Finalmente, purga las referencias en las estructuras de datos dinámicas en memoria 
+        para liberar el espacio contiguo para futuras inserciones.
+        """
         if nameFile not in self.archivos_validos: 
             print("No existe archivo con nombre:", nameFile)
             return False 
