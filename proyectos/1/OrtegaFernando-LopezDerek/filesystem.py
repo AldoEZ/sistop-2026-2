@@ -87,7 +87,7 @@ class FiUnamFS:
 
     def mostrar_archivos(self):
         """
-        Muestra la información de los archivos encontrados 
+        Muestra la información de los archivos encontrados
         en el directorio raíz.
         """
         archivos = self.listar_directorio()
@@ -229,8 +229,8 @@ class FiUnamFS:
         return siguiente_cluster
 
     def eliminar_archivo(self, nombre_archivo):
-        """ 
-        Elimina un archivo del sistema de archivos FiUnamFS 
+        """
+        Elimina un archivo del sistema de archivos FiUnamFS
         marcando su entrada como libre.
         """
         with self.lock:
@@ -291,42 +291,34 @@ class FiUnamFS:
                         return archivo.read(leer_cantidad)
         return b''
 
+    def escribir_bytes_archivo(self, nombre_archivo, data):
+        with self.lock:
+            indice = self.buscar_entrada_libre()
+            if indice == -1:
+                raise Exception("No hay espacio en directorio")
 
-def escribir_bytes_archivo(self, nombre_archivo, data):
-    """
-    Escribe datos directamente en el sistema de archivos desde memoria.
-    """
-    with self.lock:
-        # Busca una entrada libre
-        indice = self.buscar_entrada_libre()
-        if indice == -1:
-            raise Exception("No hay espacio en directorio")
+            cluster_libre = self.buscar_cluster_libre()
 
-        # Busca un cluster libre
-        cluster_libre = self.buscar_cluster_libre()
+            with open(self.ruta, 'r+b') as archivo:
+                inicio_datos = cluster_libre * CLUSTER_SIZE
+                archivo.seek(inicio_datos)
+                archivo.write(data)
 
-        # Escribe los datos en el cluster
-        with open(self.ruta, 'r+b') as archivo:
-            inicio_datos = cluster_libre * CLUSTER_SIZE
-            archivo.seek(inicio_datos)
-            archivo.write(data)
+                tamano = len(data)
+                offset = DIRECTORY_START + (indice * ENTRY_SIZE)
+                archivo.seek(offset)
+                archivo.write(b'-')
 
-            # Actualiza metadata en directorio
-            tamano = len(data)
-            offset = DIRECTORY_START + (indice * ENTRY_SIZE)
-            archivo.seek(offset)
-            archivo.write(b'-')  # Tipo archivo
+                nombre_bytes = nombre_archivo.encode(
+                    'ascii')[:15].ljust(15, b' ')
+                archivo.write(nombre_bytes)
 
-            # Nombre (truncado a 15 chars)
-            nombre_bytes = nombre_archivo.encode(
-                'ascii')[:15].ljust(15, b' ')
-            archivo.write(nombre_bytes)
+                archivo.write(struct.pack('<I', tamano))
+                archivo.write(struct.pack('<I', cluster_libre))
 
-            # Tamaño y cluster
-            archivo.write(struct.pack('<I', tamano))
-            archivo.write(struct.pack('<I', cluster_libre))
-
-            # Fecha
-            fecha = datetime.now().strftime('%Y%m%d%H%M%S').encode('ascii')
-            archivo.seek(offset + 30)
-            archivo.write(fecha)
+                fecha = datetime.now().strftime('%Y%m%d%H%M%S').encode('ascii')
+                archivo.seek(offset + 30)
+                archivo.write(fecha)
+                archivo.seek(offset + 50)
+                archivo.write(fecha)
+            print(f'Archivo {nombre_archivo} agregado correctamente.')
