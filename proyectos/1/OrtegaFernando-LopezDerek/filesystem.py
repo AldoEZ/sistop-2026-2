@@ -1,10 +1,12 @@
 import struct
 import threading
+from datetime import datetime
 
 CLUSTER_SIZE = 2048
 DIRECTORY_START = 2048
 ENTRY_SIZE = 64
 TOTAL_ENTRIES = 256
+
 
 class FiUnamFS:
     def __init__(self, ruta):
@@ -60,7 +62,8 @@ class FiUnamFS:
                     if tipo == '-':
 
                         tamano = struct.unpack('<I', entrada[16:20])[0]
-                        cluster_inicial = struct.unpack('<I', entrada[20:24])[0]
+                        cluster_inicial = struct.unpack(
+                            '<I', entrada[20:24])[0]
 
                         archivos_encontrados.append({
                             'nombre': nombre,
@@ -106,12 +109,109 @@ class FiUnamFS:
                         inicio = cluster * CLUSTER_SIZE
                         archivo.seek(inicio)
                         datos = archivo.read(tamano)
-                        
+
                         with open(destino, 'wb') as salida:
                             salida.write(datos)
 
                         print('Archivo copiado correctamente.')
-                        
+
                         return
 
         print('Archivo no encontrado.')
+
+    def copiar_hacia_fs(self, ruta_archivo):
+        with self.lock:
+            indice = self.buscar_entrada_libre()
+
+            if indice == -1:
+                print('No hay entradas libres en el directorio.')
+                return
+
+            with open(ruta_archivo, 'rb') as archivo_local:
+                datos = archivo_local.read()
+
+            tamano = len(datos)
+            nombre = ruta_archivo.split('/')[-1]
+            nombre = nombre[:15]
+
+            # Calcula el cluster real
+            cluster_libre = self.buscar_cluster_libre()
+
+            with open(self.ruta, 'r+b') as archivo:
+                inicio_datos = cluster_libre * CLUSTER_SIZE
+
+                archivo.seek(inicio_datos)
+                archivo.write(datos)
+
+                offset = DIRECTORY_START + (indice * ENTRY_SIZE)
+
+                archivo.seek(offset)
+
+                archivo.write(b'-')
+
+                nombre_bytes = nombre.encode('ascii')
+                nombre_bytes = nombre_bytes.ljust(15, b' ')
+
+                archivo.write(nombre_bytes)
+
+                archivo.write(struct.pack('<I', tamano))
+                archivo.write(struct.pack('<I', cluster_libre))
+
+                fecha = datetime.now().strftime('%Y%m%d%H%M%S')
+                fecha_bytes = fecha.encode('ascii')
+
+                archivo.seek(offset + 24)
+                archivo.write(b'000000')
+
+                archivo.seek(offset + 30)
+                archivo.write(fecha_bytes)
+
+                archivo.seek(offset + 50)
+                archivo.write(fecha_bytes)
+
+            print('Archivo agregado correctamente.')
+
+    def buscar_entrada_libre(self):
+        """
+        Busca una entrada en el directorio cuyo nombre sea '###############'.
+        Devuelve el índice de la entrada o -1 si no hay espacio.
+        """
+        with open(self.ruta, 'rb') as archivo:
+            for i in range(TOTAL_ENTRIES):
+                offset = DIRECTORY_START + (i * ENTRY_SIZE)
+                archivo.seek(offset)
+                entrada = archivo.read(ENTRY_SIZE)
+
+                # Lee los bytes del nombre (del byte 1 al 15)
+                nombre = entrada[1:16].decode('ascii')
+                if nombre == '###############':
+                    return i
+        return -1
+
+    def buscar_cluster_libre(self):
+        """
+        Escanea el directorio para encontrar el cluster más alto ocupado
+        y devuelve el siguiente cluster disponible.
+        Los clusters de datos empiezan en el 9.
+        """
+        siguiente_cluster = 9
+
+        with open(self.ruta, 'rb') as archivo:
+            for i in range(TOTAL_ENTRIES):
+                offset = DIRECTORY_START + (i * ENTRY_SIZE)
+                archivo.seek(offset)
+                entrada = archivo.read(ENTRY_SIZE)
+                tipo = entrada[0:1].decode('ascii')
+                if tipo == '-':
+                    tamano = struct.unpack('<I', entrada[16:20])[0]
+                    cluster_inicial = struct.unpack('<I', entrada[20:24])[0]
+
+                    # Cuántos clusters ocupa este archivo
+                    clusters_ocupados = (
+                        tamano + CLUSTER_SIZE - 1) // CLUSTER_SIZE
+                    cluster_final_archivo = cluster_inicial + clusters_ocupados
+
+                    if cluster_final_archivo > siguiente_cluster:
+                        siguiente_cluster = cluster_final_archivo
+
+        return siguiente_cluster
