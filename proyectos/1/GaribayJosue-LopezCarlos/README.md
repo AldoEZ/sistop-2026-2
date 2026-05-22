@@ -68,7 +68,7 @@ Al ejecutar el Script se lanzarán en la terminal 5 opciones en forma de menú, 
 
 En la terminal, al ejecutar el programa, las opciones se muestran de la siguiente manera:
 
-![Opciones](/img/opciones.png)
+![Opciones](img/opciones.png)
 
 
 ## 6.- Ejemplos de uso
@@ -78,39 +78,39 @@ Para verificar la correcta implementación del programa realizaremos los siguien
 - **Listar contenidos**
 Al elegír la opción 1 se mostraron en pantalla el nombre de los archivos del disco, el tamaño que ocupan, su fecha de creación y el cluster inicial.
 
-![Opción 1](/img/resOp1.png)
+![Opción 1](img/resOp1.png)
 
 - **Extraer un archivo a la PC**
 Para extraer cualquier documento del disco se debe elegir la opción 2, que en este caso la utilizaremos para sacar del disco la imagen 'logo.png'.
 
-![Opción 2](/img/op2.png)
-![Opción 2](/img/despuesOp2.png)
+![Opción 2](img/op2.png)
+![Opción 2](img/despuesOp2.png)
 
 
 - **Insertar un archivo al disco**
 Con esta opción insertamos la imagen de nombre "imagen.png", la cual colocamos en la carpeta donde esta el disco para probar esta opción del menú.
 
-![Opción 3](/img/Op3.png)
-![Opción 3](/img/despuesOp3.png)
+![Opción 3](img/Op3.png)
+![Opción 3](img/despuesOp3.png)
 
 - **Eliminar un archivo del disco**
 Para eliminar cualquier documento del disco se debe elegir la opción 4, que en este caso eliminamos la imagen que habíamos puesto con la opción 3.
 
-![Opción 4](/img/op4.png)
-![Opción 4](/img/resOp4.png)
+![Opción 4](img/op4.png)
+![Opción 4](img/resOp4.png)
 
 
 - **Salir del programa**
 La opción 5 del menú cierra el programa y muestra el mensaje "Vuelva pronto"
 
-![Opción 5](/img/op5.png)
+![Opción 5](img/op5.png)
 
 
 ## 7.- ¿Qué obtuvimos del disco?
 
 Obtuvimos dos imágenes, una del logo de la facultad de ingeniería, otro de un gato defendiendo el software libre :D y el README de las indicaciones del proyecto.
 
-![discoContenido](/img/disco.png)
+![discoContenido](img/disco.png)
 
 
 

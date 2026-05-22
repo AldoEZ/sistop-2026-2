@@ -213,7 +213,7 @@ def main():
         print("4.- Eliminar")
         print("5.- Salir")
         opcion = input("Selecciona una operación: ").strip()
-        
+         
         peticion = None
         if opcion == '1':
             peticion = PeticionFS('LISTAR')
