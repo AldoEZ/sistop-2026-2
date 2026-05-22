@@ -10,7 +10,7 @@
 - **Sistema operativo**: Linux
 - **Lenguaje**: Python 3.x
 - **Dependencias externas**: Ninguna
-- **Módulos estándar usados**: `struct`, `threading`, `datetime`
+- **Módulos estándar usados**: `struct`, `threading`, `datetime`, `queue`, `time`
 
 ## Estructura del proyecto
 
@@ -40,9 +40,10 @@ Sugerencia en Linux:
 
 ## Sincronización / Concurrencia
 
-- El menú crea un **hilo** (`threading.Thread`) para ejecutar la operación seleccionada sin bloquear el flujo principal de opciones.
-- En `filesystem.py` se usa un **`Lock`** (`threading.Lock()`) para proteger el acceso de lectura y escritura a la imagen del sistema de archivos, asegurando la integridad de los datos durante la concurrencia.
-- El hilo se sincroniza con el principal mediante `join()`.
+- **Multihilo Real**: Se implementó un patrón Productor-Consumidor. El hilo principal (`main.py`) maneja la interfaz de usuario de forma ininterrumpida y coloca las órdenes en una cola (`queue.Queue`).
+- **Trabajador**: Un hilo secundario dedicado (`trabajador_fs`) lee continuamente las tareas de la cola y las ejecuta en segundo plano.
+- **Comunicación de estado**: Se utiliza una variable global compartida (`estado_fs`) para comunicar al hilo principal si el hilo trabajador está `LIBRE` o `TRABAJANDO`, mostrando este estado dinámicamente en el encabezado del menú.
+- **Protección de datos**: En `filesystem.py` se utiliza un `Lock` (`threading.Lock()`) para proteger el acceso de lectura y escritura al disco virtual y prevenir condiciones de carrera
 
 ## Notas
 
