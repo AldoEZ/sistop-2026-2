@@ -11,7 +11,7 @@
 
 #include "fiunamfs.h"
 
-// Mantiene una instancia compartida del sistema montado
+// Mantiene una instancia compartida de el sistema montado
 typedef struct{
     FiUnamFS fs;
 }FuseState;
