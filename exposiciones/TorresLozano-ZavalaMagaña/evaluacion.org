@@ -1,0 +1,58 @@
+#+title: Evaluación de la exposición
+#+author: Gunnar Wolf
+
+* Multithreading en la vida real
+
+- Tema presentado por :: Luis Arturo Zavala y Luis Torres
+- Calificación global :: 
+
+|------------------------+------+--------------------+------+---------|
+| Evaluación  compañeros | Peso | Evaluación docente | Peso | *Total* |
+|------------------------+------+--------------------+------+---------|
+|                   9.87 |  0.3 |               8.35 |  0.7 |    8.81 |
+|------------------------+------+--------------------+------+---------|
+#+TBLFM: @2$5=$1*$2+$3*$4;f-2
+
+* Evaluación grupal
+
+|              | 1 | 2 | 3 | 4 | 5 | Total |
+|--------------+---+---+---+---+---+-------|
+| Originalidad | 0 | 0 | 0 | 1 | 8 |  9.78 |
+| Nivel        | 0 | 0 | 0 | 1 | 8 |  9.78 |
+| Relevancia   | 0 | 0 | 0 | 0 | 9 | 10.00 |
+| Claridad     | 0 | 0 | 0 | 1 | 8 |  9.78 |
+| Presencia    | 0 | 0 | 0 | 0 | 9 | 10.00 |
+|--------------+---+---+---+---+---+-------|
+|              |   |   |   |   |   |  9.87 |
+#+TBLFM: @2$7..@6$7=10 * (0.2*$2 + 0.4*$3 + 0.6*$4 + 0.8*$5 + $6 ) / vsum($2..$6); f-2::@7$7=vmean(@2$7..@6$7); f-2
+
+** Comentarios de los compañeros
+
+- Un gran trabajo
+- gran exposición. la hicieron muy interesante
+- Me pareció muy buen proyecto
+
+* Evaluación por parte del docente
+
+| *Aspecto*                          | *Peso* | *Evaluación* | *Puntos* |
+|------------------------------------+--------+--------------+----------|
+| Contenido técnico y profundidad    |    0.3 |            7 |      2.1 |
+| Fuentes bibliográficas             |   0.15 |           10 |      1.5 |
+| Organización                       |   0.15 |           10 |      1.5 |
+| Comunicación oral y uso del tiempo |   0.25 |            7 |     1.75 |
+| Uso de recursos visuales           |   0.15 |           10 |      1.5 |
+|------------------------------------+--------+--------------+----------|
+| *Global*                           |        |              |     8.35 |
+#+TBLFM: @<<$4..@>>$4=$2*$3::$4=vsum(@<<..@>>);f-2
+
+** Comentarios
+
+- Presentaron una gran cantidad de material que ya habíamos visto en
+  clase.
+  - La presentación fue de 23 minutos y medio; si hubieran evitado
+    presentar contenido que ya vimos, probablemente habría estado cerca de
+    los 15 minutos...
+- Les hice algunos comentarios respecto a los ejemplos que daban. Recuerdo
+  particularmente el de los sistemas bancarios, que considero que no es
+  correcto presentarlo para este material.
+- Mantuvieron un buen ritmo y buena dicción durante la presentación.
