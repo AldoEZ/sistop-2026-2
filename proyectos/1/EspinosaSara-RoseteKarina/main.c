@@ -7,7 +7,7 @@
 
 #define INPUT_SIZE 512
 
-//Evita que ambos hilos escriban al mismo tiempo
+//Evita que ambos hilos escriban en el mismo tiempo
 pthread_mutex_t console_mutex;
 
 typedef enum{
