@@ -14,27 +14,36 @@ class FiUnamFS:
         self.lock = threading.Lock()
 
     def validar_fs(self):
-        """ Valida que el sistema de archivos sea 
+        """ 
+        Valida que el sistema de archivos sea estrictamente
         FiUnamFS versión 26-2.
         """
-        with open(self.ruta, 'rb') as archivo:
+        try:
+            with open(self.ruta, 'rb') as archivo:
+                archivo.seek(5)
+                # Leem los 9 bytes y limpia el \x00
+                nombre = archivo.read(9).decode(
+                    'ascii').replace('\x00', '').strip()
 
-            archivo.seek(5)
-            nombre = archivo.read(8).decode('ascii')
+                archivo.seek(14)
+                # Lee los 5 bytes y limpiamos el \x00
+                version = archivo.read(5).decode(
+                    'ascii').replace('\x00', '').strip()
 
-            archivo.seek(14)
-            version = archivo.read(4).decode('ascii')
+                if nombre != 'FiUnamFS':
+                    print('Error: El nombre del sistema de archivos no coincide.')
+                    return False
 
-            print('Sistema:', nombre)
-            print('Version:', version)
+                if version != '26-2':
+                    print(
+                        f"Error: Version incorrecta. Se esperaba '26-2', se encontró '{version}'.")
+                    return False
 
-            if nombre != 'FiUnamFS':
-                return False
+            return True
 
-            if version != '26-2':
-                return False
-
-        return True
+        except Exception as e:
+            print(f"Error al abrir la imagen: {e}")
+            return False
 
     def listar_directorio(self):
         """
