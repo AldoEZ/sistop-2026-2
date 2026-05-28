@@ -4,12 +4,12 @@
 * Máquinas virtuales
 
 - Tema presentado por :: Josué Benjamín Garibay y Carlos Daniel López
-- Calificación global :: 
+- Calificación global :: 9.06
 
 |------------------------+------+--------------------+------+---------|
 | Evaluación  compañeros | Peso | Evaluación docente | Peso | *Total* |
 |------------------------+------+--------------------+------+---------|
-|                     10 |  0.3 |                    |  0.7 |         |
+|                     10 |  0.3 |               8.65 |  0.7 |    9.06 |
 |------------------------+------+--------------------+------+---------|
 #+TBLFM: @2$5=$1*$2+$3*$4;f-2
 
@@ -34,13 +34,20 @@
 
 | *Aspecto*                          | *Peso* | *Evaluación* | *Puntos* |
 |------------------------------------+--------+--------------+----------|
-| Contenido técnico y profundidad    |    0.3 |              |       0. |
-| Fuentes bibliográficas             |   0.15 |              |       0. |
-| Organización                       |   0.15 |              |       0. |
-| Comunicación oral y uso del tiempo |   0.25 |              |       0. |
-| Uso de recursos visuales           |   0.15 |              |       0. |
+| Contenido técnico y profundidad    |    0.3 |            7 |      2.1 |
+| Fuentes bibliográficas             |   0.15 |           10 |      1.5 |
+| Organización                       |   0.15 |           10 |      1.5 |
+| Comunicación oral y uso del tiempo |   0.25 |           10 |      2.5 |
+| Uso de recursos visuales           |   0.15 |            7 |     1.05 |
 |------------------------------------+--------+--------------+----------|
-| *Global*                           |        |              |     0.00 |
+| *Global*                           |        |              |     8.65 |
 #+TBLFM: @<<$4..@>>$4=$2*$3::$4=vsum(@<<..@>>);f-2
 
 ** Comentarios
+- Buen ritmo y entonación durante la presentación
+- Algunas explicaciones terminan dando muchas “vueltas” y me parece que
+  resulta un poco confuso
+- Toda la descripción de por qué las VMs sirven para analizar malware, en
+  centros de datos, y de uso de sistemas legados, es muy en abstracto, no
+  “baja” en ningún momento a lo aplicado / demostrable. Ningún “demo” de lo
+  que están describiendo 🙁
