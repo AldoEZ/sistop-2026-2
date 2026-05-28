@@ -1,0 +1,56 @@
+#+title: Evaluación de la exposición
+#+author: Gunnar Wolf
+
+* ¿Por qué mi celular cierra apps “de la nada”? Gestión de memoria y el OOM Killer
+
+- Tema presentado por :: Santiago Arath Bello Sánchez y David Baruc López
+  Romero
+- Calificación global :: 
+
+|------------------------+------+--------------------+------+---------|
+| Evaluación  compañeros | Peso | Evaluación docente | Peso | *Total* |
+|------------------------+------+--------------------+------+---------|
+|                   9.78 |  0.3 |               8.65 |  0.7 |    8.99 |
+|------------------------+------+--------------------+------+---------|
+#+TBLFM: @2$5=$1*$2+$3*$4;f-2
+
+* Evaluación grupal
+
+|              | 1 | 2 | 3 | 4 | 5 | Total |
+|--------------+---+---+---+---+---+-------|
+| Originalidad | 0 | 0 | 0 | 1 | 8 |  9.78 |
+| Nivel        | 0 | 0 | 0 | 1 | 8 |  9.78 |
+| Relevancia   | 0 | 0 | 0 | 1 | 8 |  9.78 |
+| Claridad     | 0 | 0 | 0 | 1 | 8 |  9.78 |
+| Presencia    | 0 | 0 | 0 | 1 | 8 |  9.78 |
+|--------------+---+---+---+---+---+-------|
+|              |   |   |   |   |   |  9.78 |
+#+TBLFM: @2$7..@6$7=10 * (0.2*$2 + 0.4*$3 + 0.6*$4 + 0.8*$5 + $6 ) / vsum($2..$6); f-2::@7$7=vmean(@2$7..@6$7); f-2
+
+** Comentarios de los compañeros
+- Me gusta la forma de presentar, sin embargo me hubiera gustado un poco
+  más de material visual.
+- Buen trabajo
+- Muy amena e interesante
+
+* Evaluación por parte del docente
+
+| *Aspecto*                          | *Peso* | *Evaluación* | *Puntos* |
+|------------------------------------+--------+--------------+----------|
+| Contenido técnico y profundidad    |    0.3 |            7 |      2.1 |
+| Fuentes bibliográficas             |   0.15 |           10 |      1.5 |
+| Organización                       |   0.15 |           10 |      1.5 |
+| Comunicación oral y uso del tiempo |   0.25 |           10 |      2.5 |
+| Uso de recursos visuales           |   0.15 |            7 |     1.05 |
+|------------------------------------+--------+--------------+----------|
+| *Global*                           |        |              |     8.65 |
+#+TBLFM: @<<$4..@>>$4=$2*$3::$4=vsum(@<<..@>>);f-2
+
+** Comentarios
+- El tono/ritmo que utilizaron es agradable y natural.
+  - A ratos se notan pausas un poco largas, supongo, por los “huecos” de
+    edición
+- Me parece que podrían haber dado los datos, aunque sea, /un poquito/ más
+  técnicos (umbrales más específicos, no “0 / Intermedia / alta” o
+  “protegida / parcialmente protegida / primeras en sacrificio”, sino que
+  datos más tangibles.
